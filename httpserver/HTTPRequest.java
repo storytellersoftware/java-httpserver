@@ -1,8 +1,10 @@
+package httpserver;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
-  public class HTTPRequest {
+public class HTTPRequest {
   public static final String GET_REQUEST_TYPE = "GET";
   public static final String POST_REQUEST_TYPE = "POST";
   public static final String HEAD_REQUEST_TYPE = "HEAD";
