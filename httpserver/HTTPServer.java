@@ -19,6 +19,8 @@ public class HTTPServer implements Runnable {
     try {
       socket = new ServerSocket();
 
+      System.out.println("Starting HTTPServer at http://127.0.0.1:" + PORT);
+
       socket.setReuseAddress(true);
       socket.bind(new InetSocketAddress(PORT));
 
@@ -28,6 +30,7 @@ public class HTTPServer implements Runnable {
           connection = socket.accept();
 
           HTTPRequest request = new HTTPRequest(connection);
+          System.out.println(request);
           //HTTPResponse response = new HTTPResponse(connection, request.getHandler());
         }
         catch (SocketException e) {
@@ -81,4 +84,5 @@ public class HTTPServer implements Runnable {
       }
     }
   }
+
 }

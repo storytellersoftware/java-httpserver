@@ -238,4 +238,21 @@ public class HTTPRequest {
   public List<String> getPath() {
     return path;
   }
+
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("HTTPRequest from ");
+    builder.append(getConnection().getLocalAddress().getHostAddress());
+    builder.append("\n\t");
+      builder.append("Request Line: ");
+      builder.append(getRequestLine());
+      builder.append("\n\t\t");
+        builder.append("Request Type ");
+        builder.append(getRequestType());
+      builder.append("\n\t\t");
+        builder.append("Request Path ");
+        builder.append(getFullPath());
+
+    return builder.toString();
+  }
 }
