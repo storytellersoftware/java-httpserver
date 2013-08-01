@@ -9,6 +9,8 @@ public class HTTPRequest {
   public static final String POST_REQUEST_TYPE = "POST";
   public static final String HEAD_REQUEST_TYPE = "HEAD";
 
+  private static Map<String, Class> handlers = new HashMap<String, Class>();
+
   // connection with client
   private Socket connection;
 
@@ -44,6 +46,8 @@ public class HTTPRequest {
   // the POST data
   private Map<String, String> postData;
 
+  private HTTPHandler handler;
+
 
   /**
    * An HTTPRequest takes a supposed HTTP request (supposed because
@@ -63,6 +67,7 @@ public class HTTPRequest {
     setPostData(new HashMap<String, String>());
 
     parseRequest();
+    setHandler(determineHandler());
   }
 
 
@@ -78,6 +83,42 @@ public class HTTPRequest {
 
     // The first line of a request *should* be the request line
     setRequestLine(input.readLine());
+
+    /*  Every line after the first, but before an empty line is a header,
+        which is a key/value pair.
+
+        The key is before the ": ", the value, after
+    */
+    for (String line = input.readLine(); line != null && !line.isEmpty(); line = input.readLine()) {
+      String[] items = line.split(": ");
+
+      if (items.length == 1) {
+        throw new HTTPException("No key value pair in \n\t" + line);
+      }
+
+      String value = items[1];
+      for (int i = 2; i < items.length; i++) {
+        value += ": " + items[i];
+      }
+
+      getHeaders().put(items[0], value);
+    }
+
+    /*  If the client sent over a POST request, there's *probably* still data
+        in the stream. This reads in only the number of chars specified in the
+        "Content-Length" header.
+    */
+    if (getRequestType().equals(POST_REQUEST_TYPE) && getHeaders().containsKey("Content-Length")) {
+      int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
+      StringBuilder b = new StringBuilder();
+
+      for (int i = 0; i < contentLength; i++) {
+        b.append((char)input.read());
+      }
+
+      String[] data = b.toString().split("&");
+      getPostData().putAll(parseInputData(data));
+    }
   }
 
 
@@ -102,6 +143,18 @@ public class HTTPRequest {
     return out;
   }
 
+
+  public void addHandler(String path, Class handlerClass) {
+    handlers.put(path, handlerClass);
+  }
+
+  public HTTPHandler determineHandler() {
+    if (handlers.containsKey(getPath().get(0))) {
+      return new Class.forName(handlers.get(getPath().get(0))).newInstance();
+    }
+
+    return new Class.forName(handlers.get("*")).newInstance();
+  }
 
 
   public void setConnection(Socket connection) {
@@ -178,17 +231,17 @@ public class HTTPRequest {
   }
   
   public void setRequestType(String requestType) {
-	this.requestType = requestType;
+    this.requestType = requestType;
   }
   public String getRequestType() {
-	return requestType;
+    return requestType;
   }
   
   public void setRequestProtocol(String requestProtocol) {
-	this.requestProtocol = requestProtocol;
+    this.requestProtocol = requestProtocol;
   }
   public String getRequestProtocol() {
-	return requestProtocol;
+    return requestProtocol;
   }
 
   /**
@@ -237,6 +290,13 @@ public class HTTPRequest {
   }
   public List<String> getPath() {
     return path;
+  }
+
+  public void setHandler(HTTPHandler handler) {
+    this.handler = handler;
+  }
+  public HTTPHandler getHandler() {
+    return handler;
   }
 
   public String toString() {
