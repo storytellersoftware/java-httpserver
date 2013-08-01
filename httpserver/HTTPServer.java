@@ -6,15 +6,34 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
+/**
+ * HTTPServer is a relatively simple class with one job, and one job only:
+ * wait for incoming connections, and send the connections over to an
+ * HTTPRequest and an HTTPResponse.
+ *
+ * An HTTPServer is not required to use the rest of the httpserver classes,
+ * and might not be the best base server for one to use. It exists solely to
+ * provide an existing mechanism for using the rest of the httpserver package.
+ */
 public class HTTPServer implements Runnable {
+  /** The port being listend on */
   public static final int PORT = 8000;
   
+  /** The server's name */
   public static final String SERVER_NAME = "Simple Java Server";
-  public static final String SERVER_VERSION = "0.0.1"; // semver
+  
+  /** The server's version */
+  public static final String SERVER_VERSION = "0.0.1";
+
+  /** Extra information about the server */
   public static final String SERVER_ETC = "now in Glorious Extra Color";
+
 
   private ServerSocket socket = null;
 
+  /**
+   * Tell the server to run! On the port specified in PORT
+   */
   public void run() {
     try {
       socket = new ServerSocket();

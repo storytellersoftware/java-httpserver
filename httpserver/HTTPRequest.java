@@ -4,11 +4,22 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+/**
+ * An HTTPRequest takes an incoming connection and parses out all of the
+ * relevant data, supposing the conneciton follows HTTP protocol. 
+ */
 public class HTTPRequest {
+  /** HTTP GET request type */
   public static final String GET_REQUEST_TYPE = "GET";
+
+  /** HTTP POST request type */
   public static final String POST_REQUEST_TYPE = "POST";
+
+  /** HTTP HEAD request type */
   public static final String HEAD_REQUEST_TYPE = "HEAD";
 
+
+  // used to determine what one does with the request
   private static Map<String, Class> handlers = new HashMap<String, Class>();
 
   // connection with client
@@ -16,7 +27,7 @@ public class HTTPRequest {
 
   // the handler used to determine what the server actually does
   // with this request
-  //private HTTPHandler handler;
+  private HTTPHandler handler;
 
   // the full text of the incoming request, including headers
   // and sent over data
@@ -46,17 +57,13 @@ public class HTTPRequest {
   // the POST data
   private Map<String, String> postData;
 
-  private HTTPHandler handler;
-
 
   /**
-   * An HTTPRequest takes a supposed HTTP request (supposed because
-   * a user <em>could</em> use something other than a web browser to
-   * make a call to the server) and dismantles it into it's base components.
+   * Parse out an HTTP request provided a Socket
    * @param connection The socket between the server and client
-   * @throws IOException
+   * @throws IOException 
    * @throws SocketException
-   * @throws HTTPException
+   * @throws HTTPException when something that doesn't follow HTTP spec occurs
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException, HTTPException {
     setConnection(connection);
@@ -144,9 +151,26 @@ public class HTTPRequest {
   }
 
 
-  public void addHandler(String path, Class handlerClass) {
+  /**
+   * Add a new handler to the list of available handlers.
+   *
+   * A request's handler type is determined based off of the first
+   * segment of a path. For example if 
+   * <code>addHandler("add", AdditionHandler.class)</code> is called,
+   * when someone makes a request to 
+   * <code>/add/[any number of other path segments]</code>, a new
+   * AdditionHandler is used to determine the response's content.
+   *
+   * @param path  When the first segment of the path matches this, 
+   *              the passed in Handler's class is called.
+   * @param handlerClass  The class of the HTTPHandler to be called
+   *                      when the above path is matched
+   */
+  public static void addHandler(String path, Class<? extends HTTPHandler> handlerClass) throws HTTPException {
+
     handlers.put(path, handlerClass);
   }
+
 
   public HTTPHandler determineHandler() {
     if (handlers.containsKey(getPath().get(0))) {
