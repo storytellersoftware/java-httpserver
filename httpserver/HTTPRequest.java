@@ -1,6 +1,8 @@
 package httpserver;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 
@@ -20,7 +22,8 @@ public class HTTPRequest {
 
 
   // used to determine what one does with the request
-  private static Map<String, Class> handlers = new HashMap<String, Class>();
+  private static Map<String, Class<? extends HTTPHandler>> handlers 
+          = new HashMap<String, Class<? extends HTTPHandler>>();
 
   // connection with client
   private Socket connection;
@@ -59,13 +62,19 @@ public class HTTPRequest {
 
 
   /**
-   * Parse out an HTTP request provided a Socket
+   * Used to parse out an HTTP request provided a Socket and figure out the
+   * handler to be used.
    * @param connection The socket between the server and client
    * @throws IOException 
    * @throws SocketException
    * @throws HTTPException when something that doesn't follow HTTP spec occurs
    */
-  public HTTPRequest(Socket connection) throws IOException, SocketException, HTTPException {
+  public HTTPRequest(Socket connection) throws IOException, SocketException, 
+          HTTPException {
+    if (handlers.isEmpty()) {
+      handlers.put("*", DeathHandler.class);
+    }
+
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
@@ -84,9 +93,11 @@ public class HTTPRequest {
    * @throws SocketException
    * @throws HTTPException
    */
-  private void parseRequest() throws IOException, SocketException, HTTPException {
+  private void parseRequest() throws IOException, SocketException, 
+          HTTPException {
     // Used to read in from the socket
-    BufferedReader input = new BufferedReader(new InputStreamReader(getConnection().getInputStream()));
+    BufferedReader input = new BufferedReader(
+            new InputStreamReader(getConnection().getInputStream()));
 
     // The first line of a request *should* be the request line
     setRequestLine(input.readLine());
@@ -96,7 +107,9 @@ public class HTTPRequest {
 
         The key is before the ": ", the value, after
     */
-    for (String line = input.readLine(); line != null && !line.isEmpty(); line = input.readLine()) {
+    for (String line = input.readLine(); 
+            line != null && !line.isEmpty(); 
+            line = input.readLine()) {
       String[] items = line.split(": ");
 
       if (items.length == 1) {
@@ -115,7 +128,8 @@ public class HTTPRequest {
         in the stream. This reads in only the number of chars specified in the
         "Content-Length" header.
     */
-    if (getRequestType().equals(POST_REQUEST_TYPE) && getHeaders().containsKey("Content-Length")) {
+    if (getRequestType().equals(POST_REQUEST_TYPE) && 
+            getHeaders().containsKey("Content-Length")) {
       int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
       StringBuilder b = new StringBuilder();
 
@@ -131,8 +145,9 @@ public class HTTPRequest {
 
   /**
    * Turns an array of "key=value" strings into a map.
-   * @param data List of strings in "key=value" form, you know, like HTTP GET or POST lines?
-   * @return
+   * @param   data List of strings in "key=value" form, you know, like HTTP GET 
+   *          or POST lines?
+   * @return  Map of key value pairs
    */
   private Map<String, String> parseInputData(String[] data) {
     Map<String, String> out = new HashMap<String, String>();
@@ -166,18 +181,49 @@ public class HTTPRequest {
    * @param handlerClass  The class of the HTTPHandler to be called
    *                      when the above path is matched
    */
-  public static void addHandler(String path, Class<? extends HTTPHandler> handlerClass) throws HTTPException {
+  public static void addHandler(String path, Class<? extends HTTPHandler> handlerClass) {
 
     handlers.put(path, handlerClass);
   }
 
-
+  /**
+   * Figure out what kind of HTTPHandler you want, based on the path.
+   *
+   * This returns a new object of that class. Just learning that Java has 
+   * this capability really impressed me, I wouldn't have thought Java could 
+   * do this.
+   *
+   * @return a new instance of some form of HTTPHandler.
+   */
   public HTTPHandler determineHandler() {
+    Class<? extends HTTPHandler> hClass;
+    
+    // check if there's a handler for the specified segment.
     if (handlers.containsKey(getPath().get(0))) {
-      return new Class.forName(handlers.get(getPath().get(0))).newInstance();
+      hClass = handlers.get(getPath().get(0));
+    }
+    // if there isn't, use our default handler
+    else {
+      hClass = handlers.get("*");
     }
 
-    return new Class.forName(handlers.get("*")).newInstance();
+    try {
+      // attempt to make a new constructor of the selected class from
+      // above. And attempt to return a new object of that class, using
+      // the constructor.
+      Constructor<? extends HTTPHandler> hConstructor 
+              = hClass.getConstructor(HTTPRequest.class);
+
+      return hConstructor.newInstance(this);
+    } 
+    catch (NoSuchMethodException | SecurityException | InstantiationException 
+            | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException e) {
+      e.printStackTrace();
+    }
+  
+    // if we can't do that, send over a DEATH HANDLER!
+    return new DeathHandler(this);
   }
 
 

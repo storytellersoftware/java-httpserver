@@ -31,6 +31,7 @@ public abstract class HTTPHandler {
     setResponseCode(200);
     setResponseSize(-1);
     setHandled(false);
+    setResponseType("text/plain");
   }
 
   /**
@@ -46,7 +47,7 @@ public abstract class HTTPHandler {
    */
   public void message(int code, String message) {
     setResponseCode(code);
-    setResponse(message);
+    setResponseText(message);
     setHandled(true);
   }
 
@@ -56,8 +57,8 @@ public abstract class HTTPHandler {
    * any data in the stream, but the server correctly processed the request
    */
   public void noContent() {
-    setReponseCode(204);
-    setResponse("");
+    setResponseCode(204);
+    setResponseText("");
     setHandled(true);
   }
 
@@ -100,5 +101,19 @@ public abstract class HTTPHandler {
   }
   public boolean isHandled() {
     return handled;
+  }
+
+  public void setResponseText(String responseText) {
+    this.responseText = responseText;
+  }
+  public String getResponseText() {
+    return responseText;
+  }
+
+  public void setResponseType(String responseType) {
+    this.responseType = responseType;
+  }
+  public String getResponseType() {
+    return responseType;
   }
 }

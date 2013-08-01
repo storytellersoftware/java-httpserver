@@ -49,8 +49,8 @@ public class HTTPServer implements Runnable {
           connection = socket.accept();
 
           HTTPRequest request = new HTTPRequest(connection);
-          System.out.println(request);
-          //HTTPResponse response = new HTTPResponse(connection, request.getHandler());
+          //System.out.println(request);
+          HTTPResponse response = new HTTPResponse(connection, request.getHandler());
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection, and
@@ -102,6 +102,14 @@ public class HTTPServer implements Runnable {
     	e.printStackTrace();
       }
     }
+  }
+
+  public void addHandler(String path, Class<? extends HTTPHandler> handler) {
+    HTTPRequest.addHandler(path, handler);
+  }
+
+  public void addDefaultHandler(Class<? extends HTTPHandler> handler) {
+    HTTPRequest.addHandler("*", handler);
   }
 
 }
