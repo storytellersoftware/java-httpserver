@@ -30,16 +30,8 @@ public abstract class HTTPHandler {
 	/** Generic status message for when everything is good */
 	public static final String STATUS_GOOD = "All systems are go";
 
-<<<<<<< HEAD
-	
-	private HashMap<String, Method> getMethods = new HashMap<String, Method>();
-	private HashMap<String, Method> postMethods = new HashMap<String, Method>();
-
-=======
 	private HashMap<String, MethodWrapper> getMethods = new HashMap<String, MethodWrapper>();
 	private HashMap<String, MethodWrapper> postMethods = new HashMap<String, MethodWrapper>();
-	private Class<? extends HTTPHandler> handler;
->>>>>>> 1d807ac94cfd135716d1f5621e6dcf468e60ab31
 
 	private HTTPRequest request;
 	private int responseCode;
@@ -82,18 +74,11 @@ public abstract class HTTPHandler {
 
 
 	public void handle() throws HTTPException {
-		String path = getSimplePath(getRequest().getFullPath());
-
-		HashMap<String, MethodWrapper> map = getMethodHash();
-		invokeMethod(map, path);
-	}
-
-	private void invokeMethod(HashMap<String, MethodWrapper> map, String path) throws HTTPException {
-		MethodWrapper method = map.get(path);
+		MethodWrapper method = getMap().get(getRequest().getPath());
 		List<Object> parameters = new ArrayList<Object>();
 
 		if(method == null) {
-			System.out.println(map.keySet());
+			System.out.println(getMap().keySet());
 		}
 
 		method.invoke(this, parameters);
