@@ -64,6 +64,7 @@ public class HTTPRequest {
   /**
    * Used to parse out an HTTP request provided a Socket and figure out the
    * handler to be used.
+   *
    * @param connection The socket between the server and client
    * @throws IOException 
    * @throws SocketException

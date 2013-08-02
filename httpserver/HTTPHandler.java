@@ -6,9 +6,14 @@ import java.util.HashMap;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from.
- * The only real requirement for a handler is that it has a <code>handle</code>
- * method, where it sets the values that are going to be used by the
- * HTTPResponse.
+ *
+ * Extended classes have two options for determining their actions: they may
+ * override the handle method (slightly harder), or use the addGet and addPost
+ * methods in the constructor. See their descriptions for more information.
+ *
+ * @see HTTPHandler#handle
+ * @see HTTPHandler#addGet
+ * @see HTTPHandler#addPost
  */
 public abstract class HTTPHandler {
 	/** Generic error message for when an exception occurs on the server */
@@ -28,8 +33,6 @@ public abstract class HTTPHandler {
 	
 	private HashMap<String, Method> getMethods = new HashMap<String, Method>();
 	private HashMap<String, Method> postMethods = new HashMap<String, Method>();
-	// TODO: do we needs this?
-	private Class<? extends HTTPHandler> handler;
 
 
 	private HTTPRequest request;
@@ -41,7 +44,24 @@ public abstract class HTTPHandler {
 
 	/**
 	 * Create an HTTPHandler.
+	 *
+	 * This also sets some acceptable defaults:
+	 *		The response code is set to 200 (OK, which means everything happend
+	 *		all nice and good-like);
+	 *
+	 *		The response size is set to -1, which tells the HTTPResponse to
+	 *		determine the correct size when sends back the information;
+	 *
+	 *		The response is told it hasn't been handled yet;
+	 *
+	 *		And the response mimetype is set to "text/plain".
+	 *
 	 * @param request HTTPRequest with the browser's request.
+	 * @see HTTPResponse
+	 * @see HTTPHandler#setResponseCode
+	 * @see HTTPHandler#setResponseSize
+	 * @see HTTPHandler#setHandled
+	 * @see HTTPHandler#setResponseType
 	 */
 	public HTTPHandler(HTTPRequest request) {
 		setRequest(request);
@@ -55,19 +75,10 @@ public abstract class HTTPHandler {
 	}
 
 
-	public void handleNew() throws HTTPException {
-		// TODO remove
-		message(501, NOT_A_METHOD_ERROR);
-
-
-	}
-
-
 	/**
 	 * Where subclasses perform their specific actions.
 	 * @throws HTTPException
 	 */
-	//@deprecated
 	public void handle() throws HTTPException {
 		String path = getRequest().getFullPath();
 		System.out.println("Full Path: " + path);
@@ -147,7 +158,7 @@ public abstract class HTTPHandler {
 
 
 	/**
-	 * Add a GET type method.
+	 * Attach a method to a GET request at a path.
 	 *
 	 * Methods are passed in using "className#methodName" form so that
 	 * we can parse out the correct Method. Who knows, you might want to
@@ -155,26 +166,38 @@ public abstract class HTTPHandler {
 	 *
 	 * If no # is included, we assume it belongs to the class it's called in.
 	 *
+	 * Path's should come in "/path/to/action" form. If the method requires
+	 * parameters, they should be included in the path, in the order they're
+	 * listed in the method definition, but in "{ClassName}" form. Example:
+	 * <code>/hello/{String}/{String}</code> is a good path.
+	 *
+	 * Methods being used should <strong>only</strong> have parameters that are
+	 * included in the java.lang library. Any other type of parameter will cause
+	 * an exception to occur.
+	 *
+	 * Additionally, primitives are not permited, because they're not classes in
+	 * the java.lang library.
+	 *
 	 * @param path         Path to match
 	 * @param classMethod 	Class and Method in class#method form.
 	 * @throws HTTPException When you do bad things.
+	 *
+	 * @see HTTPHandler#addPOST
 	 */
 	public void addGET(String path, String methodName) throws HTTPException {
 		addMethod(getMethods, path, methodName);
 	}
 	
 	/**
-	 * Add a POST type method.
+	 * Attach a method to a POST request at a path.
 	 *
-	 * Methods are passed in using "className#methodName" form so that
-	 * we can parse out the correct Method. Who knows, you might want to
-	 * use a method somewhere else, and who are we to argue with that?
-	 *
-	 * If no # is included, we assume it belongs to the class it's called in.
+	 * For a more detailed explanation, see addGET.
 	 *
 	 * @param path         Path to match
 	 * @param classMethod 	Class and Method in class#method form.
 	 * @throws HTTPException When you do bad things.
+	 *
+	 * @see HTTPHandler#addGET
 	 */
 	public void addPOST(String path, String methodName) throws HTTPException {
 		addMethod(postMethods, path, methodName);
@@ -190,10 +213,11 @@ public abstract class HTTPHandler {
 	 *
 	 * If no # is included, we assume it belongs to the class it's called in.
 	 *
-	 * @param map          The map to add this junks to.
-	 * @param path         Path to match
-	 * @param classMethod 	Class and Method in class#method form.
-	 * @throws HTTPException When you do bad things.
+	 * @param map             The map to add this junks to.
+	 * @param path            Path to match
+	 * @param classMethod     Class and Method in class#method form.
+	 *
+	 * @throws HTTPException  When you do bad things.
 	 */
 	private void addMethod(HashMap<String, Method> map, String path, String classMethod) throws HTTPException {
 		try {
@@ -228,9 +252,15 @@ public abstract class HTTPHandler {
 
 	/**
 	 * Send a simple string message with an HTTP response code back to
-	 * the client. Can be used for sending all data back.
-	 * @param code An HTTP response code.
-	 * @param message The content of the server's response to the browser
+	 * the client. 
+	 *
+	 * Can be used for sending all data back.
+	 *
+	 * @param code      An HTTP response code.
+	 * @param message   The content of the server's response to the browser
+	 *
+	 * @see HTTPHandler#error
+	 * @see HTTPHandler#noContent
 	 */
 	public void message(int code, String message) {
 		setResponseCode(code);
@@ -240,8 +270,11 @@ public abstract class HTTPHandler {
 
 	/**
 	 * Tell the browser there is no response data.
+	 *
 	 * This is done by sending over a 204 code, which means there isn't
 	 * any data in the stream, but the server correctly processed the request
+	 *
+	 * @see HTTPHandler#message
 	 */
 	public void noContent() {
 		setResponseCode(204);
@@ -250,18 +283,23 @@ public abstract class HTTPHandler {
 	}
 
 	/**
-	 * Same as message(), but prints out an exception.
+	 * Send a message to the browser and print an exception
 	 *
+	 * Prints the stackTrace of `t`, and sends a message `message` back to the 
+	 * browser, with that HTTP status of `code`
+	 * 
+	 * @param code      HTTP status code
+	 * @param message   the content being sent back to the browser
+	 * @param t         A throwable object, to be printed to the screen
+	 * 
 	 * @see httpserver.HTTPHandler#message
-	 * @param code HTTP status code
-	 * @param message the content being sent back to the browser
-	 * @param t A throwable object, to be printed to the screen
 	 */
 	public void error(int code, String message, Throwable t) {
 		t.printStackTrace();
 		message(code, message);
 	}
 
+	
 	public void setRequest(HTTPRequest request) {
 		this.request = request;
 	}
