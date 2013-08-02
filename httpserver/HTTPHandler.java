@@ -42,11 +42,17 @@ public abstract class HTTPHandler {
 		setResponseType("text/plain");
 	}
 
+
+	public void handle() {
+		
+	}
+
+
 	/**
 	 * Where subclasses perform their specific actions.
 	 * @throws HTTPException
 	 */
-	public void handle() throws HTTPException {
+	public void handleOld() throws HTTPException {
 		String path = getRequest().getFullPath();
 
 		try {
@@ -107,13 +113,52 @@ public abstract class HTTPHandler {
 	}
 
 	// TODO allow parameters or not?
-	public void addPath(String path, String methodName, Class<?> ... parameters) {
+	/*public void addPath(String path, String methodName, Class<?> ... parameters) {
 		try {
 			// Add the method from the handler that added the path
 			Method method = handler.getMethod(methodName, parameters);
 			methods.put(path, method);
 		} catch (NoSuchMethodException | SecurityException e) {
 			e.printStackTrace();
+		}
+	}*/
+	
+
+	/**
+	 * Add a method to a path.
+	 *
+	 * Methods are passed in using "className#methodName" form so that
+	 * we can parse out the correct Method. Who knows, you might want to
+	 * use a method somewhere else, and who are we to argue with that?
+	 *
+	 * If no # is included, we assume it belongs to the class it's called in.
+	 *
+	 * @param path Path to match
+	 * @param 	classMethod Class and Method in class#method form.
+	 * @throws HTTPException When you do bad things.
+	 */
+	public void addPath(String path, String classMethod) throws HTTPException {
+		//Class<? extends HTTPHandler> cl = null;
+		Class<? extends HTTPHandler> cl;
+		Method method = null;
+
+		try {
+			if (classMethod.indexOf('#') != -1) {
+				String[] cm = classMethod.split("#");
+				cl = (Class<? extends HTTPHandler>) Class.forName(cm[0]);
+				method = cl.getMethod(cm[1]);
+			}
+			else {
+				cl = this.getClass();
+				method = cl.getMethod(classMethod);
+			}
+
+			methods.put(path, method);
+
+		}
+		catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
+			e.printStackTrace();
+			throw new HTTPException("Not a class#method or method... " + classMethod);
 		}
 	}
 

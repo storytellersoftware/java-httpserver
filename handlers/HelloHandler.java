@@ -4,14 +4,14 @@ import httpserver.*;
 
 public class HelloHandler extends HTTPHandler {
 
-	public HelloHandler(HTTPRequest request) {
+	public HelloHandler(HTTPRequest request) throws HTTPException {
 		super(request);
 		try {
-			addPath("/hello", "sayHello");
-			addPath("/hello/{String}", "sayHelloF");
-			addPath("/hello/{String}/{String}", "sayHelloFL");
+			addPath("/", "sayHello");
+			addPath("/{String}", "sayHelloF");
+			addPath("/{String}/{String}", "sayHelloFL");
 
-			addPath("/goodbye", "sayGoodbye");
+			/*addPath("/goodbye", "sayGoodbye");*/
 		} catch (SecurityException e) {
 			e.printStackTrace();
 		}
