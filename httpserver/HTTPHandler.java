@@ -17,13 +17,13 @@ import java.util.List;
  */
 public abstract class HTTPHandler {
 	/** Generic error message for when an exception occurs on the server */
-	public static final String EXCEPTION_ERROR 
-					= "an exception occured while processing your request";
+	public static final String EXCEPTION_ERROR
+	= "an exception occured while processing your request";
 
-	/** Generic error message for when there isn't a method assigned to the 
+	/** Generic error message for when there isn't a method assigned to the
 					requested path */
 	public static final String NOT_A_METHOD_ERROR = "No known method";
-	
+
 	/** Generic error message for when the browser sends bad data */
 	public static final String MALFORMED_INPUT_ERROR = "Malformed Input";
 
@@ -63,7 +63,6 @@ public abstract class HTTPHandler {
 	 */
 	public HTTPHandler(HTTPRequest request) {
 		setRequest(request);
-		handler = this.getClass();
 
 		// default to good things
 		setResponseCode(200);
@@ -74,7 +73,7 @@ public abstract class HTTPHandler {
 
 
 	public void handle() throws HTTPException {
-		MethodWrapper method = getMap().get(getRequest().getPath());
+		MethodWrapper method = getMap().get(getRequest().getFullPath());
 		List<Object> parameters = new ArrayList<Object>();
 
 		if(method == null) {
@@ -101,7 +100,7 @@ public abstract class HTTPHandler {
 	public void handleOld() throws HTTPException {
 		String path = getRequest().getFullPath();
 		System.out.println("Full Path: " + path);
-		
+
 		if(path.charAt(path.length() - 1) != '/')
 			path += "/";
 
@@ -109,10 +108,10 @@ public abstract class HTTPHandler {
 			path = path.substring(path.indexOf('/', 1), path.length());
 			path = path.toLowerCase();
 		}
-		
+
 		System.out.println("Path: " + path);
-		
-		HashMap<String, Method> methods;
+
+		HashMap<String, MethodWrapper> methods;
 
 		if(getRequest().getRequestType().equalsIgnoreCase(HTTPRequest.GET_REQUEST_TYPE))
 			methods = getMethods;
@@ -178,7 +177,7 @@ public abstract class HTTPHandler {
 		}
 	}
 
-	private HashMap<String, MethodWrapper> getMethodHash() {
+	private HashMap<String, MethodWrapper> getMap() {
 		if(getRequest().getRequestType().equals(HTTPRequest.GET_REQUEST_TYPE))
 			return getMethods;
 		else
@@ -215,7 +214,7 @@ public abstract class HTTPHandler {
 	public void addGET(String path, String methodName) throws HTTPException {
 		addMethod(getMethods, path, methodName);
 	}
-	
+
 	/**
 	 * Attach a method to a POST request at a path.
 	 *
@@ -254,7 +253,7 @@ public abstract class HTTPHandler {
 
 	/**
 	 * Send a simple string message with an HTTP response code back to
-	 * the client. 
+	 * the client.
 	 *
 	 * Can be used for sending all data back.
 	 *
@@ -287,7 +286,7 @@ public abstract class HTTPHandler {
 	/**
 	 * Send a message to the browser and print an exception
 	 *
-	 * Prints the stackTrace of `t`, and sends a message `message` back to the 
+	 * Prints the stackTrace of `t`, and sends a message `message` back to the
 	 * browser, with that HTTP status of `code`
 	 * 
 	 * @param code      HTTP status code
@@ -301,7 +300,7 @@ public abstract class HTTPHandler {
 		message(code, message);
 	}
 
-	
+
 	public void setRequest(HTTPRequest request) {
 		this.request = request;
 	}
