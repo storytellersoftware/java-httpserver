@@ -25,9 +25,9 @@ public abstract class HTTPHandler {
 	/** Generic status message for when everything is good */
 	public static final String STATUS_GOOD = "All systems are go";
 
-
-	public static HashMap<String, Method> methods = new HashMap<String, Method>();
 	
+	private HashMap<String, Method> getMethods = new HashMap<String, Method>();
+	private HashMap<String, Method> postMethods = new HashMap<String, Method>();
 	// TODO: do we needs this?
 	private Class<? extends HTTPHandler> handler;
 
@@ -131,80 +131,30 @@ public abstract class HTTPHandler {
 	}
 
 
-	/**
-	 * Where subclasses perform their specific actions.
-	 * @throws HTTPException
-	 */
-	public void handleOld() throws HTTPException {
-		String path = getRequest().getFullPath();
 
-		try {
-			Method method = methods.get(path);
 
-			// If the method is null, there could be dynamic text in the url
-			if (method == null) {
-				// Iterate over the keys
-				outerloop:
-					for (String key : methods.keySet()) {
-						// We need the index of '{' because it is the escape character for dynamic text
-						int index = key.indexOf('{');
-
-						// This will be manipulated based on the key
-						String newPath = "";
-						// If there is dynamic text
-						if (index != -1) {
-							// Check if the text before the '{' matches before we continue
-							if (!path.substring(0, index).equalsIgnoreCase(key.substring(0, index)))
-								index = -1;
-							else
-								newPath = path.substring(0, index-1);
-						}
-						// While we have a '{' and the path still matches what was there before
-						while (index != -1 &&
-								newPath.substring(0, index-1).equalsIgnoreCase(key.substring(0, index-1))) {
-							// Add the next part of the dynamic text to the new path
-							newPath += key.substring(index-1, key.indexOf('}', index) + 1);
-
-							// Create another string that has newPath and the rest of the regular path to test with
-							String testPath;
-							if(path.indexOf('/', index) != -1)
-								testPath = newPath + path.substring(path.indexOf('/', index));
-							else
-								testPath = newPath;
-
-							// Check for our method
-							method = methods.get(testPath);
-
-							// If we have found a method, invoke it and get out of here
-							if (method != null) {
-								break outerloop;
-							}
-							// Set the new index to the next index of '{'
-							index = key.indexOf('{', index + 1);
-						}
-					}
-			}
-
-			System.out.println("Method invoked: " + method);
-
-			method.invoke(this);
-
-		} catch (NullPointerException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
-			e.printStackTrace();
-			throw new HTTPException("Could not handle path: " + getRequest().getFullPath());
-		}
+	public void addGET(String path, String methodName) throws HTTPException {
+		addMethod(getMethods, path, methodName);
 	}
 
-	// TODO allow parameters or not?
-	/*public void addPath(String path, String methodName, Class<?> ... parameters) {
+	public void addPOST(String path, String methodName) throws HTTPException {
+		addMethod(postMethods, path, methodName);
+	}
+
+	private void addMethod(HashMap<String, Method> map, String path, String methodName) throws HTTPException {
 		try {
-			// Add the method from the handler that added the path
-			Method method = handler.getMethod(methodName, parameters);
-			methods.put(path, method);
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
+			// Make sure the path ends in a '/' for checking for the path later
+			if(path.charAt(path.length() - 1) != '/')
+				path += '/';
+
+			// The path should be one case so the user isn't forced to use weird cases
+			path = path.toLowerCase();
+			Method method = handler.getMethod(methodName);
+			map.put(path, method);
+		} catch(NoSuchMethodException | SecurityException e) {
+			throw new HTTPException("Could not add path.", e);
 		}
-	}*/
+	}
 	
 
 	/**
