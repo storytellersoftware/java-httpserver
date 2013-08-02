@@ -11,14 +11,26 @@ import java.util.HashMap;
  * HTTPResponse.
  */
 public abstract class HTTPHandler {
-	public static final String EXCEPTION_ERROR = "an exception occured while processing your request";
+	/** Generic error message for when an exception occurs on the server */
+	public static final String EXCEPTION_ERROR 
+					= "an exception occured while processing your request";
+
+	/** Generic error message for when there isn't a method assigned to the 
+					requested path */
 	public static final String NOT_A_METHOD_ERROR = "No known method";
+	
+	/** Generic error message for when the browser sends bad data */
 	public static final String MALFORMED_INPUT_ERROR = "Malformed Input";
 
+	/** Generic status message for when everything is good */
 	public static final String STATUS_GOOD = "All systems are go";
 
+
 	public static HashMap<String, Method> methods = new HashMap<String, Method>();
+	
+	// TODO: do we needs this?
 	private Class<? extends HTTPHandler> handler;
+
 
 	private HTTPRequest request;
 	private int responseCode;
@@ -43,8 +55,79 @@ public abstract class HTTPHandler {
 	}
 
 
-	public void handle() {
-		
+	/**
+	 * Where subclasses perform their specific actions.
+	 * @throws HTTPException
+	 */
+	public void handle() throws HTTPException {
+		String path = getRequest().getFullPath();
+		System.out.println("Full Path: " + path);
+		if(path.charAt(path.length() - 1) != '/')
+			path += "/";
+		path = path.substring(path.indexOf('/', 1), path.length());
+		path = path.toLowerCase();
+		System.out.println("Path: " + path);
+		HashMap<String, Method> methods;
+		if(getRequest().getRequestType().equalsIgnoreCase(HTTPRequest.GET_REQUEST_TYPE))
+			methods = getMethods;
+		else
+			methods = postMethods;
+
+		try {
+			Method method = methods.get(path);
+
+			// If the method is null, there could be dynamic text in the url
+			if (method == null) {
+				// Iterate over the keys
+				outerloop:
+					for (String key : methods.keySet()) {
+						// We need the index of '{' because it is the escape character for dynamic text
+						int index = key.indexOf('{');
+
+						// This will be manipulated based on the key
+						String newPath = "";
+						// If there is dynamic text
+						if (index != -1) {
+							// Check if the text before the '{' matches before we continue
+							if (!path.substring(0, index).equalsIgnoreCase(key.substring(0, index)))
+								index = -1;
+							else
+								newPath = path.substring(0, index-1);
+						}
+						// While we have a '{' and the path still matches what was there before
+						while (index != -1 &&
+								newPath.substring(0, index-1).equalsIgnoreCase(key.substring(0, index-1))) {
+							// Add the next part of the dynamic text to the new path
+							newPath += key.substring(index-1, key.indexOf('}', index) + 1);
+
+							// Create another string that has newPath and the rest of the regular path to test with
+							String testPath;
+							if(path.indexOf('/', index) != -1)
+								testPath = newPath + path.substring(path.indexOf('/', index));
+							else
+								testPath = newPath;
+
+							// Check for our method
+							method = methods.get(testPath);
+
+							// If we have found a method, invoke it and get out of here
+							if (method != null) {
+								break outerloop;
+							}
+							// Set the new index to the next index of '{'
+							index = key.indexOf('{', index + 1);
+						}
+					}
+			}
+
+			System.out.println("Method invoked: " + method + "\n");
+
+			method.invoke(this);
+
+		} catch (NullPointerException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+			e.printStackTrace();
+			throw new HTTPException("Could not handle path: " + getRequest().getFullPath());
+		}
 	}
 
 
