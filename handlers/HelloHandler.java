@@ -7,12 +7,12 @@ public class HelloHandler extends HTTPHandler {
 	public HelloHandler(HTTPRequest request) {
 		super(request);
 		try {
-			addPath("/hello", "sayHello");
-			addPath("/hello/{String}", "sayHelloF");
-			addPath("/hello/{String}/{String}", "sayHelloFL");
+			addGET("/", "sayHello");
+			addGET("/{String}/", "sayHelloF");
+			addGET("/{String}/{String}", "sayHelloFL");
 
-			addPath("/goodbye", "sayGoodbye");
-		} catch (SecurityException e) {
+			addGET("/goodbye", "sayGoodbye");
+		} catch (HTTPException e) {
 			e.printStackTrace();
 		}
 	}

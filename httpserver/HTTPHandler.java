@@ -17,7 +17,8 @@ public abstract class HTTPHandler {
 
 	public static final String STATUS_GOOD = "All systems are go";
 
-	public static HashMap<String, Method> methods = new HashMap<String, Method>();
+	private HashMap<String, Method> getMethods = new HashMap<String, Method>();
+	private HashMap<String, Method> postMethods = new HashMap<String, Method>();
 	private Class<? extends HTTPHandler> handler;
 
 	private HTTPRequest request;
@@ -48,6 +49,17 @@ public abstract class HTTPHandler {
 	 */
 	public void handle() throws HTTPException {
 		String path = getRequest().getFullPath();
+		System.out.println("Full Path: " + path);
+		if(path.charAt(path.length() - 1) != '/')
+			path += "/";
+		path = path.substring(path.indexOf('/', 1), path.length());
+		path = path.toLowerCase();
+		System.out.println("Path: " + path);
+		HashMap<String, Method> methods;
+		if(getRequest().getRequestType().equalsIgnoreCase(HTTPRequest.GET_REQUEST_TYPE))
+			methods = getMethods;
+		else
+			methods = postMethods;
 
 		try {
 			Method method = methods.get(path);
@@ -96,7 +108,7 @@ public abstract class HTTPHandler {
 					}
 			}
 
-			System.out.println("Method invoked: " + method);
+			System.out.println("Method invoked: " + method + "\n");
 
 			method.invoke(this);
 
@@ -106,14 +118,27 @@ public abstract class HTTPHandler {
 		}
 	}
 
-	// TODO allow parameters or not?
-	public void addPath(String path, String methodName, Class<?> ... parameters) {
+
+	public void addGET(String path, String methodName) throws HTTPException {
+		addMethod(getMethods, path, methodName);
+	}
+
+	public void addPOST(String path, String methodName) throws HTTPException {
+		addMethod(postMethods, path, methodName);
+	}
+
+	private void addMethod(HashMap<String, Method> map, String path, String methodName) throws HTTPException {
 		try {
-			// Add the method from the handler that added the path
-			Method method = handler.getMethod(methodName, parameters);
-			methods.put(path, method);
-		} catch (NoSuchMethodException | SecurityException e) {
-			e.printStackTrace();
+			// Make sure the path ends in a '/' for checking for the path later
+			if(path.charAt(path.length() - 1) != '/')
+				path += '/';
+
+			// The path should be one case so the user isn't forced to use weird cases
+			path = path.toLowerCase();
+			Method method = handler.getMethod(methodName);
+			map.put(path, method);
+		} catch(NoSuchMethodException | SecurityException e) {
+			throw new HTTPException("Could not add path.", e);
 		}
 	}
 
