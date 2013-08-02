@@ -201,6 +201,7 @@ public class HTTPRequest {
     // check if there's a handler for the specified segment.
     if (handlers.containsKey(getPath().get(0))) {
       hClass = handlers.get(getPath().get(0));
+      getPath().remove(0);
     }
     // if there isn't, use our default handler
     else {

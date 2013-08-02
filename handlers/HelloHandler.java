@@ -23,13 +23,13 @@ public class HelloHandler extends HTTPHandler {
 	}
 
 	public void sayHelloF() {
-		String response = "Hello " + getRequest().getPath().get(1);
+		String response = "Hello " + getRequest().getPath().get(0);
 		setResponseText(response);
 		setHandled(true);
 	}
 
 	public void sayHelloFL() {
-		String response = "Hello " + getRequest().getPath().get(1) + " " + getRequest().getPath().get(2);
+		String response = "Hello " + getRequest().getPath().get(0) + " " + getRequest().getPath().get(1);
 		setResponseText(response);
 		setHandled(true);
 	}

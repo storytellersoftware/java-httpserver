@@ -55,18 +55,33 @@ public abstract class HTTPHandler {
 	}
 
 
+	public void handleNew() throws HTTPException {
+		// TODO remove
+		message(501, NOT_A_METHOD_ERROR);
+
+
+	}
+
+
 	/**
 	 * Where subclasses perform their specific actions.
 	 * @throws HTTPException
 	 */
+	//@deprecated
 	public void handle() throws HTTPException {
 		String path = getRequest().getFullPath();
 		System.out.println("Full Path: " + path);
+		
 		if(path.charAt(path.length() - 1) != '/')
 			path += "/";
-		path = path.substring(path.indexOf('/', 1), path.length());
-		path = path.toLowerCase();
+		
+		if (path.split("/").length != 2) {
+			path = path.substring(path.indexOf('/', 1), path.length());
+			path = path.toLowerCase();
+		}
+		
 		System.out.println("Path: " + path);
+		
 		HashMap<String, Method> methods;
 		if(getRequest().getRequestType().equalsIgnoreCase(HTTPRequest.GET_REQUEST_TYPE))
 			methods = getMethods;
@@ -131,34 +146,8 @@ public abstract class HTTPHandler {
 	}
 
 
-
-
-	public void addGET(String path, String methodName) throws HTTPException {
-		addMethod(getMethods, path, methodName);
-	}
-
-	public void addPOST(String path, String methodName) throws HTTPException {
-		addMethod(postMethods, path, methodName);
-	}
-
-	private void addMethod(HashMap<String, Method> map, String path, String methodName) throws HTTPException {
-		try {
-			// Make sure the path ends in a '/' for checking for the path later
-			if(path.charAt(path.length() - 1) != '/')
-				path += '/';
-
-			// The path should be one case so the user isn't forced to use weird cases
-			path = path.toLowerCase();
-			Method method = handler.getMethod(methodName);
-			map.put(path, method);
-		} catch(NoSuchMethodException | SecurityException e) {
-			throw new HTTPException("Could not add path.", e);
-		}
-	}
-	
-
 	/**
-	 * Add a method to a path.
+	 * Add a GET type method.
 	 *
 	 * Methods are passed in using "className#methodName" form so that
 	 * we can parse out the correct Method. Who knows, you might want to
@@ -166,19 +155,60 @@ public abstract class HTTPHandler {
 	 *
 	 * If no # is included, we assume it belongs to the class it's called in.
 	 *
-	 * @param path Path to match
-	 * @param 	classMethod Class and Method in class#method form.
+	 * @param path         Path to match
+	 * @param classMethod 	Class and Method in class#method form.
 	 * @throws HTTPException When you do bad things.
 	 */
-	public void addPath(String path, String classMethod) throws HTTPException {
-		//Class<? extends HTTPHandler> cl = null;
-		Class<? extends HTTPHandler> cl;
-		Method method = null;
+	public void addGET(String path, String methodName) throws HTTPException {
+		addMethod(getMethods, path, methodName);
+	}
+	
+	/**
+	 * Add a POST type method.
+	 *
+	 * Methods are passed in using "className#methodName" form so that
+	 * we can parse out the correct Method. Who knows, you might want to
+	 * use a method somewhere else, and who are we to argue with that?
+	 *
+	 * If no # is included, we assume it belongs to the class it's called in.
+	 *
+	 * @param path         Path to match
+	 * @param classMethod 	Class and Method in class#method form.
+	 * @throws HTTPException When you do bad things.
+	 */
+	public void addPOST(String path, String methodName) throws HTTPException {
+		addMethod(postMethods, path, methodName);
+	}
 
+
+	/**
+	 * Add a method to a path in a map.
+	 *
+	 * Methods are passed in using "className#methodName" form so that
+	 * we can parse out the correct Method. Who knows, you might want to
+	 * use a method somewhere else, and who are we to argue with that?
+	 *
+	 * If no # is included, we assume it belongs to the class it's called in.
+	 *
+	 * @param map          The map to add this junks to.
+	 * @param path         Path to match
+	 * @param classMethod 	Class and Method in class#method form.
+	 * @throws HTTPException When you do bad things.
+	 */
+	private void addMethod(HashMap<String, Method> map, String path, String classMethod) throws HTTPException {
 		try {
+			// Make sure the path ends in a '/' for checking for the path later
+			if(path.charAt(path.length() - 1) != '/')
+				path += '/';
+
+			// The path should be one case so the user isn't forced to use weird cases
+			path = path.toLowerCase();
+
+			Class cl;
+			Method method;
 			if (classMethod.indexOf('#') != -1) {
 				String[] cm = classMethod.split("#");
-				cl = (Class<? extends HTTPHandler>) Class.forName(cm[0]);
+				cl = Class.forName(cm[0]);
 				method = cl.getMethod(cm[1]);
 			}
 			else {
@@ -186,7 +216,8 @@ public abstract class HTTPHandler {
 				method = cl.getMethod(classMethod);
 			}
 
-			methods.put(path, method);
+			System.out.println("Class: " + cl.getName() + "\tMethod: " + method.getName());
+			map.put(path, method);
 
 		}
 		catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
