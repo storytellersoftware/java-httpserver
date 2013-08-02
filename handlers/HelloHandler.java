@@ -22,14 +22,14 @@ public class HelloHandler extends HTTPHandler {
 		setHandled(true);
 	}
 
-	public void sayHelloF() {
-		String response = "Hello " + getRequest().getPath().get(0);
+	public void sayHelloF(String firstName) {
+		String response = "Hello " + firstName;
 		setResponseText(response);
 		setHandled(true);
 	}
 
-	public void sayHelloFL() {
-		String response = "Hello " + getRequest().getPath().get(0) + " " + getRequest().getPath().get(1);
+	public void sayHelloFL(String firstName, String lastName) {
+		String response = "Hello " + firstName + " " + lastName;
 		setResponseText(response);
 		setHandled(true);
 	}

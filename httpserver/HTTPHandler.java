@@ -1,8 +1,8 @@
 package httpserver;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from.
@@ -30,10 +30,16 @@ public abstract class HTTPHandler {
 	/** Generic status message for when everything is good */
 	public static final String STATUS_GOOD = "All systems are go";
 
+<<<<<<< HEAD
 	
 	private HashMap<String, Method> getMethods = new HashMap<String, Method>();
 	private HashMap<String, Method> postMethods = new HashMap<String, Method>();
 
+=======
+	private HashMap<String, MethodWrapper> getMethods = new HashMap<String, MethodWrapper>();
+	private HashMap<String, MethodWrapper> postMethods = new HashMap<String, MethodWrapper>();
+	private Class<? extends HTTPHandler> handler;
+>>>>>>> 1d807ac94cfd135716d1f5621e6dcf468e60ab31
 
 	private HTTPRequest request;
 	private int responseCode;
@@ -75,17 +81,45 @@ public abstract class HTTPHandler {
 	}
 
 
+	public void handle() throws HTTPException {
+		String path = getSimplePath(getRequest().getFullPath());
+
+		HashMap<String, MethodWrapper> map = getMethodHash();
+		invokeMethod(map, path);
+	}
+
+	private void invokeMethod(HashMap<String, MethodWrapper> map, String path) throws HTTPException {
+		MethodWrapper method = map.get(path);
+		List<Object> parameters = new ArrayList<Object>();
+
+		if(method == null) {
+			System.out.println(map.keySet());
+		}
+
+		method.invoke(this, parameters);
+	}
+
+	private String getSimplePath(String path) {
+		System.out.println("Full Path: " + path);
+		if(path.split("/").length >= 2)
+			path = path.substring(path.indexOf('/', 1), path.length());
+		System.out.println("Path: " + path);
+
+		return path;
+	}
+
 	/**
 	 * Where subclasses perform their specific actions.
 	 * @throws HTTPException
 	 */
-	public void handle() throws HTTPException {
+	@Deprecated
+	public void handleOld() throws HTTPException {
 		String path = getRequest().getFullPath();
 		System.out.println("Full Path: " + path);
 		
 		if(path.charAt(path.length() - 1) != '/')
 			path += "/";
-		
+
 		if (path.split("/").length != 2) {
 			path = path.substring(path.indexOf('/', 1), path.length());
 			path = path.toLowerCase();
@@ -94,19 +128,22 @@ public abstract class HTTPHandler {
 		System.out.println("Path: " + path);
 		
 		HashMap<String, Method> methods;
+
 		if(getRequest().getRequestType().equalsIgnoreCase(HTTPRequest.GET_REQUEST_TYPE))
 			methods = getMethods;
 		else
 			methods = postMethods;
 
 		try {
-			Method method = methods.get(path);
+			MethodWrapper method = methods.get(path);
+			List<Object> parameters = new ArrayList<Object>();
 
 			// If the method is null, there could be dynamic text in the url
 			if (method == null) {
 				// Iterate over the keys
 				outerloop:
 					for (String key : methods.keySet()) {
+						parameters = new ArrayList<Object>();
 						// We need the index of '{' because it is the escape character for dynamic text
 						int index = key.indexOf('{');
 
@@ -148,14 +185,20 @@ public abstract class HTTPHandler {
 
 			System.out.println("Method invoked: " + method + "\n");
 
-			method.invoke(this);
+			method.invoke(this, parameters);
 
-		} catch (NullPointerException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | SecurityException e) {
+		} catch (NullPointerException | IllegalArgumentException | SecurityException e) {
 			e.printStackTrace();
 			throw new HTTPException("Could not handle path: " + getRequest().getFullPath());
 		}
 	}
 
+	private HashMap<String, MethodWrapper> getMethodHash() {
+		if(getRequest().getRequestType().equals(HTTPRequest.GET_REQUEST_TYPE))
+			return getMethods;
+		else
+			return postMethods;
+	}
 
 	/**
 	 * Attach a method to a GET request at a path.
@@ -219,35 +262,9 @@ public abstract class HTTPHandler {
 	 *
 	 * @throws HTTPException  When you do bad things.
 	 */
-	private void addMethod(HashMap<String, Method> map, String path, String classMethod) throws HTTPException {
-		try {
-			// Make sure the path ends in a '/' for checking for the path later
-			if(path.charAt(path.length() - 1) != '/')
-				path += '/';
-
-			// The path should be one case so the user isn't forced to use weird cases
-			path = path.toLowerCase();
-
-			Class cl;
-			Method method;
-			if (classMethod.indexOf('#') != -1) {
-				String[] cm = classMethod.split("#");
-				cl = Class.forName(cm[0]);
-				method = cl.getMethod(cm[1]);
-			}
-			else {
-				cl = this.getClass();
-				method = cl.getMethod(classMethod);
-			}
-
-			System.out.println("Class: " + cl.getName() + "\tMethod: " + method.getName());
-			map.put(path, method);
-
-		}
-		catch (NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-			e.printStackTrace();
-			throw new HTTPException("Not a class#method or method... " + classMethod);
-		}
+	private void addMethod(HashMap<String, MethodWrapper> map, String path, String methodName) throws HTTPException {
+		MethodWrapper method = new MethodWrapper(path, methodName, this.getClass());
+		map.put(path, method);
 	}
 
 	/**
