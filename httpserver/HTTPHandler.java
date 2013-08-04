@@ -1,8 +1,7 @@
 package httpserver;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from.
@@ -72,29 +71,36 @@ public abstract class HTTPHandler {
 	}
 
 
+	/**
+	 * Where the Handler handles the information given from the request and based off of the paths
+	 * specified in the Handler.
+	 * This can be overridden for a more custom handling.
+	 * @throws HTTPException
+	 */
 	public void handle() throws HTTPException {
-		MethodWrapper method = getMap().get(getRequest().getFullPath());
-		List<Object> parameters = new ArrayList<Object>();
+		String path = getRequest().getPath();
+		MethodWrapper method = getMap().get(path);
+
+		int mostCorrect = 0;
 
 		if(method == null) {
-			System.out.println(getMap().keySet());
+			// Find the most correct method
+			Set<String> keys = getMap().keySet();
+			for(String key : keys) {
+				MethodWrapper testMethod = getMap().get(key);
+				if(testMethod.howCorrect(path) > mostCorrect)
+					method = testMethod;
+			}
 		}
 
-		method.invoke(this, parameters);
-	}
-
-	private String getSimplePath(String path) {
-		System.out.println("Full Path: " + path);
-		if(path.split("/").length >= 2)
-			path = path.substring(path.indexOf('/', 1), path.length());
-		System.out.println("Path: " + path);
-
-		return path;
+		System.out.println("Method Invoked: " + method);
+		method.invoke(this, path);
 	}
 
 	/**
 	 * Where subclasses perform their specific actions.
 	 * @throws HTTPException
+	 * @Deprecated use .handle() instead
 	 */
 	@Deprecated
 	public void handleOld() throws HTTPException {
@@ -120,14 +126,12 @@ public abstract class HTTPHandler {
 
 		try {
 			MethodWrapper method = methods.get(path);
-			List<Object> parameters = new ArrayList<Object>();
 
 			// If the method is null, there could be dynamic text in the url
 			if (method == null) {
 				// Iterate over the keys
 				outerloop:
 					for (String key : methods.keySet()) {
-						parameters = new ArrayList<Object>();
 						// We need the index of '{' because it is the escape character for dynamic text
 						int index = key.indexOf('{');
 
@@ -167,9 +171,7 @@ public abstract class HTTPHandler {
 					}
 			}
 
-			System.out.println("Method invoked: " + method + "\n");
-
-			method.invoke(this, parameters);
+			method.invoke(this, path);
 
 		} catch (NullPointerException | IllegalArgumentException | SecurityException e) {
 			e.printStackTrace();
@@ -177,6 +179,10 @@ public abstract class HTTPHandler {
 		}
 	}
 
+	/**
+	 * Gets the correct Map of Methods the request wants to use.
+	 * @return The HashMap for the correct request.
+	 */
 	private HashMap<String, MethodWrapper> getMap() {
 		if(getRequest().getRequestType().equals(HTTPRequest.GET_REQUEST_TYPE))
 			return getMethods;

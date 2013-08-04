@@ -8,8 +8,8 @@ public class HelloHandler extends HTTPHandler {
 		super(request);
 		try {
 			addGET("/", "sayHello");
-			addGET("/{String}/", "sayHelloF");
-			addGET("/{String}/{String}", "sayHelloFL");
+			addGET("/{String}/", "sayHello");
+			addGET("/{String}/{String}", "sayHello");
 
 			addGET("/goodbye", "sayGoodbye");
 		} catch (HTTPException e) {
@@ -22,13 +22,13 @@ public class HelloHandler extends HTTPHandler {
 		setHandled(true);
 	}
 
-	public void sayHelloF(String firstName) {
+	public void sayHello(String firstName) {
 		String response = "Hello " + firstName;
 		setResponseText(response);
 		setHandled(true);
 	}
 
-	public void sayHelloFL(String firstName, String lastName) {
+	public void sayHello(String firstName, String lastName) {
 		String response = "Hello " + firstName + " " + lastName;
 		setResponseText(response);
 		setHandled(true);
