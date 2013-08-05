@@ -22,11 +22,20 @@ class MethodWrapper {
   /**
    * Create a MethodWrapper.
    *
-   * @param path          The path that will cause the method to be called
-   * @param methodName    The name of the method
-   * @param callingClass  The class that will call this method
+   * Paths should come in <code>/relative/path/to/match</code>. To use a 
+   * variable in a path, it should come in 
+   * <code>/path/with/{VariableType}</code> form, where VariableType is a
+   * class inside of the `java.lang` package, and has a constructor that takes
+   * in a String.
    *
-   * @throws HTTPException
+   * @param path          Path the be matched for this method to be used.
+   * @param methodName    Name of the method to be called.
+   * @param callingClass  Class the method belongs to.
+   *
+   * @throws HTTPException  If there is no callingClass.methodName method. If
+   *                        the wrong number of variable parameters are used in
+   *                        the path. If the variable parameters are in the
+   *                        wrong order in the path.
    */
   public MethodWrapper(String path, String methodName, Class callingClass) 
           throws HTTPException {
@@ -38,22 +47,33 @@ class MethodWrapper {
 
       // Rebuild the path in a universal way
       // TODO: explain that comment
+      
+      /*  Recreate the path.
+          This is done so that a path may include or exclude a `/` at the end
+          of it. It also makes sure that non-dynamic parts of the path are
+          lower case'd.
+      */
       for (String part : paths) {
-        if (!isDynamic(part)) {
-          part.toLowerCase();
+        /*  if, for some reason, there's something like a `//` in the path,
+            or if it's the first one (because of the preceeding /), part is
+            empty, which means we have nothing to do here.
+        */
+        if (part.isEmpty()) {
+          continue;
         }
-        else {
+
+        if (isDynamic(part)) {
           String paramClass = LANG_PATH + part.substring(1, part.length() - 1);
           parameterTypes.add(Class.forName(paramClass));
         }
-
-        // The first path is always empty causing it to have 1 extra / in 
-        // the front
-        if (!part.isEmpty()) {
-          pathBuilder.append('/');
-          pathBuilder.append(part);
+        else {
+          part.toLowerCase();
         }
+
+        pathBuilder.append('/');
+        pathBuilder.append(part);
       }
+
 
       this.path = pathBuilder.toString();
 
@@ -62,9 +82,10 @@ class MethodWrapper {
         this.path = "/";
       }
 
-      // Because Class.getMethod() takes in an array of Classes, and because
-      // List.toArray() returns an array of Objects, we need to manually 
-      // convert parameterTypes from a list to an array. 
+      /*  Because Class.getMethod() takes in an array of Classes, and because
+          List.toArray() returns an array of Objects, we need to manually 
+         convert parameterTypes from a list to an array.
+      */
       Class[] paramTypes = new Class[parameterTypes.size()];
       for (int i=0; i < parameterTypes.size(); i++) {
         paramTypes[i] = parameterTypes.get(i);
@@ -107,7 +128,6 @@ class MethodWrapper {
         }
       }
 
-
       // Method.invoke throws an exception if an empty array is passed in
       if (params.isEmpty()) {
         method.invoke(callingClass);
@@ -115,7 +135,7 @@ class MethodWrapper {
       else {
         method.invoke(callingClass, params.toArray());
       }
-    } 
+    }
     catch (IllegalAccessException | IllegalArgumentException 
             | InvocationTargetException | SecurityException 
             | ClassNotFoundException | NoSuchMethodException 

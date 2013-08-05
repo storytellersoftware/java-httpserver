@@ -3,13 +3,17 @@ package httpserver;
 /**
  * A MessageHandler is a simple handler that sends a simple text message to
  * the client.
+ *
+ * A MessageHandler solves the problem of sending a simple message back to the
+ * client regardless of the request, without requiring developers to create a 
+ * new HTTPHandler.
  */
 public class MessageHandler extends HTTPHandler {
   
   /**
    * Create a message handler
    *
-   * Calls <code>message(code, message)</code>.
+   * All it does is call <code>message(code, message)</code>.
    *
    * @param request   The associated HTTPRequest. Required by all Handlers.
    * @param code      An HTTP status code to be used with the attached message.
