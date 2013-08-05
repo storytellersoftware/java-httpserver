@@ -308,12 +308,7 @@ public class HTTPRequest {
   }
 
   public void setPath(String path) {
-    //if(!path.equals("/"))
-    //this.path = path.substring(path.indexOf('/', 1));
-    //else
     this.path = path;
-    //System.out.println("Path: " + path);
-    //System.out.println("New Path: " + this.path);
   }
   /**
    * Gets the path relative to the handler's path.
