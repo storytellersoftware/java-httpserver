@@ -38,6 +38,8 @@ Very basic, but:
   it might be best to turn it into a method. Maybe. I mean there isn't a
   principle called DRY or anything.
 
+- Curley braces, around everything that could have curley braces!
+
 ## Making a code contribution
 
 It's probably best if you make a fork, develop on your fork, and submit a pull
