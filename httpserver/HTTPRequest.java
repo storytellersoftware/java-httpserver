@@ -1,8 +1,6 @@
 package httpserver;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 
@@ -74,10 +72,6 @@ public class HTTPRequest {
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
   HTTPException {
-    if (handlers.isEmpty()) {
-      handlers.put("*", DeathHandler.class);
-    }
-
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
@@ -176,28 +170,7 @@ public class HTTPRequest {
     return out;
   }
 
-
   /**
-   * Add a new handler to the list of available handlers.
-   *
-   * A request's handler type is determined based off of the first
-   * segment of a path. For example if
-   * <code>addHandler("add", AdditionHandler.class)</code> is called,
-   * when someone makes a request to
-   * <code>/add/[any number of other path segments]</code>, a new
-   * AdditionHandler is used to determine the response's content.
-   *
-   * @param path  When the first segment of the path matches this,
-   *              the passed in Handler's class is called.
-   * @param handlerClass  The class of the HTTPHandler to be called
-   *                      when the above path is matched
-   */
-  public static void addHandler(String path, Class<? extends HTTPHandler> handlerClass) {
-
-    handlers.put(path, handlerClass);
-  }
-
-    /**
    * Figure out what kind of HTTPHandler you want, based on the path.
    *
    * This returns a new object of that class. Just learning that Java has
@@ -335,7 +308,12 @@ public class HTTPRequest {
   }
 
   public void setPath(String path) {
+    //if(!path.equals("/"))
+    //this.path = path.substring(path.indexOf('/', 1));
+    //else
     this.path = path;
+    //System.out.println("Path: " + path);
+    //System.out.println("New Path: " + this.path);
   }
   /**
    * Gets the path relative to the handler's path.
@@ -352,7 +330,7 @@ public class HTTPRequest {
         data.
 
         The first character *should* always be a `/`, and that could cause
-        an error with splitting (as in, the first split could be an empyt
+        an error with splitting (as in, the first split could be an empty
         string, which we don't want).
      */
     for (String segment : fullPath.substring(1).split("/")) {
@@ -393,20 +371,24 @@ public class HTTPRequest {
     return handler;
   }
 
+  public boolean isType(String requestTypeCheck) {
+    return getRequestType().equalsIgnoreCase(requestTypeCheck);
+  }
+
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("HTTPRequest from ");
     builder.append(getConnection().getLocalAddress().getHostAddress());
     builder.append("\n\t");
-      builder.append("Request Line: ");
-      builder.append(getRequestLine());
+    builder.append("Request Line: ");
+    builder.append(getRequestLine());
     builder.append("\n\t\t");
-       builder.append("Request Type ");
-        builder.append(getRequestType());
+    builder.append("Request Type ");
+    builder.append(getRequestType());
     builder.append("\n\t\t");
-       builder.append("Request Path ");
-       builder.append(getFullPath());
+    builder.append("Request Path ");
+    builder.append(getFullPath());
 
     return builder.toString();
   }

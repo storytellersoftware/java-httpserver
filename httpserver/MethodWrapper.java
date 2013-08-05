@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A MethodWrapper is a wrapper for the reflect.Method class. It allows us to 
- * easily invoke a method based on a path without worrying about parsing out 
+ * A MethodWrapper is a wrapper for the reflect.Method class. It allows us to
+ * easily invoke a method based on a path without worrying about parsing out
  * the variables and whatnot.
  */
 class MethodWrapper {
@@ -37,8 +37,8 @@ class MethodWrapper {
    *                        the path. If the variable parameters are in the
    *                        wrong order in the path.
    */
-  public MethodWrapper(String path, String methodName, Class callingClass) 
-          throws HTTPException {
+  public MethodWrapper(String path, String methodName, Class callingClass)
+      throws HTTPException {
     try {
       // Get a list of the parameter types
       List<Class> parameterTypes = new ArrayList<Class>();
@@ -92,9 +92,9 @@ class MethodWrapper {
       }
 
       method = callingClass.getMethod(methodName, paramTypes);
-    } 
-    catch(ClassNotFoundException | NoSuchMethodException 
-            | SecurityException e) {
+    }
+    catch(ClassNotFoundException | NoSuchMethodException
+        | SecurityException e) {
       throw new HTTPException("Could not add path.", e);
     }
   }
@@ -104,7 +104,7 @@ class MethodWrapper {
    * Invoke the method.
    *
    * @param callingClass  The class the method belongs to.
-   * @param path          The path that caused the method to be called. This is 
+   * @param path          The path that caused the method to be called. This is
    *                      where variables come from.
    *
    * @throws HTTPException
@@ -119,10 +119,10 @@ class MethodWrapper {
       for (int i = 0; i < paths.length; i++) {
         if (isDynamic(methodPaths[i])) {
           Class paramClass = Class.forName(LANG_PATH + methodPaths[i]
-                  .substring(1, methodPaths[i].length() - 1));
+              .substring(1, methodPaths[i].length() - 1));
 
-          Constructor paramConstructor 
-                  = paramClass.getConstructor(String.class);
+          Constructor paramConstructor
+          = paramClass.getConstructor(String.class);
 
           params.add(paramConstructor.newInstance(paths[i]));
         }
@@ -146,7 +146,7 @@ class MethodWrapper {
 
 
   /**
-   * Determines how correct a method is from a path. The higher the number, 
+   * Determines how correct a method is from a path. The higher the number,
    * the more likely the method is the correct method.
    *
    * Correctness is based on the similarity of the passed in path, and the

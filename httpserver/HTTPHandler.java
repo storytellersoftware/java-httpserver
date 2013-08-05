@@ -17,7 +17,7 @@ import java.util.Set;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-          = "an exception occured while processing your request";
+  = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -29,10 +29,10 @@ public abstract class HTTPHandler {
   /** Generic status message for when everything is good */
   public static final String STATUS_GOOD = "All systems are go";
 
-  private HashMap<String, MethodWrapper> getMethods 
-          = new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> postMethods 
-          = new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> getMethods
+  = new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> postMethods
+  = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -74,7 +74,7 @@ public abstract class HTTPHandler {
 
 
   /**
-   * Where the Handler handles the information given from the request and based 
+   * Where the Handler handles the information given from the request and based
    * off of the paths specified in the Handler.
    *
    * This can be overridden for a more custom handling.
@@ -91,8 +91,11 @@ public abstract class HTTPHandler {
       Set<String> keys = getMap().keySet();
       for(String key : keys) {
         MethodWrapper testMethod = getMap().get(key);
-        if(testMethod.howCorrect(path) > mostCorrect)
+        int testCorrect = testMethod.howCorrect(path);
+        if(testCorrect > mostCorrect) {
           method = testMethod;
+          mostCorrect = testCorrect;
+        }
       }
     }
 
@@ -136,7 +139,7 @@ public abstract class HTTPHandler {
 
     HashMap<String, MethodWrapper> methods;
 
-    // Set methods to the correct methods map, based off of the http 
+    // Set methods to the correct methods map, based off of the http
     // request type
     if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE))
       methods = getMethods;
@@ -205,7 +208,7 @@ public abstract class HTTPHandler {
   private HashMap<String, MethodWrapper> getMap() {
     if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE))
       return getMethods;
-  
+
     return postMethods;
   }
 
@@ -271,8 +274,8 @@ public abstract class HTTPHandler {
    *
    * @throws HTTPException  When you do bad things.
    */
-  private void addMethod(HashMap<String, MethodWrapper> map, String path, 
-          String methodName) throws HTTPException {
+  private void addMethod(HashMap<String, MethodWrapper> map, String path,
+      String methodName) throws HTTPException {
     MethodWrapper method = new MethodWrapper(path, methodName, this.getClass());
     map.put(path, method);
   }
