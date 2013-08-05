@@ -20,6 +20,7 @@ public class HTTPRequest {
   /** HTTP HEAD request type */
   public static final String HEAD_REQUEST_TYPE = "HEAD";
 
+
   // used to determine what one does with the request
   private static HTTPHandlerFactory handlerFactory;
 
@@ -67,14 +68,15 @@ public class HTTPRequest {
    * handler to be used.
    *
    * @param connection The socket between the server and client
-   *
    * @throws IOException
    * @throws SocketException
-   * @throws HTTPException    Occurs when something unexpected (according to the
-   *                          HTTP spec) occurs. Basically bad things.
+   * @throws HTTPException when something that doesn't follow HTTP spec occurs
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
-          HTTPException {
+  HTTPException {
+    if (handlers.isEmpty()) {
+      handlers.put("*", DeathHandler.class);
+    }
 
     setConnection(connection);
 
@@ -95,7 +97,7 @@ public class HTTPRequest {
    * @throws HTTPException
    */
   private void parseRequest() throws IOException, SocketException,
-          HTTPException {
+  HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(
         new InputStreamReader(getConnection().getInputStream()));
@@ -113,8 +115,8 @@ public class HTTPRequest {
         The key is before the ": ", the value, after
      */
     for (String line = input.readLine();
-            line != null && !line.isEmpty();
-            line = input.readLine()) {
+        line != null && !line.isEmpty();
+        line = input.readLine()) {
       requestBuilder.append(line);
       requestBuilder.append("\n");
 
@@ -131,7 +133,6 @@ public class HTTPRequest {
 
       getHeaders().put(items[0], value);
     }
-
     setHTTPRequest(requestBuilder.toString());
 
     /*  If the client sent over a POST request, there's *probably* still data
@@ -139,7 +140,7 @@ public class HTTPRequest {
         "Content-Length" header.
      */
     if (getRequestType().equals(POST_REQUEST_TYPE) &&
-            getHeaders().containsKey("Content-Length")) {
+        getHeaders().containsKey("Content-Length")) {
       int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
       StringBuilder b = new StringBuilder();
 
@@ -177,15 +178,31 @@ public class HTTPRequest {
 
 
   /**
+   * Add a new handler to the list of available handlers.
+   *
+   * A request's handler type is determined based off of the first
+   * segment of a path. For example if
+   * <code>addHandler("add", AdditionHandler.class)</code> is called,
+   * when someone makes a request to
+   * <code>/add/[any number of other path segments]</code>, a new
+   * AdditionHandler is used to determine the response's content.
+   *
+   * @param path  When the first segment of the path matches this,
+   *              the passed in Handler's class is called.
+   * @param handlerClass  The class of the HTTPHandler to be called
+   *                      when the above path is matched
+   */
+  public static void addHandler(String path, Class<? extends HTTPHandler> handlerClass) {
+
+    handlers.put(path, handlerClass);
+  }
+
+    /**
    * Figure out what kind of HTTPHandler you want, based on the path.
    *
    * This returns a new object of that class. Just learning that Java has
    * this capability really impressed me, I wouldn't have thought Java could
    * do this.
-   *
-   * TODO:  Make this thing not be reflection-y, but use some sort of factory
-   *        or something. For lots of good reasons. See GitHub issue 2 for 
-   *        more information.
    *
    * @return a new instance of some form of HTTPHandler.
    */
@@ -301,44 +318,13 @@ public class HTTPRequest {
 
   /**
    * Set the full path, and path list.
-   * Because the path list is derived from the full path, it's set at the 
-   * same time.
-   *
+   * Because the path list is derived from the full path, it's set at the same time.
    * @param inPath The full requested path (in `/path/to/request` form)
    */
   public void setFullPath(String inPath) {
     this.fullPath = inPath;
-    setPath(inPath.substring(inPath.indexOf('/')));
-
-    /*  Split apart the path for future reference by the handlers
-        The split path should be used by handlers to figure out what
-        action should be taken. It's also used to parse out GET request
-        data.
-
-        The first character *should* always be a `/`, and that could cause
-        an error with splitting (as in, the first split could be an empyt
-        string, which we don't want).
-     */
-    for (String segment : fullPath.substring(1).split("/")) {
-      getSplitPath().add(segment);
-    }
-
-    /*  Parse out any GET data in the request URL.
-        This could occur on any request.
-     */
-    if (getSplitPath().get(getSplitPath().size() - 1).indexOf('?') != -1) {
-      String lastItem = getSplitPath().get(getSplitPath().size() - 1);
-      // remove the ? onward from the last item in the path, because that's not
-      // part of the requested URL
-      getSplitPath().set(getSplitPath().size() - 1, 
-              lastItem.substring(0, lastItem.indexOf('?')));
-
-      // split apart the request query into an array of "key=value" strings.
-      String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");
-
-      // Set the GET data to the GET data...
-      getGetData().putAll(parseInputData(data));
-    }
+    setPath(inPath);
+    setSplitPath(inPath);
   }
   /**
    * Gets the full path of the request.
@@ -359,11 +345,41 @@ public class HTTPRequest {
     return path;
   }
 
+  public void setSplitPath(String fullPath) {
+    /*  Split apart the path for future reference by the handlers
+        The split path should be used by handlers to figure out what
+        action should be taken. It's also used to parse out GET request
+        data.
+
+        The first character *should* always be a `/`, and that could cause
+        an error with splitting (as in, the first split could be an empyt
+        string, which we don't want).
+     */
+    for (String segment : fullPath.substring(1).split("/")) {
+      getSplitPath().add(segment);
+    }
+
+    /*  Parse out any GET data in the request URL.
+        This could occur on any request.
+     */
+    if (getSplitPath().get(getSplitPath().size() - 1).indexOf('?') != -1) {
+      String lastItem = getSplitPath().get(getSplitPath().size() - 1);
+      // remove the ? onward from the last item in the path, because that's not
+      // part of the requested URL
+      getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0, lastItem.indexOf('?')));
+
+      // split apart the request query into an array of "key=value" strings.
+      String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");
+
+      // Set the GET data to the GET data...
+      getGetData().putAll(parseInputData(data));
+    }
+  }
   public void setSplitPath(List<String> path) {
     this.splitPath = path;
   }
   /**
-   * Gets the full path split by '/'
+   * Gets the path relative to the handler's path split by '/'
    * @return A List of Strings
    */
   public List<String> getSplitPath() {
@@ -377,10 +393,6 @@ public class HTTPRequest {
     return handler;
   }
 
-  public boolean isType(String requestTypeCheck) {
-    return getRequestType().equalsIgnoreCase(requestTypeCheck);
-  }
-
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
@@ -390,11 +402,11 @@ public class HTTPRequest {
       builder.append("Request Line: ");
       builder.append(getRequestLine());
     builder.append("\n\t\t");
-        builder.append("Request Type ");
+       builder.append("Request Type ");
         builder.append(getRequestType());
     builder.append("\n\t\t");
-        builder.append("Request Path ");
-        builder.append(getFullPath());
+       builder.append("Request Path ");
+       builder.append(getFullPath());
 
     return builder.toString();
   }

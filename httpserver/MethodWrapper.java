@@ -132,14 +132,6 @@ class MethodWrapper {
    * Correctness is based on the similarity of the passed in path, and the
    * method's path.
    *
-   * TODO:  Perhaps also determine if a segment of the path is of the correct
-   *        type. As in, check if a segment's a variable segment, and if it is,
-   *        try to create a new Object of the variable segment's type using the
-   *        path segment. If the path is `/{Integer}`, we should check that
-   *        `/10` can be turned into an Integer.
-   *
-   * TODO:  Also, if we do the above TODO, wouldn't a boolean be better here?
-   *
    * @param path  The path, relative the the handler.
    *
    * @return  An integer from 0 to the length of path split on the '/'
@@ -149,15 +141,26 @@ class MethodWrapper {
     String[] methodPaths = this.path.split("/");
 
     // If the paths aren't the same length, this is the wrong method
-    // TODO: false - we could have a catchall...
-    if (paths.length != methodPaths.length)
+    if(paths.length != methodPaths.length)
       return 0;
 
     // Start at one because the paths are the same length
     int count = 1;
-    for (int i = 0; i < paths.length && i < methodPaths.length; i++) {
-      if (paths[i].equals(methodPaths[i])) {
-        count++;
+    for(int i=0; i < paths.length && i < methodPaths.length; i++) {
+      if(paths[i].equals(methodPaths[i]))
+        count += 2;
+
+      // Variable checking
+      else if(isDynamic(methodPaths[i])){
+        try {
+          Class<?> paramClass = Class.forName(LANG_PATH + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+          Constructor<?> constructor = paramClass.getConstructor(String.class);
+          constructor.newInstance(paths[i]);
+          count++;
+        } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          return 0;
+        }
+
       }
     }
 
