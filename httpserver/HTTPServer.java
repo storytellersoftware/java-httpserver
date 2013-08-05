@@ -16,105 +16,101 @@ import java.net.SocketException;
  * provide an existing mechanism for using the rest of the httpserver package.
  */
 public class HTTPServer implements Runnable {
-	/** The port being listend on */
-	public static final int PORT = 8000;
+  /** The port being listend on */
+  public static final int PORT = 8000;
 
-	/** The server's name */
-	public static final String SERVER_NAME = "Simple Java Server";
+  /** The server's name */
+  public static final String SERVER_NAME = "Simple Java Server";
 
-	/** The server's version */
-	public static final String SERVER_VERSION = "0.0.1";
+  /** The server's version */
+  public static final String SERVER_VERSION = "0.0.1";
 
-	/** Extra information about the server */
-	public static final String SERVER_ETC = "now in Glorious Extra Color";
+  /** Extra information about the server */
+  public static final String SERVER_ETC = "now in Glorious Extra Color";
 
 
-	private ServerSocket socket = null;
+  private ServerSocket socket = null;
 
-	/**
-	 * Tell the server to run! On the port specified in PORT
-	 */
-	@Override
-	public void run() {
-		try {
-			socket = new ServerSocket();
+  /**
+   * Tell the server to run! On the port specified in PORT
+   */
+  @Override
+  public void run() {
+    try {
+      socket = new ServerSocket();
 
-			System.out.println("Starting HTTPServer at http://127.0.0.1:" + PORT);
+      System.out.println("Starting HTTPServer at http://127.0.0.1:" + PORT);
 
-			socket.setReuseAddress(true);
-			socket.bind(new InetSocketAddress(PORT));
+      socket.setReuseAddress(true);
+      socket.bind(new InetSocketAddress(PORT));
 
-			while (true) {
-				Socket connection = null;
-				try {
-					connection = socket.accept();
+      while (true) {
+        Socket connection = null;
+        try {
+          connection = socket.accept();
 
-					HTTPRequest request = new HTTPRequest(connection);
-					//System.out.println(request);
-					HTTPResponse response = new HTTPResponse(connection, request.getHandler());
-				}
-				catch (SocketException e) {
-					/*  This typically occurs when the client breaks the connection, and
+          HTTPRequest request = new HTTPRequest(connection);
+          HTTPResponse response 
+                  = new HTTPResponse(connection, request.getHandler());
+        }
+        catch (SocketException e) {
+          /*  This typically occurs when the client breaks the connection, and
               isn't an issue on the server side, which means we shouldn't break
-					 */
-					System.out.println("The client probably broke the connection early");
-					e.printStackTrace();
-				}
-				catch (IOException e) {
-					/*  This typically means there's a problem in the HTTPRequest
-					 */
-					System.out.println("IOException. Probably an issue in the HTTPRequest");
-					e.printStackTrace();
-				}
-				catch (HTTPException e) {
-					System.out.println("HTTPException.");
-					e.printStackTrace();
-				}
-				catch (Exception e) {
-					/*  Some kind of unexpected exception occurred, something bad might
+           */
+          System.out.println("The client probably broke the connection early.");
+          e.printStackTrace();
+        }
+        catch (IOException e) {
+          /*  This typically means there's a problem in the HTTPRequest
+           */
+          System.out.println("IOException. Probably an HTTPRequest issue.");
+          e.printStackTrace();
+        }
+        catch (HTTPException e) {
+          System.out.println("HTTPException.");
+          e.printStackTrace();
+        }
+        catch (Exception e) {
+          /*  Some kind of unexpected exception occurred, something bad might
               have happened.
-					 */
-					System.out.println("Generic Exception!");
-					e.printStackTrace();
+           */
+          System.out.println("Generic Exception!");
+          e.printStackTrace();
 
-					/*  If you're currently developing using this, you might want to leave
+          /*  If you're currently developing using this, you might want to leave
               this break here, because this means something unexpected occured.
               If the break is left in, the server stops running, and you should
               probably look into the exception.
 
               If you're in production, you shouldn't have this break here,
               because you probably don't want to kill the server...
-					 */
-					break;
-				}
-				finally {
-					connection.close();
-				}
-			}
-		}
-		catch (Exception e) {
-			/*  Not sure when this occurs, but it might...
-			 */
-			System.out.println("Something bad happened...");
-			e.printStackTrace();
-		}
-		finally {
-			try {
-				socket.close();
-			}
-			catch (IOException e) {
-				System.out.println("Well that's not good...");
-				e.printStackTrace();
-			}
-		}
-	}
+           */
+          break;
+        }
+        finally {
+          connection.close();
+        }
+      }
+    }
+    catch (Exception e) {
+      /*  Not sure when this occurs, but it might...
+       */
+      System.out.println("Something bad happened...");
+      e.printStackTrace();
+    }
+    finally {
+      try {
+        socket.close();
+      }
+      catch (IOException e) {
+        System.out.println("Well that's not good...");
+        e.printStackTrace();
+      }
+    }
+  }
 
-	public void addHandler(String path, Class<? extends HTTPHandler> handler) {
-		HTTPRequest.addHandler(path, handler);
-	}
-
-	public void addDefaultHandler(Class<? extends HTTPHandler> handler) {
-		HTTPRequest.addHandler("*", handler);
-	}
+  public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+    HTTPRequest.setHandlerFactory(handlerFactory);
+  }
 
 }

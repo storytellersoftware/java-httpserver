@@ -1,2 +1,5 @@
 # class files?
 *.class
+
+# vim stuff
+*.swp
