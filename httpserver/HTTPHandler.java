@@ -96,6 +96,20 @@ public abstract class HTTPHandler {
       }
     }
 
+    if (method == null) {
+      if (getMap().containsKey("*")) {
+        method = getMap().get("*");
+      }
+      else if (getMap().containsKey("/")) {
+        method = getMap().get("/");
+      }
+    }
+
+    if (method == null) {
+      message(501, NOT_A_METHOD_ERROR);
+      return;
+    }
+
     System.out.println("Method Invoked: " + method);
     method.invoke(this, path);
   }
