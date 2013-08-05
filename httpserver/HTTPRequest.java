@@ -214,11 +214,16 @@ public class HTTPRequest {
 		if (handlers.containsKey(getSplitPath().get(0))) {
 			hClass = handlers.get(getSplitPath().get(0));
 			getSplitPath().remove(0);
+			setPath(getPath().substring(getPath().indexOf('/', 1), getPath().length()));
 		}
 		// if there isn't, use our default handler
 		else {
 			hClass = handlers.get("*");
 		}
+
+		Set<String> keys = handlers.keySet();
+		for(String key : keys)
+			System.out.println("Key: " + key);
 
 		try {
 			// attempt to make a new constructor of the selected class from
@@ -341,8 +346,29 @@ public class HTTPRequest {
 	 */
 	public void setFullPath(String inPath) {
 		this.fullPath = inPath;
-		setPath(inPath.substring(inPath.indexOf('/')));
+		setPath(inPath);
+		setSplitPath(inPath);
+	}
+	/**
+	 * Gets the full path of the request.
+	 * @return The full path.
+	 */
+	public String getFullPath() {
+		return fullPath;
+	}
 
+	public void setPath(String path) {
+		this.path = path;
+	}
+	/**
+	 * Gets the path relative to the handler's path.
+	 * @return Everything in the path after the handler's path.
+	 */
+	public String getPath() {
+		return path;
+	}
+
+	public void setSplitPath(String fullPath) {
 		/*  Split apart the path for future reference by the handlers
         The split path should be used by handlers to figure out what
         action should be taken. It's also used to parse out GET request
@@ -372,30 +398,11 @@ public class HTTPRequest {
 			getGetData().putAll(parseInputData(data));
 		}
 	}
-	/**
-	 * Gets the full path of the request.
-	 * @return The full path.
-	 */
-	public String getFullPath() {
-		return fullPath;
-	}
-
-	public void setPath(String path) {
-		this.path = path;
-	}
-	/**
-	 * Gets the path relative to the handler's path.
-	 * @return Everything in the path after the handler's path.
-	 */
-	public String getPath() {
-		return path;
-	}
-
 	public void setSplitPath(List<String> path) {
 		this.splitPath = path;
 	}
 	/**
-	 * Gets the full path split by '/'
+	 * Gets the path relative to the handler's path split by '/'
 	 * @return A List of Strings
 	 */
 	public List<String> getSplitPath() {
