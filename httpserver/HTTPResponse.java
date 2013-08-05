@@ -65,7 +65,7 @@ public class HTTPResponse {
         Alternatively, if the handler responds with a code of 204, there
         isn't any content to be sent over, so let's just stop trying, okay?
      */
-    if (getHandler().istype(HTTPRequest.HEAD_REQUEST_TYPE) 
+    if (getHandler().getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE) 
             || getHandler().getResponseCode() == 204) {
       return;
     }

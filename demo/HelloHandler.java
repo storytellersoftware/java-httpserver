@@ -1,4 +1,4 @@
-package handlers;
+package demo;
 
 import httpserver.*;
 
@@ -12,7 +12,8 @@ public class HelloHandler extends HTTPHandler {
 			addGET("/{String}/{String}", "sayHello");
 
 			addGET("/goodbye", "sayGoodbye");
-		} catch (HTTPException e) {
+		} 
+		catch (HTTPException e) {
 			e.printStackTrace();
 		}
 	}

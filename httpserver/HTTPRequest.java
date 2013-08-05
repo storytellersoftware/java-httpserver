@@ -20,10 +20,8 @@ public class HTTPRequest {
   /** HTTP HEAD request type */
   public static final String HEAD_REQUEST_TYPE = "HEAD";
 
-
   // used to determine what one does with the request
-  private static Map<String, Class<? extends HTTPHandler>> handlers
-          = new HashMap<String, Class<? extends HTTPHandler>>();
+  private static HTTPHandlerFactory handlerFactory;
 
   // connection with client
   private Socket connection;
@@ -77,10 +75,6 @@ public class HTTPRequest {
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
           HTTPException {
-
-    if (handlers.isEmpty()) {
-      handlers.put("*", DeathHandler.class);
-    }
 
     setConnection(connection);
 
@@ -183,26 +177,6 @@ public class HTTPRequest {
 
 
   /**
-   * Add a new handler to the list of available handlers.
-   *
-   * A request's handler type is determined based off of the first
-   * segment of a path. For example if
-   * <code>addHandler("add", AdditionHandler.class)</code> is called,
-   * when someone makes a request to
-   * <code>/add/[any number of other path segments]</code>, a new
-   * AdditionHandler is used to determine the response's content.
-   *
-   * @param path  When the first segment of the path matches this,
-   *              the passed in Handler's class is called.
-   * @param handlerClass  The class of the HTTPHandler to be called
-   *                      when the above path is matched
-   */
-  public static void addHandler(String path, 
-          Class<? extends HTTPHandler> handlerClass) {
-    handlers.put(path, handlerClass);
-  }
-
-  /**
    * Figure out what kind of HTTPHandler you want, based on the path.
    *
    * This returns a new object of that class. Just learning that Java has
@@ -216,35 +190,18 @@ public class HTTPRequest {
    * @return a new instance of some form of HTTPHandler.
    */
   public HTTPHandler determineHandler() {
-    Class<? extends HTTPHandler> hClass;
-
-    // check if there's a handler for the specified segment.
-    if (handlers.containsKey(getSplitPath().get(0))) {
-      hClass = handlers.get(getSplitPath().get(0));
-      getSplitPath().remove(0);
-    }
-    // if there isn't, use our default handler
-    else {
-      hClass = handlers.get("*");
+    // if we don't have a handler factory, something bad's going on...
+    if (handlerFactory == null) {
+      return new DeathHandler(this);
     }
 
     try {
-      // attempt to make a new constructor of the selected class from
-      // above. And attempt to return a new object of that class, using
-      // the constructor.
-      Constructor<? extends HTTPHandler> hConstructor
-      = hClass.getConstructor(HTTPRequest.class);
-
-      return hConstructor.newInstance(this);
+      return handlerFactory.determineHandler(getSplitPath().get(0), this);
     }
-    catch (NoSuchMethodException | SecurityException | InstantiationException
-            | IllegalAccessException | IllegalArgumentException
-            | InvocationTargetException e) {
+    catch (Exception e) {
       e.printStackTrace();
+      return new DeathHandler(this);
     }
-
-    // if we can't do that, send over a DEATH HANDLER!
-    return new DeathHandler(this);
   }
 
 
@@ -440,5 +397,9 @@ public class HTTPRequest {
         builder.append(getFullPath());
 
     return builder.toString();
+  }
+
+  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+    HTTPRequest.handlerFactory = handlerFactory;
   }
 }

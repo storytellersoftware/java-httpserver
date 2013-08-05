@@ -109,12 +109,8 @@ public class HTTPServer implements Runnable {
     }
   }
 
-  public void addHandler(String path, Class<? extends HTTPHandler> handler) {
-    HTTPRequest.addHandler(path, handler);
-  }
-
-  public void addDefaultHandler(Class<? extends HTTPHandler> handler) {
-    HTTPRequest.addHandler("*", handler);
+  public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+    HTTPRequest.setHandlerFactory(handlerFactory);
   }
 
 }
