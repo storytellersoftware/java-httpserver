@@ -18,13 +18,6 @@ public abstract class HTTPHandlerFactory {
   public abstract HTTPHandler determineHandler(String pathSegment,
       HTTPRequest request) throws HTTPException;
 
-  public void setRelativeness(String pathSegment, HTTPRequest request) {
-    if(!pathSegment.isEmpty()) {
-      String fullPath = request.getPath();
-      request.setPath(fullPath.substring(fullPath.indexOf(pathSegment) + 1));
-    }
-  }
-
   public boolean checkIfEquals(String pathSegment, String key, HTTPRequest request) {
 
     String path = request.getPath();
