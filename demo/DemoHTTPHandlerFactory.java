@@ -3,14 +3,11 @@ package demo;
 import httpserver.*;
 
 public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
-  private static Class<? extends HTTPHandlerFactory> factoryClass
-          = DemoHTTPHandlerFactory.class;
-
-  private DemoHTTPHandlerFactory() {}
+  public DemoHTTPHandlerFactory() {}
 
 
   public HTTPHandler determineHandler(String pathSegment, 
-          HTTPRequest request) {
+          HTTPRequest request) throws HTTPException {
     if (pathSegment.equalsIgnoreCase("hello")) {
       return new HelloHandler(request);
     }
