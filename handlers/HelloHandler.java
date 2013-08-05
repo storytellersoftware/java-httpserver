@@ -6,6 +6,7 @@ public class HelloHandler extends HTTPHandler {
 
 	public HelloHandler(HTTPRequest request) throws HTTPException {
 		super(request);
+
 		try {
 			addGET("/", "sayHello");
 			addGET("/{String}/", "sayHello");

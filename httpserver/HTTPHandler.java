@@ -79,7 +79,6 @@ public abstract class HTTPHandler {
 	 */
 	public void handle() throws HTTPException {
 		String path = getRequest().getPath();
-		System.out.println("PathAS: " + path);
 		MethodWrapper method = getMap().get(path);
 
 		int mostCorrect = 0;

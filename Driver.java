@@ -8,6 +8,7 @@ public class Driver {
 		// add some handlers to the HTTPServer
 		s.addDefaultHandler(HelloHandler.class);
 		s.addHandler("hello", HelloHandler.class);
+		s.addHandler("add", AddHandler.class);
 		//s.addHandler("plus", AdditionHandler.class);
 
 		s.run();

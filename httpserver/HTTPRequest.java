@@ -221,10 +221,6 @@ public class HTTPRequest {
 			hClass = handlers.get("*");
 		}
 
-		Set<String> keys = handlers.keySet();
-		for(String key : keys)
-			System.out.println("Key: " + key);
-
 		try {
 			// attempt to make a new constructor of the selected class from
 			// above. And attempt to return a new object of that class, using

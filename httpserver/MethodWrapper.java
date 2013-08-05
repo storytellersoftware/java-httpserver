@@ -119,7 +119,20 @@ class MethodWrapper {
 		int count = 1;
 		for(int i=0; i < paths.length && i < methodPaths.length; i++) {
 			if(paths[i].equals(methodPaths[i]))
-				count++;
+				count += 2;
+
+			// Variable checking
+			else if(isDynamic(methodPaths[i])){
+				try {
+					Class<?> paramClass = Class.forName(LANG_PATH + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+					Constructor<?> constructor = paramClass.getConstructor(String.class);
+					constructor.newInstance(paths[i]);
+					count++;
+				} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					return 0;
+				}
+
+			}
 		}
 
 		return count;
