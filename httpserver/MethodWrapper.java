@@ -3,6 +3,7 @@ package httpserver;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -148,7 +149,7 @@ class MethodWrapper {
     int count = 1;
     for(int i=0; i < paths.length && i < methodPaths.length; i++) {
       if(paths[i].equals(methodPaths[i]))
-        count += 2;
+        count += 3;
 
       // Variable checking
       else if(isDynamic(methodPaths[i])){
@@ -157,6 +158,8 @@ class MethodWrapper {
           Constructor<?> constructor = paramClass.getConstructor(String.class);
           constructor.newInstance(paths[i]);
           count++;
+          if(!hasDecimal(paramClass))
+            count++;
         } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
           return 0;
         }
@@ -165,6 +168,17 @@ class MethodWrapper {
     }
 
     return count;
+  }
+
+  /**
+   * Checks if a class allows a decimal or not
+   * @param paramClass
+   * @return
+   */
+  private boolean hasDecimal(Class<?> paramClass) {
+    return paramClass.equals(BigDecimal.class) ||
+        paramClass.equals(Double.class) ||
+        paramClass.equals(Float.class);
   }
 
 
