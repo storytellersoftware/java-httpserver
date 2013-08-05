@@ -8,11 +8,11 @@ public class HelloHandler extends HTTPHandler {
     super(request);
 
     try {
-      addGET("/hello", "sayHello");
-      addGET("/hello/{String}/", "sayHello");
-      addGET("/hello/{String}/{String}", "sayHello");
+      addGET("/", "sayHello");
+      addGET("/{String}/", "sayHello");
+      addGET("/{String}/{String}", "sayHello");
 
-      addGET("/hello/goodbye", "sayGoodbye");
+      addGET("/goodbye", "sayGoodbye");
     } catch (HTTPException e) {
       e.printStackTrace();
     }

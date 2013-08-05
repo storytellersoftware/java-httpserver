@@ -9,15 +9,15 @@ public class MathHandler extends HTTPHandler {
 
     try {
       addGET("*", "noMath");
-      addGET("/math/add/{Double}/{Double}", "add");
-      addGET("/math/subtract/{Double}/{Double}", "subtract");
-      addGET("/math/multiply/{Double}/{Double}", "multiply");
-      addGET("/math/divide/{Double}/{Double}", "divide");
+      addGET("/add/{Double}/{Double}", "add");
+      addGET("/subtract/{Double}/{Double}", "subtract");
+      addGET("/multiply/{Double}/{Double}", "multiply");
+      addGET("/divide/{Double}/{Double}", "divide");
 
-      addGET("/math/add/{Integer}/{Integer}", "add");
-      addGET("/math/subtract/{Integer}/{Integer}", "subtract");
-      addGET("/math/multiply/{Integer}/{Integer}", "multiply");
-      addGET("/math/divide/{Integer}/{Integer}", "divide");
+      addGET("/add/{Integer}/{Integer}", "add");
+      addGET("/subtract/{Integer}/{Integer}", "subtract");
+      addGET("/multiply/{Integer}/{Integer}", "multiply");
+      addGET("/divide/{Integer}/{Integer}", "divide");
     }
     catch (HTTPException e) {
       e.printStackTrace();
