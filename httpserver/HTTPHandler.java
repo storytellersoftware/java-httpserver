@@ -91,8 +91,11 @@ public abstract class HTTPHandler {
       Set<String> keys = getMap().keySet();
       for(String key : keys) {
         MethodWrapper testMethod = getMap().get(key);
-        if(testMethod.howCorrect(path) > mostCorrect)
+        int testCorrect = testMethod.howCorrect(path);
+        if(testCorrect > mostCorrect) {
           method = testMethod;
+          mostCorrect = testCorrect;
+        }
       }
     }
 

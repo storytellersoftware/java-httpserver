@@ -308,7 +308,12 @@ public class HTTPRequest {
   }
 
   public void setPath(String path) {
+    //if(!path.equals("/"))
+    //this.path = path.substring(path.indexOf('/', 1));
+    //else
     this.path = path;
+    //System.out.println("Path: " + path);
+    //System.out.println("New Path: " + this.path);
   }
   /**
    * Gets the path relative to the handler's path.
@@ -325,7 +330,7 @@ public class HTTPRequest {
         data.
 
         The first character *should* always be a `/`, and that could cause
-        an error with splitting (as in, the first split could be an empyt
+        an error with splitting (as in, the first split could be an empty
         string, which we don't want).
      */
     for (String segment : fullPath.substring(1).split("/")) {
