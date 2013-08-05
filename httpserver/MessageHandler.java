@@ -1,0 +1,47 @@
+package httpserver;
+
+/**
+ * A MessageHandler is a simple handler that sends a simple text message to
+ * the client.
+ */
+public class MessageHandler extends HTTPHandler {
+  
+  /**
+   * Create a message handler
+   *
+   * Calls <code>message(code, message)</code>.
+   *
+   * @param request   The associated HTTPRequest. Required by all Handlers.
+   * @param code      An HTTP status code to be used with the attached message.
+   * @param message   A simple text message to be sent to the client.
+   *
+   * @see HTTPHandler#message
+   * @see HTTPRequest
+   */
+  public MessageHandler(HTTPRequest request, int code, String message) {
+    super(request);
+    message(code, message);
+  }
+
+  /**
+   * Create a message handler, with the HTTP status set to 200
+   *
+   * Calls <code>message(200, message)</code>.
+   *
+   * @param message   A simple text message to be sent to the client with the
+   *                  HTTP status code of 200.
+   *
+   * @see HTTPHandler#message
+   * @see HTTPRequest
+   */
+  public MessageHandler(HTTPRequest request, String message) {
+    this(request, 200, message);
+  }
+
+  /**
+   * Does nothing...
+   *
+   * The message was set in the constructor, we don't need to do anything here.
+   */
+  public void handle() { }
+}
