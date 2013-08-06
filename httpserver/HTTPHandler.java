@@ -268,26 +268,6 @@ public abstract class HTTPHandler {
   }
 
 
-
-  /**
-   * Gets an absolute path from a relative path
-   * @param path The relative path of a resource
-   * @return The relative path's absolute path
-   */
-  public static String getResource(String path)
-  {
-    try
-    {
-      return URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      // This won't happen...
-      e.printStackTrace();
-    }
-    return ClassLoader.getSystemClassLoader().getResource(path).getPath();
-  }
-
   /******************************
     Generic getters and setters
    ******************************/
