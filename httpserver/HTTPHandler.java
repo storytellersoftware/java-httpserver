@@ -12,6 +12,9 @@ import java.util.Set;
  * override the handle method (slightly harder), or use the addGet and addPost
  * methods in the constructor. See their descriptions for more information.
  *
+ * If you just want to send a static message to the client, regardless of
+ * request, you can use a MessageHandler, instead of creating a
+ *
  * @see HTTPHandler#handle
  * @see HTTPHandler#addGet
  * @see HTTPHandler#addPost
@@ -57,8 +60,10 @@ public abstract class HTTPHandler {
    *
    *    And the response mimetype is set to "text/plain".
    *
-   * @param request HTTPRequest with the browser's request.
+   * @param request HTTPRequest with the browser's request information.
+   *
    * @see HTTPResponse
+   * @see HTTPRequest
    * @see HTTPHandler#setResponseCode
    * @see HTTPHandler#setResponseSize
    * @see HTTPHandler#setHandled
@@ -67,7 +72,6 @@ public abstract class HTTPHandler {
   public HTTPHandler(HTTPRequest request) {
     setRequest(request);
 
-    // default to good things
     setResponseCode(200);
     setResponseSize(-1);
     setHandled(false);
@@ -76,11 +80,22 @@ public abstract class HTTPHandler {
 
 
   /**
-   * Where the Handler handles the information given from the request and based
-   * off of the paths specified in the Handler.
+   * Where the Handler handles the information given from the request and
+   * based off of the paths specified in the Handler.
    *
-   * This can be overridden for a more custom handling.
-   * @throws HTTPException when an attached method can't be invoked.
+   * This can be overridden for more fine-grained handling. As is, it uses
+   * the data behind the addGET and addPOST methods for determining the
+   * correct action to take.
+   *
+   * If there is not exact match, the `*` and `/` path's are used, in that
+   * order. If, after that, no method can be found, a 501 is sent over to the
+   * client, with the <code>NOT_A_METHOD_ERROR</code> message.
+   *
+   * @throws HTTPException  when an attached method can't be invoked.
+   *
+   * @see HTTPHandler#addGET
+   * @see HTTPHandler#addPOST
+   * @see HTTPHandler#NOT_A_METHOD_ERROR
    */
   public void handle() throws HTTPException {
     String path = getRequest().getPath();
@@ -89,12 +104,12 @@ public abstract class HTTPHandler {
     int mostCorrect = 0;
 
     if(method == null) {
-      // Find the most correct method
       Set<String> keys = getMap().keySet();
-      for(String key : keys) {
+      for (String key : keys) {
         MethodWrapper testMethod = getMap().get(key);
         int testCorrect = testMethod.howCorrect(path);
-        if(testCorrect > mostCorrect) {
+
+        if (testCorrect > mostCorrect) {
           method = testMethod;
           mostCorrect = testCorrect;
         }
@@ -119,13 +134,70 @@ public abstract class HTTPHandler {
     method.invoke(this, path);
   }
 
+
+
   /**
+<<<<<<< HEAD
+=======
+   * Send a simple string message with an HTTP response code back to
+   * the client.
+   *
+   * Can be used for sending all data back.
+   *
+   * @param code      An HTTP response code.
+   * @param message   The content of the server's response to the browser
+   *
+   * @see HTTPHandler#error
+   * @see HTTPHandler#noContent
+   */
+  public void message(int code, String message) {
+    setResponseCode(code);
+    setResponseText(message);
+    setHandled(true);
+  }
+
+  /**
+   * Tell the browser there is no response data.
+   *
+   * This is done by sending over a 204 code, which means there isn't
+   * any data in the stream, but the server correctly processed the request
+   *
+   * @see HTTPHandler#message
+   */
+  public void noContent() {
+    setResponseCode(204);
+    setResponseText("");
+    setHandled(true);
+  }
+
+  /**
+   * Send a message to the browser and print an exception
+   *
+   * Prints the stackTrace of `t`, and sends a message `message` back to the
+   * browser, with that HTTP status of `code`
+   * 
+   * @param code      HTTP status code
+   * @param message   the content being sent back to the browser
+   * @param t         A throwable object, to be printed to the screen
+   * 
+   * @see httpserver.HTTPHandler#message
+   */
+  public void error(int code, String message, Throwable t) {
+    t.printStackTrace();
+    message(code, message);
+  }
+
+
+
+  /**
+>>>>>>> 1f892f304df028bae12c0a95bc9e45cd651539bb
    * Gets the correct Map of Methods the request wants to use.
    * @return The HashMap for the correct request.
    */
   private HashMap<String, MethodWrapper> getMap() {
-    if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE))
+    if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE)) {
       return getMethods;
+    }
 
     return postMethods;
   }
@@ -176,7 +248,6 @@ public abstract class HTTPHandler {
     addMethod(postMethods, path, methodName);
   }
 
-
   /**
    * Add a method to a path in a map.
    *
@@ -194,58 +265,12 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
       String methodName) throws HTTPException {
-    MethodWrapper method = new MethodWrapper(path, methodName, this.getClass());
+    MethodWrapper method
+    = new MethodWrapper(path, methodName, this.getClass());
     map.put(path, method);
   }
 
-  /**
-   * Send a simple string message with an HTTP response code back to
-   * the client.
-   *
-   * Can be used for sending all data back.
-   *
-   * @param code      An HTTP response code.
-   * @param message   The content of the server's response to the browser
-   *
-   * @see HTTPHandler#error
-   * @see HTTPHandler#noContent
-   */
-  public void message(int code, String message) {
-    setResponseCode(code);
-    setResponseText(message);
-    setHandled(true);
-  }
 
-  /**
-   * Tell the browser there is no response data.
-   *
-   * This is done by sending over a 204 code, which means there isn't
-   * any data in the stream, but the server correctly processed the request
-   *
-   * @see HTTPHandler#message
-   */
-  public void noContent() {
-    setResponseCode(204);
-    setResponseText("");
-    setHandled(true);
-  }
-
-  /**
-   * Send a message to the browser and print an exception
-   *
-   * Prints the stackTrace of `t`, and sends a message `message` back to the
-   * browser, with that HTTP status of `code`
-   * 
-   * @param code      HTTP status code
-   * @param message   the content being sent back to the browser
-   * @param t         A throwable object, to be printed to the screen
-   * 
-   * @see httpserver.HTTPHandler#message
-   */
-  public void error(int code, String message, Throwable t) {
-    t.printStackTrace();
-    message(code, message);
-  }
 
   /**
    * Gets an absolute path from a relative path
@@ -266,6 +291,9 @@ public abstract class HTTPHandler {
     return ClassLoader.getSystemClassLoader().getResource(path).getPath();
   }
 
+  /******************************
+    Generic getters and setters
+   ******************************/
   public void setRequest(HTTPRequest request) {
     this.request = request;
   }

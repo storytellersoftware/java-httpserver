@@ -51,7 +51,12 @@ or make an issue, or email me (Don Kuntz, don@kuntz.co).
 Really, if you think something needs fixing, feel free to mention it, and if we
 agree, we'll make the fix.
 
-## Using
+## Credits
+
+java-httpserver is based on some of the work done by
+[Don Kuntz](http://don.kuntz.co) and 
+[Michael Peterson](https://github.com/mpeterson2) over the summer of 2013 while
+working on [Storyteller](http://storytellersoftware.com).
 
 This project is licensed under the MIT License (see license.md). While not
 required, if you use this, we'd like to know about it, just alert us, somehow.
