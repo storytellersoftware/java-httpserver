@@ -81,7 +81,7 @@ public class HTTPResponse {
         isn't any content to be sent over, so let's just stop trying, okay?
      */
     if (getHandler().getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
-        || getHandler().getResponseCode() == 204) {
+                    || getHandler().getResponseCode() == 204) {
       return;
     }
 
@@ -113,8 +113,10 @@ public class HTTPResponse {
    * @throws IOException
    */
   private void writeImageData() throws IOException {
-    String imgType = getHandler().getResponseType().substring(getHandler().getResponseType().length() - 3);
-    BufferedImage img = ImageIO.read(new URL(getHandler().getResponseText()).openStream());
+    String imgType = getHandler().getResponseType().substring(
+                    getHandler().getResponseType().length() - 3);
+    BufferedImage img = ImageIO.read(
+                    new URL(getHandler().getResponseText()).openStream());
 
     ImageIO.write(img, imgType, getWriter());
   }
