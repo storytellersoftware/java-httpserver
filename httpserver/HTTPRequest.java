@@ -6,14 +6,11 @@ import java.util.*;
 
 /**
  * An HTTPRequest takes an incoming connection and parses out all of the
-<<<<<<< HEAD
  * relevant data, supposing the connection follows HTTP protocol.
-=======
- * relevant data, supposing the conneciton follows HTTP protocol. <p>
  *
  * At present, HTTPRequest only knows how to handle HTTP 1.1 requests, and
- * doesn't handle persistant connections. Technically, it could handle an
- * HTTP 1.0 request, because 1.0 doesn't have persistant conncetions.
+ * doesn't handle persistent connections. Technically, it could handle an
+ * HTTP 1.0 request, because 1.0 doesn't have persistent connections.
  *
  * @see   <a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">
  *        HTTP 1.1 Spec</a>
@@ -79,17 +76,17 @@ public class HTTPRequest {
    * handler to be used.
    *
    * @param connection The socket between the server and client
-   * @throws IOException      When it gets thrown by 
+   * @throws IOException      When it gets thrown by
    *                          {@link HTTPHandler#parseRequest}.
-   * @throws SocketException  When it gets thrown by 
+   * @throws SocketException  When it gets thrown by
    *                          {@link HTTPHandler#parseRequest}.
-   * @throws HTTPException    When something that doesn't follow HTTP spec 
+   * @throws HTTPException    When something that doesn't follow HTTP spec
    *                          occurs.
    *
    * @see HTTPHandler#parseRequest
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
-          HTTPException {
+  HTTPException {
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
@@ -111,16 +108,16 @@ public class HTTPRequest {
    *                          issue, and not a server issue, but it gets thrown
    *                          upstream because it can't be dealt with until it
    *                          gets to the HTTPServer.
-   * @throws HTTPException    When headers aren't in key/value pairs separated 
-   *                          by ": ". 
+   * @throws HTTPException    When headers aren't in key/value pairs separated
+   *                          by ": ".
    *
    * @see HTTPServer
    */
   private void parseRequest() throws IOException, SocketException,
-          HTTPException {
+  HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(
-        new InputStreamReader(getConnection().getInputStream()));
+                    new InputStreamReader(getConnection().getInputStream()));
 
     StringBuilder requestBuilder = new StringBuilder();
 
@@ -135,7 +132,7 @@ public class HTTPRequest {
         The key is before the ": ", the value, after
      */
     for (String line = input.readLine(); line != null && !line.isEmpty();
-            line = input.readLine()) {
+                    line = input.readLine()) {
       requestBuilder.append(line);
       requestBuilder.append("\n");
 
@@ -159,7 +156,7 @@ public class HTTPRequest {
         "Content-Length" header.
      */
     if (getRequestType().equals(POST_REQUEST_TYPE) &&
-        getHeaders().containsKey("Content-Length")) {
+                    getHeaders().containsKey("Content-Length")) {
       int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
       StringBuilder b = new StringBuilder();
 
@@ -176,7 +173,7 @@ public class HTTPRequest {
   /**
    * Turns an array of "key=value" strings into a map. <p>
    * 
-   * Any item in the array missing an "=" is ignored, and not added to the 
+   * Any item in the array missing an "=" is ignored, and not added to the
    * returned map. If an empty value is wanted, an "=" is required at the end
    * of the key.
    *
@@ -196,7 +193,7 @@ public class HTTPRequest {
       /*  Attempt to URL decode the value, because it *might* be user input.
           If it can't be decoded, it doesn't matter, the original, undecoded
           value is still used.
-      */
+       */
       try {
         value = URLDecoder.decode(value, "UTF-8");
       }
@@ -299,7 +296,7 @@ public class HTTPRequest {
   /**
    * Set the full path, and path list. <p>
    *
-   * Because the path list is derived from the full path, it's set at the same 
+   * Because the path list is derived from the full path, it's set at the same
    * time.
    *
    * @param inPath  The full requested path (in `/path/to/request` form)
@@ -371,7 +368,7 @@ public class HTTPRequest {
       // remove the ? onward from the last item in the path, because that's not
       // part of the requested URL
       getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0,
-          lastItem.indexOf('?')));
+                      lastItem.indexOf('?')));
 
       // split apart the request query into an array of "key=value" strings.
       String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");
@@ -427,7 +424,7 @@ public class HTTPRequest {
   public String getHTTPRequest() {
     return httpRequest;
   }
-  
+
   public void setRequestType(String requestType) {
     this.requestType = requestType;
   }
@@ -462,14 +459,14 @@ public class HTTPRequest {
     builder.append("HTTPRequest from ");
     builder.append(getConnection().getLocalAddress().getHostAddress());
     builder.append("\n\t");
-      builder.append("Request Line: ");
-      builder.append(getRequestLine());
+    builder.append("Request Line: ");
+    builder.append(getRequestLine());
     builder.append("\n\t\t");
-        builder.append("Request Type ");
-        builder.append(getRequestType());
+    builder.append("Request Type ");
+    builder.append(getRequestType());
     builder.append("\n\t\t");
-        builder.append("Request Path ");
-        builder.append(getFullPath());
+    builder.append("Request Path ");
+    builder.append(getFullPath());
 
     return builder.toString();
   }
