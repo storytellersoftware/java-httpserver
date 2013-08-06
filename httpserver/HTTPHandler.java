@@ -1,5 +1,7 @@
 package httpserver;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -38,7 +40,7 @@ public abstract class HTTPHandler {
   private int responseCode;
   private String responseType;
   private String responseText;
-  private int responseSize;
+  private long responseSize;
   private boolean handled;
 
   /**
@@ -115,90 +117,6 @@ public abstract class HTTPHandler {
 
     System.out.println("Method Invoked: " + method);
     method.invoke(this, path);
-  }
-
-  /**
-   * Where subclasses perform their specific actions.
-   * @throws HTTPException
-   * @Deprecated use .handle() instead
-   */
-  @Deprecated
-  public void handleOld() throws HTTPException {
-    String path = getRequest().getFullPath();
-    System.out.println("Full Path: " + path);
-
-    if(path.charAt(path.length() - 1) != '/')
-      path += "/";
-
-    if (path.split("/").length != 2) {
-      path = path.substring(path.indexOf('/', 1), path.length());
-      path = path.toLowerCase();
-    }
-
-    System.out.println("Path: " + path);
-
-    HashMap<String, MethodWrapper> methods;
-
-    // Set methods to the correct methods map, based off of the http
-    // request type
-    if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE))
-      methods = getMethods;
-    else
-      methods = postMethods;
-
-    try {
-      MethodWrapper method = methods.get(path);
-
-      // If the method is null, there could be dynamic text in the url
-      if (method == null) {
-        // Iterate over the keys
-        outerloop:
-          for (String key : methods.keySet()) {
-            // We need the index of '{' because it is the escape character for dynamic text
-            int index = key.indexOf('{');
-
-            // This will be manipulated based on the key
-            String newPath = "";
-            // If there is dynamic text
-            if (index != -1) {
-              // Check if the text before the '{' matches before we continue
-              if (!path.substring(0, index).equalsIgnoreCase(key.substring(0, index)))
-                index = -1;
-              else
-                newPath = path.substring(0, index-1);
-            }
-            // While we have a '{' and the path still matches what was there before
-            while (index != -1 &&
-                newPath.substring(0, index-1).equalsIgnoreCase(key.substring(0, index-1))) {
-              // Add the next part of the dynamic text to the new path
-              newPath += key.substring(index-1, key.indexOf('}', index) + 1);
-
-              // Create another string that has newPath and the rest of the regular path to test with
-              String testPath;
-              if(path.indexOf('/', index) != -1)
-                testPath = newPath + path.substring(path.indexOf('/', index));
-              else
-                testPath = newPath;
-
-              // Check for our method
-              method = methods.get(testPath);
-
-              // If we have found a method, invoke it and get out of here
-              if (method != null) {
-                break outerloop;
-              }
-              // Set the new index to the next index of '{'
-              index = key.indexOf('{', index + 1);
-            }
-          }
-      }
-
-      method.invoke(this, path);
-
-    } catch (NullPointerException | IllegalArgumentException | SecurityException e) {
-      e.printStackTrace();
-      throw new HTTPException("Could not handle path: " + getRequest().getFullPath());
-    }
   }
 
   /**
@@ -329,6 +247,24 @@ public abstract class HTTPHandler {
     message(code, message);
   }
 
+  /**
+   * Gets an absolute path from a relative path
+   * @param path The relative path of a resource
+   * @return The relative path's absolute path
+   */
+  public static String getResource(String path)
+  {
+    try
+    {
+      return URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // This won't happen...
+      e.printStackTrace();
+    }
+    return ClassLoader.getSystemClassLoader().getResource(path).getPath();
+  }
 
   public void setRequest(HTTPRequest request) {
     this.request = request;
@@ -344,10 +280,10 @@ public abstract class HTTPHandler {
     return responseCode;
   }
 
-  public void setResponseSize(int size) {
+  public void setResponseSize(long size) {
     responseSize = size;
   }
-  public int getResponseSize() {
+  public long getResponseSize() {
     return responseSize;
   }
 
