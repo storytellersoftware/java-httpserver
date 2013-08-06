@@ -2,20 +2,23 @@ package httpserver;
 
 import java.util.*;
 import java.net.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+
+import javax.imageio.ImageIO;
 
 
 public class HTTPResponse {
-  private static Map<Integer, String> responses 
-          = new HashMap<Integer, String>();
+  private static Map<Integer, String> responses
+  = new HashMap<Integer, String>();
   public static String serverInfo;
 
   private HTTPHandler handler;
   private Socket socket;
   private DataOutputStream writer;
 
-  public HTTPResponse(Socket socket, HTTPHandler handler) throws IOException, 
-          HTTPException {
+  public HTTPResponse(Socket socket, HTTPHandler handler) throws IOException,
+  HTTPException {
     if (responses.isEmpty()) {
       setupDefaultResponses();
     }
@@ -65,13 +68,32 @@ public class HTTPResponse {
         Alternatively, if the handler responds with a code of 204, there
         isn't any content to be sent over, so let's just stop trying, okay?
      */
-    if (getHandler().getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE) 
-            || getHandler().getResponseCode() == 204) {
+    if (getHandler().getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
+        || getHandler().getResponseCode() == 204) {
       return;
     }
 
-    writeLine(getHandler().getResponseText());
+    if(isImage())
+      imageRepsonse();
+    else
+      regularResponse();
+  }
 
+  private void regularResponse() throws IOException {
+    writeLine(getHandler().getResponseText());
+  }
+
+  private void imageRepsonse() throws IOException {
+    System.out.println(getHandler().getResponseText());
+    String imgType = getHandler().getResponseType().substring(getHandler().getResponseType().length() - 3);
+    BufferedImage img = ImageIO.read(new URL(getHandler().getResponseText()).openStream());
+
+    ImageIO.write(img, imgType, getWriter());
+
+  }
+
+  private boolean isImage() {
+    return getHandler().getResponseType().contains("image");
   }
 
   private void writeLine(String line) throws IOException {

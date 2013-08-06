@@ -1,17 +1,19 @@
 package httpserver;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Set;
 
 /**
- * An HTTPHandler is what all handlers used by your server descend from.
- * <p>
+ * An HTTPHandler is what all handlers used by your server descend from. <p>
+ * 
  * Extended classes have two options for determining their actions: they may
  * override the handle method (slightly harder), or use the addGet and addPost
- * methods in the constructor. See their descriptions for more information.
- * <p>
+ * methods in the constructor. See their descriptions for more information. <p>
+ * 
  * If you just want to send a static message to the client, regardless of
- * request, you can use a MessageHandler, instead of creating a 
+ * request, you can use a MessageHandler, instead of creating a
  *
  * @see HTTPHandler#handle
  * @see HTTPHandler#addGet
@@ -20,7 +22,7 @@ import java.util.Set;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-          = "an exception occured while processing your request";
+  = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -33,15 +35,15 @@ public abstract class HTTPHandler {
   public static final String STATUS_GOOD = "All systems are go";
 
   private HashMap<String, MethodWrapper> getMethods
-          = new HashMap<String, MethodWrapper>();
+  = new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods
-          = new HashMap<String, MethodWrapper>();
+  = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
   private String responseType;
   private String responseText;
-  private int responseSize;
+  private long responseSize;
   private boolean handled;
 
   /**
@@ -86,7 +88,7 @@ public abstract class HTTPHandler {
    * correct action to take. <p>
    *
    * If there is not exact match, the `*` and `/` path's are used, in that
-   * order. If, after that, no method can be found, a 501 is sent over to the 
+   * order. If, after that, no method can be found, a 501 is sent over to the
    * client, with the <code>NOT_A_METHOD_ERROR</code> message.
    *
    * @throws HTTPException  when an attached method can't be invoked.
@@ -106,7 +108,7 @@ public abstract class HTTPHandler {
       for (String key : keys) {
         MethodWrapper testMethod = getMap().get(key);
         int testCorrect = testMethod.howCorrect(path);
-        
+
         if (testCorrect > mostCorrect) {
           method = testMethod;
           mostCorrect = testCorrect;
@@ -259,18 +261,36 @@ public abstract class HTTPHandler {
    * @throws HTTPException  When you do bad things.
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
-          String methodName) throws HTTPException {
-    MethodWrapper method 
-            = new MethodWrapper(path, methodName, this.getClass());
+      String methodName) throws HTTPException {
+    MethodWrapper method
+    = new MethodWrapper(path, methodName, this.getClass());
     map.put(path, method);
   }
 
 
 
+  /**
+   * Gets an absolute path from a relative path
+   * @param path The relative path of a resource
+   * @return The relative path's absolute path
+   */
+  public static String getResource(String path)
+  {
+    try
+    {
+      return URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+    }
+    catch (UnsupportedEncodingException e)
+    {
+      // This won't happen...
+      e.printStackTrace();
+    }
+    return ClassLoader.getSystemClassLoader().getResource(path).getPath();
+  }
+
   /******************************
     Generic getters and setters
-  ******************************/
-
+   ******************************/
   public void setRequest(HTTPRequest request) {
     this.request = request;
   }
@@ -285,10 +305,10 @@ public abstract class HTTPHandler {
     return responseCode;
   }
 
-  public void setResponseSize(int size) {
+  public void setResponseSize(long size) {
     responseSize = size;
   }
-  public int getResponseSize() {
+  public long getResponseSize() {
     return responseSize;
   }
 
