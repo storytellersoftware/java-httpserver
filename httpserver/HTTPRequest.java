@@ -164,8 +164,7 @@ public class HTTPRequest {
       }
       catch (UnsupportedEncodingException e) {}
 
-      if(item.indexOf('=') != -1)
-        out.put(item.substring(0, item.indexOf('=')), value);
+      out.put(item.substring(0, item.indexOf('=')), value);
     }
 
     return out;
