@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  * An HTTPRequest takes an incoming connection and parses out all of the
- * relevant data, supposing the conneciton follows HTTP protocol.
+ * relevant data, supposing the connection follows HTTP protocol.
  */
 public class HTTPRequest {
   /** HTTP GET request type */

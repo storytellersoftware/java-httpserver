@@ -130,7 +130,7 @@ public class HTTPServer implements Runnable {
    * @throws HTTPException
    */
   private void handleRequest(Socket connection, HTTPRequest request)
-      throws IOException, HTTPException {
+                  throws IOException, HTTPException {
     new HTTPResponse(connection, request.getHandler());
   }
 
