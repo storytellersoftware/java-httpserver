@@ -180,11 +180,6 @@ public class HTTPRequest {
    * @return a new instance of some form of HTTPHandler.
    */
   public HTTPHandler determineHandler() {
-    // if we don't have a handler factory, something bad's going on...
-    if (handlerFactory == null) {
-      return new DeathHandler(this);
-    }
-
     try {
       return handlerFactory.determineHandler(getSplitPath().get(0), this);
     }
@@ -194,6 +189,9 @@ public class HTTPRequest {
     }
   }
 
+  public boolean isType(String requestTypeCheck) {
+    return getRequestType().equalsIgnoreCase(requestTypeCheck);
+  }
 
   public void setConnection(Socket connection) {
     this.connection = connection;
@@ -366,8 +364,11 @@ public class HTTPRequest {
     return handler;
   }
 
-  public boolean isType(String requestTypeCheck) {
-    return getRequestType().equalsIgnoreCase(requestTypeCheck);
+  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+    HTTPRequest.handlerFactory = handlerFactory;
+  }
+  public static HTTPHandlerFactory getHTTPHandlerFactory() {
+    return handlerFactory;
   }
 
   @Override
@@ -386,9 +387,5 @@ public class HTTPRequest {
     builder.append(getFullPath());
 
     return builder.toString();
-  }
-
-  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
-    HTTPRequest.handlerFactory = handlerFactory;
   }
 }

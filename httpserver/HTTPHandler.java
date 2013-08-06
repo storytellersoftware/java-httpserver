@@ -265,8 +265,7 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
       String methodName) throws HTTPException {
-    MethodWrapper method
-    = new MethodWrapper(path, methodName, this.getClass());
+    MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
 
@@ -281,12 +280,11 @@ public abstract class HTTPHandler {
   {
     try
     {
-      return URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+      return URLDecoder.decode(ClassLoader.getSystemClassLoader().getResource(
+          URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
     }
     catch (UnsupportedEncodingException e)
-    {
-      // This won't happen...
-      e.printStackTrace();
+    {// This won't happen...
     }
     return ClassLoader.getSystemClassLoader().getResource(path).getPath();
   }

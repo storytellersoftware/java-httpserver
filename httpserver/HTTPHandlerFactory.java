@@ -32,5 +32,4 @@ public abstract class HTTPHandlerFactory {
 
     return pathSegment.equalsIgnoreCase(key);
   }
-
 }
