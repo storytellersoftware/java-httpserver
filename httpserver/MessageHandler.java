@@ -45,7 +45,8 @@ public class MessageHandler extends HTTPHandler {
   /**
    * Does nothing...
    *
-   * The message was set in the constructor, we don't need to do anything here.
+   * The message was set in the constructor, we don't need to do anything 
+   * here.
    */
   public void handle() { }
 }

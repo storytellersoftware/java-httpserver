@@ -6,8 +6,9 @@ import java.util.ArrayList;
 /**
  * A DeathHandler should only be called if something bad occurs.
  *
- * The DeathHandler is used on the backend to send a 500 message to the browser
- * if all of the other handlers fail to do things. Which they shouldn't.
+ * The DeathHandler is used on the backend to send a 500 message to the 
+ * browser if all of the other handlers fail to do things. Which they 
+ * shouldn't.
  *
  * It's also set as the initial wildcard handler, meaning if there aren't any
  * other handlers available, it'll be used.

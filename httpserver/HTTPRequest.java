@@ -233,8 +233,8 @@ public class HTTPRequest {
   /**
    * Sets the requestLine, and all derived items.
    * 
-   * Based off of the passed in line, the request type, request path, and request
-   * protocol can be set.
+   * Based off of the passed in line, the request type, request path, and 
+   * request protocol can be set.
    * @param line The first line in an HTTP request
    * @throws HTTPException
    */
@@ -291,7 +291,9 @@ public class HTTPRequest {
 
   /**
    * Set the full path, and path list.
-   * Because the path list is derived from the full path, it's set at the same time.
+   * Because the path list is derived from the full path, it's set at the same 
+   * time.
+   *
    * @param inPath The full requested path (in `/path/to/request` form)
    */
   public void setFullPath(String inPath) {
@@ -339,7 +341,8 @@ public class HTTPRequest {
       String lastItem = getSplitPath().get(getSplitPath().size() - 1);
       // remove the ? onward from the last item in the path, because that's not
       // part of the requested URL
-      getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0, lastItem.indexOf('?')));
+      getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0, 
+              lastItem.indexOf('?')));
 
       // split apart the request query into an array of "key=value" strings.
       String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");
