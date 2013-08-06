@@ -262,8 +262,7 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
       String methodName) throws HTTPException {
-    MethodWrapper method
-    = new MethodWrapper(path, methodName, this.getClass());
+    MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
 

@@ -17,7 +17,7 @@ import java.net.SocketException;
  */
 public class HTTPServer implements Runnable {
   /** The port being listend on */
-  public static final int PORT = 8000;
+  public static int PORT = 8000;
 
   /** The server's name */
   public static final String SERVER_NAME = "Simple Java Server";
@@ -32,7 +32,16 @@ public class HTTPServer implements Runnable {
   private ServerSocket socket = null;
 
   /**
-   * Tell the server to run! On the port specified in PORT
+   * Tells the server to run on a specified port
+   * @param port The port to run on.
+   */
+  public void run(int port) {
+    PORT = port;
+    run();
+  }
+
+  /**
+   * Tell the server to run on the default port, 8000.
    */
   @Override
   public void run() {
@@ -50,8 +59,7 @@ public class HTTPServer implements Runnable {
           connection = socket.accept();
 
           HTTPRequest request = new HTTPRequest(connection);
-          HTTPResponse response 
-                  = new HTTPResponse(connection, request.getHandler());
+          handleRequest(connection, request);
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection, and
@@ -111,6 +119,19 @@ public class HTTPServer implements Runnable {
 
   public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
     HTTPRequest.setHandlerFactory(handlerFactory);
+  }
+
+  /**
+   * Creates the response to handle the request
+   * This can be overridden if further handling is needed.
+   * @param connection The socket to respond to
+   * @param request The request
+   * @throws IOException
+   * @throws HTTPException
+   */
+  private void handleRequest(Socket connection, HTTPRequest request)
+      throws IOException, HTTPException {
+    new HTTPResponse(connection, request.getHandler());
   }
 
 }

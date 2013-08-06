@@ -35,9 +35,16 @@ public class FileHandler extends HTTPHandler {
    */
   public void handle() throws HTTPException {
     try {
-      String path = getRequest().getPath();
-      if (path.equals("/")) {
-        path = defaultFile;
+      Stringbuilder pathBuilder = new StringBuilder();
+      for (String segment : getRequest().getSplitPath()) {
+        pathBuilder.append("/")
+        pathBuilder.append(segment);
+      }
+
+      String path = pathBuilder.toString();
+
+      if(path.substring(path.length() - 1).equals("/")) {
+        path += defaultFile;
       }
 
       path = CONTENT_DIRECTORY + path;

@@ -219,11 +219,6 @@ public class HTTPRequest {
    * @see HTTPHandler
    */
   public HTTPHandler determineHandler() {
-    // if we don't have a handler factory, something bad's going on...
-    if (handlerFactory == null) {
-      return new DeathHandler(this);
-    }
-
     try {
       return handlerFactory.determineHandler(getSplitPath().get(0), this);
     }
@@ -233,11 +228,14 @@ public class HTTPRequest {
     }
   }
 
+  public boolean isType(String requestTypeCheck) {
+    return getRequestType().equalsIgnoreCase(requestTypeCheck);
+  }
 
   /**
    * Sets the requestLine, and all derived items. <p>
    * 
-   * Based off of the passed in line, the request type, request path, and 
+   * Based off of the passed in line, the request type, request path, and
    * request protocol can be set.
    *
    * @param line  The first line in an HTTP request. Should be in
@@ -363,8 +361,8 @@ public class HTTPRequest {
       String lastItem = getSplitPath().get(getSplitPath().size() - 1);
       // remove the ? onward from the last item in the path, because that's not
       // part of the requested URL
-      getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0, 
-              lastItem.indexOf('?')));
+      getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0,
+          lastItem.indexOf('?')));
 
       // split apart the request query into an array of "key=value" strings.
       String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");
@@ -442,8 +440,11 @@ public class HTTPRequest {
     return handler;
   }
 
-  public boolean isType(String requestTypeCheck) {
-    return getRequestType().equalsIgnoreCase(requestTypeCheck);
+  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+    HTTPRequest.handlerFactory = handlerFactory;
+  }
+  public static HTTPHandlerFactory getHTTPHandlerFactory() {
+    return handlerFactory;
   }
 
   @Override
@@ -462,9 +463,5 @@ public class HTTPRequest {
         builder.append(getFullPath());
 
     return builder.toString();
-  }
-
-  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
-    HTTPRequest.handlerFactory = handlerFactory;
   }
 }

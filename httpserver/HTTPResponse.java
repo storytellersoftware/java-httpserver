@@ -7,7 +7,14 @@ import java.io.*;
 
 import javax.imageio.ImageIO;
 
-
+/**
+ * This is the response to the client's request. It writes information to the client
+ * based on what the client requested.
+ * 
+ * If you would like to extend the response, the method <code>writeData()</code>
+ * is meant to be extended to provide you with other options to send the client.
+ * 
+ */
 public class HTTPResponse {
   private static Map<Integer, String> responses
   = new HashMap<Integer, String>();
@@ -43,6 +50,11 @@ public class HTTPResponse {
     getWriter().close();
   }
 
+  /**
+   * Respond to the client.
+   * @throws IOException
+   * @throws HTTPException
+   */
   public void respond() throws IOException, HTTPException {
     getHandler().handle();
 
@@ -73,34 +85,61 @@ public class HTTPResponse {
       return;
     }
 
-    if(isImage())
-      imageRepsonse();
-    else
-      regularResponse();
+    writeData();
   }
 
-  private void regularResponse() throws IOException {
+  /**
+   * Writes data to the client after the headers have been sent.
+   * This can be overridden if more handling is needed.
+   * @throws IOException
+   */
+  private void writeData() throws IOException {
+    if(isImageResponse())
+      writeImageData();
+    else
+      writeRegularData();
+  }
+
+  /**
+   * Writes regular data to the client.
+   * @throws IOException
+   */
+  private void writeRegularData() throws IOException {
     writeLine(getHandler().getResponseText());
   }
 
-  private void imageRepsonse() throws IOException {
-    System.out.println(getHandler().getResponseText());
+  /**
+   * Writes image data to the client.
+   * @throws IOException
+   */
+  private void writeImageData() throws IOException {
     String imgType = getHandler().getResponseType().substring(getHandler().getResponseType().length() - 3);
     BufferedImage img = ImageIO.read(new URL(getHandler().getResponseText()).openStream());
 
     ImageIO.write(img, imgType, getWriter());
-
   }
 
-  private boolean isImage() {
+  /**
+   * Lets you know if the response is an image type or not.
+   * @return whether the response is an image type or not.
+   */
+  private boolean isImageResponse() {
     return getHandler().getResponseType().contains("image");
   }
 
+  /**
+   * Writes a line to the client.
+   * @param line The line to write.
+   * @throws IOException
+   */
   private void writeLine(String line) throws IOException {
     getWriter().writeBytes(line + "\n");
   }
 
 
+  /**
+   * Sets up the default responses to respond with.
+   */
   public void setupDefaultResponses() {
     responses.put(200, "OK");
     responses.put(201, "Created");

@@ -23,8 +23,8 @@ class MethodWrapper {
   /**
    * Create a MethodWrapper.
    *
-   * Paths should come in <code>/relative/path/to/match</code>. To use a 
-   * variable in a path, it should come in 
+   * Paths should come in <code>/relative/path/to/match</code>. To use a
+   * variable in a path, it should come in
    * <code>/path/with/{VariableType}</code> form, where VariableType is a
    * class inside of the `java.lang` package, and has a constructor that takes
    * in a String. A better explaination is in HTTPHandler#addGET
@@ -41,24 +41,24 @@ class MethodWrapper {
    * @see HTTPHandler#addGET
    */
   public MethodWrapper(String path, String methodName, Class callingClass)
-          throws HTTPException {
+      throws HTTPException {
     try {
       // Get a list of the parameter types
       List<Class> parameterTypes = new ArrayList<Class>();
       String[] paths = path.split("/");
       StringBuilder pathBuilder = new StringBuilder();
 
-      
+
       /*  Recreate the path.
           This is done so that a path may include or exclude a `/` at the end
           of it. It also makes sure that non-dynamic parts of the path are
           lower case'd.
-      */
+       */
       for (String part : paths) {
         /*  if, for some reason, there's something like a `//` in the path,
             or if it's the first one (because of the preceeding /), part is
             empty, which means we have nothing to do here.
-        */
+         */
         if (part.isEmpty()) {
           continue;
         }
@@ -84,9 +84,9 @@ class MethodWrapper {
       }
 
       /*  Because Class.getMethod() takes in an array of Classes, and because
-          List.toArray() returns an array of Objects, we need to manually 
+          List.toArray() returns an array of Objects, we need to manually
          convert parameterTypes from a list to an array.
-      */
+       */
       Class[] paramTypes = new Class[parameterTypes.size()];
       for (int i=0; i < parameterTypes.size(); i++) {
         paramTypes[i] = parameterTypes.get(i);
@@ -110,8 +110,8 @@ class MethodWrapper {
    *
    * @throws HTTPException  If anything bad happend in invoking the underlying
    *                        method. Probably shouldn't happen, because the
-   *                        issues would be found first when making the 
-   *                        MethodWrapper, but there's a chance they could 
+   *                        issues would be found first when making the
+   *                        MethodWrapper, but there's a chance they could
    *                        happen.
    *
    * @see java.lang.reflect.Method#invoke
@@ -123,13 +123,13 @@ class MethodWrapper {
       String[] methodPaths = this.path.split("/");
       List<Object> params = new ArrayList<Object>();
 
-      for (int i = 0; i < paths.length; i++) {
+      for (int i = 0; i < methodPaths.length; i++) {
         if (isDynamic(methodPaths[i])) {
-          Class paramClass = Class.forName(LANG_PATH 
-                  + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+          Class paramClass = Class.forName(LANG_PATH
+              + methodPaths[i].substring(1, methodPaths[i].length() - 1));
 
           Constructor paramConstructor
-                  = paramClass.getConstructor(String.class);
+          = paramClass.getConstructor(String.class);
 
           params.add(paramConstructor.newInstance(paths[i]));
         }
@@ -143,10 +143,10 @@ class MethodWrapper {
         method.invoke(callingClass, params.toArray());
       }
     }
-    catch (IllegalAccessException | IllegalArgumentException 
-            | InvocationTargetException | SecurityException 
-            | ClassNotFoundException | NoSuchMethodException 
-            | InstantiationException e) {
+    catch (IllegalAccessException | IllegalArgumentException
+        | InvocationTargetException | SecurityException
+        | ClassNotFoundException | NoSuchMethodException
+        | InstantiationException e) {
       throw new HTTPException("Could not invoke method.", e);
     }
   }
@@ -189,21 +189,21 @@ class MethodWrapper {
       }
       else if (isDynamic(methodPaths[i])) {
         try {
-          Class paramClass = Class.forName(LANG_PATH + 
-                  methodPaths[i].substring(1, methodPaths[i].length() - 1));
+          Class paramClass = Class.forName(LANG_PATH +
+              methodPaths[i].substring(1, methodPaths[i].length() - 1));
           Constructor constructor = paramClass.getConstructor(String.class);
           constructor.newInstance(paths[i]);
 
           count++;
-          
+
           if (!hasDecimal(paramClass)) {
             count++;
           }
-        } 
-        catch (ClassNotFoundException | NoSuchMethodException 
-                | SecurityException | InstantiationException 
-                | IllegalAccessException | IllegalArgumentException 
-                | InvocationTargetException e) {
+        }
+        catch (ClassNotFoundException | NoSuchMethodException
+            | SecurityException | InstantiationException
+            | IllegalAccessException | IllegalArgumentException
+            | InvocationTargetException e) {
           return 0;
         }
       }
