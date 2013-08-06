@@ -31,10 +31,9 @@ things occur. Don't let bad things occur.
 
 ## Demo?
 
-You can test this out by running the provided Driver. At present it'll only
-display "Hello, World!", no matter what URL you request (it's the one component
-we're still working on), unless something bad happens, in which case it'll
-display "Well, that went well...".
+You can test this out by running the provided Driver. It includes a `FileHandler`,
+a `HelloHandler`, and a `MathHandler`. If you go to the demo, it will take
+you to our javadoc documentation.
 
 ## Documenatation
 

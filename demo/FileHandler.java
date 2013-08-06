@@ -14,9 +14,11 @@ import httpserver.HTTPRequest;
 public class FileHandler extends HTTPHandler {
 
   private static final String CONTENT_DIRECTORY = "javadoc";
+  private static String defaultFile;
 
   public FileHandler(HTTPRequest request) {
     super(request);
+    setDefaultFile("index.html");
   }
 
   @Override
@@ -25,7 +27,7 @@ public class FileHandler extends HTTPHandler {
       // Get the path
       String path = getRequest().getPath();
       if(path.equals("/"))
-        path = "/index.html";
+        path = defaultFile;
       path = CONTENT_DIRECTORY + path;
 
       // Set the response type
@@ -72,5 +74,9 @@ public class FileHandler extends HTTPHandler {
 
   private boolean isImage() {
     return getResponseType().contains("image");
+  }
+
+  public static void setDefaultFile(String path) {
+    defaultFile = "/" + path;
   }
 }
