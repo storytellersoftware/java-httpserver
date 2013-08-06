@@ -62,10 +62,11 @@ public class HTTPServer implements Runnable {
           handleRequest(connection, request);
         }
         catch (SocketException e) {
-          /*  This typically occurs when the client breaks the connection, and
-              isn't an issue on the server side, which means we shouldn't break
+          /*  This typically occurs when the client breaks the connection, 
+              and isn't an issue on the server side, which means we shouldn't
+               break
            */
-          System.out.println("The client probably broke the connection early.");
+          System.out.println("Client broke connection early!");
           e.printStackTrace();
         }
         catch (IOException e) {
@@ -85,10 +86,10 @@ public class HTTPServer implements Runnable {
           System.out.println("Generic Exception!");
           e.printStackTrace();
 
-          /*  If you're currently developing using this, you might want to leave
-              this break here, because this means something unexpected occured.
-              If the break is left in, the server stops running, and you should
-              probably look into the exception.
+          /*  If you're currently developing using this, you might want to 
+              leave this break here, because this means something unexpected 
+              occured. If the break is left in, the server stops running, and 
+              you should probably look into the exception.
 
               If you're in production, you shouldn't have this break here,
               because you probably don't want to kill the server...
@@ -130,7 +131,7 @@ public class HTTPServer implements Runnable {
    * @throws HTTPException
    */
   private void handleRequest(Socket connection, HTTPRequest request)
-                  throws IOException, HTTPException {
+          throws IOException, HTTPException {
     new HTTPResponse(connection, request.getHandler());
   }
 

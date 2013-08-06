@@ -16,7 +16,6 @@ import java.util.*;
  *        HTTP 1.1 Spec</a>
  * @see HTTPResponse
  * @see HTTPHandler
->>>>>>> ceb9471e0696d7b7baf10edd44e2b50c58c3f487
  */
 public class HTTPRequest {
   /** HTTP GET request type */
