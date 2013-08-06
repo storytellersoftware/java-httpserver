@@ -1,11 +1,7 @@
 package demo;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.io.*;
+import java.net.*;
 
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
@@ -35,13 +31,16 @@ public class FileHandler extends HTTPHandler {
    */
   public void handle() throws HTTPException {
     try {
-      Stringbuilder pathBuilder = new StringBuilder();
+      StringBuilder pathBuilder = new StringBuilder();
       for (String segment : getRequest().getSplitPath()) {
-        pathBuilder.append("/")
+        pathBuilder.append("/");
         pathBuilder.append(segment);
       }
 
       String path = pathBuilder.toString();
+      if (path.isEmpty()) {
+        path = "/";
+      }
 
       if(path.substring(path.length() - 1).equals("/")) {
         path += defaultFile;

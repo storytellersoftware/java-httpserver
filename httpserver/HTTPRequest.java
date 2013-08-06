@@ -196,7 +196,7 @@ public class HTTPRequest {
       try {
         value = URLDecoder.decode(value, "UTF-8");
       }
-      catch (UnsupportedDecodingException e) {}
+      catch (UnsupportedEncodingException e) {}
 
       out.put(item.substring(0, item.indexOf('=')), value);
     }
@@ -220,7 +220,8 @@ public class HTTPRequest {
    */
   public HTTPHandler determineHandler() {
     try {
-      return handlerFactory.determineHandler(getSplitPath().get(0), this);
+      String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
+      return handlerFactory.determineHandler(path, this);
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -352,6 +353,10 @@ public class HTTPRequest {
       }
 
       getSplitPath().add(segment);
+    }
+
+    if (getSplitPath().isEmpty()) {
+      return;
     }
 
     /*  Parse out any GET data in the request URL.

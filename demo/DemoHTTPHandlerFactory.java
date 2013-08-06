@@ -7,8 +7,9 @@ public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
 
 
   @Override
-  public HTTPHandler determineHandler(String pathSegment,
-      HTTPRequest request) throws HTTPException {
+  public HTTPHandler determineHandler(String pathSegment, HTTPRequest request) 
+          throws HTTPException {
+
 
     if (checkIfEquals(pathSegment, "hello", request))
       return new HelloHandler(request);
