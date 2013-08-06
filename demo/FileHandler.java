@@ -25,7 +25,11 @@ public class FileHandler extends HTTPHandler {
   public void handle() throws HTTPException {
     try {
       // Get the path
-      String path = getRequest().getPath();
+      String path;
+      if(getRequest().getPath().indexOf('?') != -1)
+        path = getRequest().getPath().substring(0, getRequest().getPath().indexOf('?'));
+      else
+        path = getRequest().getPath();
       if(path.equals("/"))
         path = defaultFile;
       path = CONTENT_DIRECTORY + path;
