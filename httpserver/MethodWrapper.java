@@ -157,39 +157,55 @@ class MethodWrapper {
    * the more likely the method is the correct method.
    *
    * Correctness is based on the similarity of the passed in path, and the
-   * method's path.
+   * method's path. If a path segment (the part between two slashes) matches
+   * this method's corresponding segment exactly, the correctness number is
+   * incremented by three. If the segment matches the variable type of the
+   * corresponding segment, the correctness number is incremented by one, and
+   * if the variable class can contain a decimal in it, the correctness
+   * number is incremented by one, again.
+   *
+   * If a zero is returned, the passed in path doesn't match this method's
+   * path at all.
    *
    * @param path  The path, relative the the handler.
    *
-   * @return  An integer from 0 to the length of path split on the '/'
+   * @return  A "correctness number", based on how well the passed in
+   *          path matches this method's path.
    */
   public int howCorrect(String path) {
     String[] paths = path.split("/");
     String[] methodPaths = this.path.split("/");
 
     // If the paths aren't the same length, this is the wrong method
-    if(paths.length != methodPaths.length)
+    if (paths.length != methodPaths.length) {
       return 0;
+    }
 
     // Start at one because the paths are the same length
     int count = 1;
-    for(int i=0; i < paths.length && i < methodPaths.length; i++) {
-      if(paths[i].equals(methodPaths[i]))
+    for (int i = 0; i < paths.length && i < methodPaths.length; i++) {
+      if (paths[i].equals(methodPaths[i])) {
         count += 3;
-
-      // Variable checking
-      else if(isDynamic(methodPaths[i])){
+      }
+      else if (isDynamic(methodPaths[i])) {
         try {
-          Class<?> paramClass = Class.forName(LANG_PATH + methodPaths[i].substring(1, methodPaths[i].length() - 1));
-          Constructor<?> constructor = paramClass.getConstructor(String.class);
+          Class paramClass = Class.forName(LANG_PATH + 
+                  methodPaths[i].substring(1, methodPaths[i].length() - 1));
+          Constructor constructor = paramClass.getConstructor(String.class);
           constructor.newInstance(paths[i]);
+
           count++;
-          if(!hasDecimal(paramClass))
+          
+          if (!hasDecimal(paramClass)) {
             count++;
-        } catch (ClassNotFoundException | NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+          }
+        } 
+        catch (ClassNotFoundException | NoSuchMethodException 
+                | SecurityException | InstantiationException 
+                | IllegalAccessException | IllegalArgumentException 
+                | InvocationTargetException e) {
           return 0;
         }
-
       }
     }
 
@@ -198,10 +214,11 @@ class MethodWrapper {
 
   /**
    * Checks if a class allows a decimal or not
-   * @param paramClass
-   * @return
+   *
+   * @param paramClass  Class being checked
+   * @return  If the class is a BigDecimal, Double, or Float.
    */
-  private boolean hasDecimal(Class<?> paramClass) {
+  private boolean hasDecimal(Class<? extends Number> paramClass) {
     return paramClass.equals(BigDecimal.class) ||
         paramClass.equals(Double.class) ||
         paramClass.equals(Float.class);

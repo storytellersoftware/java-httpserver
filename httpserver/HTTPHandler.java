@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Set;
 
 /**
- * An HTTPHandler is what all handlers used by your server descend from.
- *
+ * An HTTPHandler is what all handlers used by your server descend from. <p>
+ * 
  * Extended classes have two options for determining their actions: they may
  * override the handle method (slightly harder), or use the addGet and addPost
- * methods in the constructor. See their descriptions for more information.
- *
+ * methods in the constructor. See their descriptions for more information. <p>
+ * 
  * If you just want to send a static message to the client, regardless of
  * request, you can use a MessageHandler, instead of creating a
  *
@@ -47,18 +47,18 @@ public abstract class HTTPHandler {
   private boolean handled;
 
   /**
-   * Create an HTTPHandler.
+   * Create an HTTPHandler. <p>
    *
-   * This also sets some acceptable defaults:
-   *    The response code is set to 200 (OK, which means everything happend
+   * This also sets some acceptable defaults: <ul>
+   *    <li>The response code is set to 200 (OK, which means everything happend
    *    all nice and good-like);
    *
-   *    The response size is set to -1, which tells the HTTPResponse to
+   *    <li>The response size is set to -1, which tells the HTTPResponse to
    *    determine the correct size when sends back the information;
    *
-   *    The response is told it hasn't been handled yet;
+   *    <li>The response is told it hasn't been handled yet;
    *
-   *    And the response mimetype is set to "text/plain".
+   *    <li>And the response mimetype is set to "text/plain".
    *
    * @param request HTTPRequest with the browser's request information.
    *
@@ -80,12 +80,12 @@ public abstract class HTTPHandler {
 
 
   /**
-   * Where the Handler handles the information given from the request and
-   * based off of the paths specified in the Handler.
+   * Where the Handler handles the information given from the request and 
+   * based off of the paths specified in the Handler. <p>
    *
    * This can be overridden for more fine-grained handling. As is, it uses
    * the data behind the addGET and addPOST methods for determining the
-   * correct action to take.
+   * correct action to take. <p>
    *
    * If there is not exact match, the `*` and `/` path's are used, in that
    * order. If, after that, no method can be found, a 501 is sent over to the
@@ -137,10 +137,8 @@ public abstract class HTTPHandler {
 
 
   /**
-<<<<<<< HEAD
-=======
    * Send a simple string message with an HTTP response code back to
-   * the client.
+   * the client. <p>
    *
    * Can be used for sending all data back.
    *
@@ -157,7 +155,7 @@ public abstract class HTTPHandler {
   }
 
   /**
-   * Tell the browser there is no response data.
+   * Tell the browser there is no response data. <p>
    *
    * This is done by sending over a 204 code, which means there isn't
    * any data in the stream, but the server correctly processed the request
@@ -171,7 +169,7 @@ public abstract class HTTPHandler {
   }
 
   /**
-   * Send a message to the browser and print an exception
+   * Send a message to the browser and print an exception<p>
    *
    * Prints the stackTrace of `t`, and sends a message `message` back to the
    * browser, with that HTTP status of `code`
@@ -190,7 +188,6 @@ public abstract class HTTPHandler {
 
 
   /**
->>>>>>> 1f892f304df028bae12c0a95bc9e45cd651539bb
    * Gets the correct Map of Methods the request wants to use.
    * @return The HashMap for the correct request.
    */
@@ -203,22 +200,22 @@ public abstract class HTTPHandler {
   }
 
   /**
-   * Attach a method to a GET request at a path.
+   * Attach a method to a GET request at a path. <p>
    *
    * Methods are passed in using "className#methodName" form so that
    * we can parse out the correct Method. Who knows, you might want to
-   * use a method somewhere else, and who are we to argue with that?
+   * use a method somewhere else, and who are we to argue with that? <p>
    *
-   * If no # is included, we assume it belongs to the class it's called in.
+   * If no # is included, we assume it belongs to the class it's called in. <p>
    *
    * Path's should come in "/path/to/action" form. If the method requires
    * parameters, they should be included in the path, in the order they're
    * listed in the method definition, but in "{ClassName}" form. Example:
-   * <code>/hello/{String}/{String}</code> is a good path.
+   * <code>/hello/{String}/{String}</code> is a good path. <p>
    *
    * Methods being used should <strong>only</strong> have parameters that are
    * included in the java.lang library. Any other type of parameter will cause
-   * an exception to occur.
+   * an exception to occur. <p>
    *
    * Additionally, primitives are not permited, because they're not classes in
    * the java.lang library.
@@ -234,7 +231,7 @@ public abstract class HTTPHandler {
   }
 
   /**
-   * Attach a method to a POST request at a path.
+   * Attach a method to a POST request at a path. <p>
    *
    * For a more detailed explanation, see addGET.
    *
@@ -249,11 +246,11 @@ public abstract class HTTPHandler {
   }
 
   /**
-   * Add a method to a path in a map.
+   * Add a method to a path in a map. <p>
    *
    * Methods are passed in using "className#methodName" form so that
    * we can parse out the correct Method. Who knows, you might want to
-   * use a method somewhere else, and who are we to argue with that?
+   * use a method somewhere else, and who are we to argue with that? <p>
    *
    * If no # is included, we assume it belongs to the class it's called in.
    *
