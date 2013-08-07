@@ -63,33 +63,33 @@ public class HTTPServer implements Runnable {
           //handleRequest(connection, request);
         }
         catch (SocketException e) {
-          /*  This typically occurs when the client breaks the connection, 
+          /*  This typically occurs when the client breaks the connection,
               and isn't an issue on the server side, which means we shouldn't
                break
            */
-          System.out.println("Client broke connection early!");
+          System.err.println("Client broke connection early!");
           e.printStackTrace();
         }
         catch (IOException e) {
           /*  This typically means there's a problem in the HTTPRequest
            */
-          System.out.println("IOException. Probably an HTTPRequest issue.");
+          System.err.println("IOException. Probably an HTTPRequest issue.");
           e.printStackTrace();
         }
         catch (HTTPException e) {
-          System.out.println("HTTPException.");
+          System.err.println("HTTPException.");
           e.printStackTrace();
         }
         catch (Exception e) {
           /*  Some kind of unexpected exception occurred, something bad might
               have happened.
            */
-          System.out.println("Generic Exception!");
+          System.err.println("Generic Exception!");
           e.printStackTrace();
 
-          /*  If you're currently developing using this, you might want to 
-              leave this break here, because this means something unexpected 
-              occured. If the break is left in, the server stops running, and 
+          /*  If you're currently developing using this, you might want to
+              leave this break here, because this means something unexpected
+              occured. If the break is left in, the server stops running, and
               you should probably look into the exception.
 
               If you're in production, you shouldn't have this break here,
@@ -105,7 +105,7 @@ public class HTTPServer implements Runnable {
     catch (Exception e) {
       /*  Not sure when this occurs, but it might...
        */
-      System.out.println("Something bad happened...");
+      System.err.println("Something bad happened...");
       e.printStackTrace();
     }
     finally {
@@ -113,7 +113,7 @@ public class HTTPServer implements Runnable {
         socket.close();
       }
       catch (IOException e) {
-        System.out.println("Well that's not good...");
+        System.err.println("Well that's not good...");
         e.printStackTrace();
       }
     }
@@ -132,7 +132,7 @@ public class HTTPServer implements Runnable {
    * @throws HTTPException
    */
   private void handleRequest(Socket connection, HTTPRequest request)
-          throws IOException, HTTPException {
+                  throws IOException, HTTPException {
     new HTTPResponse(connection, request.getHandler());
   }
 
