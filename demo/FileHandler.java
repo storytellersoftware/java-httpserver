@@ -9,6 +9,16 @@ import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
 
+/**
+ * A {@link HTTPHandler} that handles file requests.<p>
+ * 
+ * This class overrides {@link handle()} because it needs to do special things in
+ * order to server files.<p>
+ * 
+ * It also overrides {@link writeData()} because it needs two different types of
+ * responses since images are not written the same way as text data.
+ *
+ */
 public class FileHandler extends HTTPHandler {
 
   private static final String CONTENT_DIRECTORY = "demo/www";
@@ -101,6 +111,11 @@ public class FileHandler extends HTTPHandler {
     }
   }
 
+  /**
+   * Set the default file path.<p>
+   * NOTE: You should not include the '/' before the path
+   * @param path The path.
+   */
   public static void setDefaultFile(String path) {
     defaultFile = "/" + path;
   }
@@ -125,6 +140,7 @@ public class FileHandler extends HTTPHandler {
     return ClassLoader.getSystemClassLoader().getResource(path).getPath();
   }
 
+  // This must be overridden because images are different than regular files.
   @Override
   public void writeData() throws IOException {
     if (isImageResponse()) {
@@ -141,6 +157,10 @@ public class FileHandler extends HTTPHandler {
     }
   }
 
+  /**
+   * Checks if an image will be returned to the client.
+   * @return whether the response type is an image type.
+   */
   private boolean isImageResponse() {
     return getResponseType().contains("image");
   }
