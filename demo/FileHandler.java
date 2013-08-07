@@ -61,6 +61,9 @@ public class FileHandler extends HTTPHandler {
       else if (path.substring(path.length() - 3).equalsIgnoreCase("gif")) {
         setResponseType("image/gif");
       }
+      else if (path.substring(path.length() - 3).equalsIgnoreCase("jpg")) {
+        setResponseType("image/jpg");
+      }
 
 
       if (isImageResponse()) {
