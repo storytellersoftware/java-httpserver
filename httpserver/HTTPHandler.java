@@ -27,7 +27,7 @@ import java.io.DataOutputStream;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-          = "an exception occured while processing your request";
+  = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -42,9 +42,9 @@ public abstract class HTTPHandler {
   private static String serverInfo;
 
   private HashMap<String, MethodWrapper> getMethods
-          = new HashMap<String, MethodWrapper>();
+  = new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods
-          = new HashMap<String, MethodWrapper>();
+  = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -59,6 +59,8 @@ public abstract class HTTPHandler {
 
   /**
    * Create an HTTPHandler. <p>
+   * 
+   * This is where paths should be setup<p>
    *
    * This also sets some acceptable defaults: <ul>
    *    <li>The response code is set to 200 (OK, which means everything happend
@@ -102,7 +104,7 @@ public abstract class HTTPHandler {
 
 
   /**
-   * Where the Handler handles the information given from the request and 
+   * Where the Handler handles the information given from the request and
    * based off of the paths specified in the Handler. <p>
    *
    * This can be overridden for more fine-grained handling. As is, it uses
@@ -360,6 +362,11 @@ public abstract class HTTPHandler {
     writeLine(getResponseText());
   }
 
+  /**
+   * Writes a string and a "\n" to the DataOutputStream.
+   * @param line The line to write
+   * @throws IOException
+   */
   protected void writeLine(String line) throws IOException {
     getWriter().writeBytes(line + "\n");
   }
@@ -382,6 +389,9 @@ public abstract class HTTPHandler {
     return Integer.toString(getResponseCode());
   }
 
+  /**
+   * Sets up a list of response codes and text.
+   */
   private void setupResponses() {
     responses = new HashMap<Integer, String>();
 
@@ -456,6 +466,9 @@ public abstract class HTTPHandler {
     return writer;
   }
 
+  /**
+   * Set the info of the server
+   */
   public void setupServerInfo() {
     StringBuilder info = new StringBuilder();
     info.append(HTTPServer.SERVER_NAME);

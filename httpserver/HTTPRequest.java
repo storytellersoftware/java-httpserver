@@ -116,7 +116,7 @@ public class HTTPRequest {
   HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(
-                    new InputStreamReader(getConnection().getInputStream()));
+            new InputStreamReader(getConnection().getInputStream()));
 
     StringBuilder requestBuilder = new StringBuilder();
 
@@ -131,7 +131,7 @@ public class HTTPRequest {
         The key is before the ": ", the value, after
      */
     for (String line = input.readLine(); line != null && !line.isEmpty();
-                    line = input.readLine()) {
+            line = input.readLine()) {
       requestBuilder.append(line);
       requestBuilder.append("\n");
 
@@ -155,7 +155,7 @@ public class HTTPRequest {
         "Content-Length" header.
      */
     if (getRequestType().equals(POST_REQUEST_TYPE) &&
-                    getHeaders().containsKey("Content-Length")) {
+            getHeaders().containsKey("Content-Length")) {
       int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
       StringBuilder b = new StringBuilder();
 
@@ -229,6 +229,11 @@ public class HTTPRequest {
     }
   }
 
+  /**
+   * Return if the request type is the passed in type.
+   * @param requestTypeCheck The type to check.
+   * @return whether the request type equals the passed in String.
+   */
   public boolean isType(String requestTypeCheck) {
     return getRequestType().equalsIgnoreCase(requestTypeCheck);
   }
@@ -367,7 +372,7 @@ public class HTTPRequest {
       // remove the ? onward from the last item in the path, because that's not
       // part of the requested URL
       getSplitPath().set(getSplitPath().size() - 1, lastItem.substring(0,
-                      lastItem.indexOf('?')));
+              lastItem.indexOf('?')));
 
       // split apart the request query into an array of "key=value" strings.
       String[] data = lastItem.substring(lastItem.indexOf('?') + 1).split("&");

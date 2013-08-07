@@ -119,6 +119,11 @@ public class HTTPServer implements Runnable {
     }
   }
 
+  /**
+   * Set the {@link HandlerFactory} to determine the what {@link HTTPHandler}
+   * will be used.
+   * @param handlerFactory
+   */
   public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
     HTTPRequest.setHandlerFactory(handlerFactory);
   }
