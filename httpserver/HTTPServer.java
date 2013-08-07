@@ -59,7 +59,8 @@ public class HTTPServer implements Runnable {
           connection = socket.accept();
 
           HTTPRequest request = new HTTPRequest(connection);
-          handleRequest(connection, request);
+          request.getHandler().respond();
+          //handleRequest(connection, request);
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection,
@@ -121,18 +122,4 @@ public class HTTPServer implements Runnable {
   public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
     HTTPRequest.setHandlerFactory(handlerFactory);
   }
-
-  /**
-   * Creates the response to handle the request
-   * This can be overridden if further handling is needed.
-   * @param connection The socket to respond to
-   * @param request The request
-   * @throws IOException
-   * @throws HTTPException
-   */
-  private void handleRequest(Socket connection, HTTPRequest request)
-          throws IOException, HTTPException {
-    new HTTPResponse(connection, request.getHandler());
-  }
-
 }

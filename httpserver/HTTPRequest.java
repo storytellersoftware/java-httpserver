@@ -218,7 +218,7 @@ public class HTTPRequest {
    * @see HTTPHandlerFactory#determineHandler
    * @see HTTPHandler
    */
-  public HTTPHandler determineHandler() {
+  public HTTPHandler determineHandler() throws HTTPException {
     try {
       String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
       return handlerFactory.determineHandler(path, this);

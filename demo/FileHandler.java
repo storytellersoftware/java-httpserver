@@ -2,6 +2,8 @@ package demo;
 
 import java.io.*;
 import java.net.*;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
 
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
@@ -16,8 +18,8 @@ public class FileHandler extends HTTPHandler {
   /**
    * Create a FileHandler.
    */
-  public FileHandler(HTTPRequest request) {
-    super(request);
+  public FileHandler(Socket sock, HTTPRequest request) throws HTTPException {
+    super(sock, request);
     setDefaultFile("index.html");
   }
 
@@ -122,6 +124,25 @@ public class FileHandler extends HTTPHandler {
     }
 
     return ClassLoader.getSystemClassLoader().getResource(path).getPath();
+  }
+
+  public void writeData() throws IOException {
+    if (isImageResponse()) {
+      String imgType = getResponseType().substring(
+              getResponseType().length() - 3);
+
+      BufferedImage img = ImageIO.read(
+              new URL(getResponseText()).openStream());
+
+      ImageIO.write(img, imgType, getWriter());
+    }
+    else {
+      writeLine(getResponseText());
+    }
+  }
+
+  private boolean isImageResponse() {
+    return getResponseType().contains("image");
   }
 
 }

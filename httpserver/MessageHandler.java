@@ -22,8 +22,9 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, int code, String message) {
-    super(request);
+  public MessageHandler(HTTPRequest request, int code, String message) 
+          throws HTTPException {
+    super(request.getConnection(), request);
     message(code, message);
   }
 
@@ -38,7 +39,8 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, String message) {
+  public MessageHandler(HTTPRequest request, String message) 
+          throws HTTPException {
     this(request, 200, message);
   }
 

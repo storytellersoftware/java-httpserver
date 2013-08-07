@@ -1,17 +1,24 @@
 package httpserver;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.net.Socket;
+import java.io.IOException;
+import java.io.DataOutputStream;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from. <p>
+ *
+ * HTTPHandlers also deal with the server -> client transmission of data,
+ * making it easy to adjust how data is sent to the client. <p>
  * 
  * Extended classes have two options for determining their actions: they may
  * override the handle method (slightly harder), or use the addGet and addPost
  * methods in the constructor. See their descriptions for more information. <p>
  * 
  * If you just want to send a static message to the client, regardless of
- * request, you can use a MessageHandler, instead of creating a
+ * request, you can use a MessageHandler, instead of creating a new Handler.
  *
  * @see HTTPHandler#handle
  * @see HTTPHandler#addGet
@@ -20,7 +27,7 @@ import java.util.Set;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-  = "an exception occured while processing your request";
+          = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -32,10 +39,12 @@ public abstract class HTTPHandler {
   /** Generic status message for when everything is good */
   public static final String STATUS_GOOD = "All systems are go";
 
+  private static String serverInfo;
+
   private HashMap<String, MethodWrapper> getMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -43,6 +52,10 @@ public abstract class HTTPHandler {
   private String responseText;
   private long responseSize;
   private boolean handled;
+
+  private Socket socket;
+  private DataOutputStream writer;
+  private Map<Integer, String> responses;
 
   /**
    * Create an HTTPHandler. <p>
@@ -67,8 +80,19 @@ public abstract class HTTPHandler {
    * @see HTTPHandler#setHandled
    * @see HTTPHandler#setResponseType
    */
-  public HTTPHandler(HTTPRequest request) {
-    setRequest(request);
+  public HTTPHandler(Socket socket, HTTPRequest request) throws HTTPException {
+    try {
+      setSocket(socket);
+      setRequest(request);
+      setWriter(new DataOutputStream(getSocket().getOutputStream()));
+    }
+    catch (IOException e) {
+      throw new HTTPException("IOException...", e);
+    }
+
+    if (getServerInfo() == null || getServerInfo().isEmpty()) {
+      setupServerInfo();
+    }
 
     setResponseCode(200);
     setResponseSize(-1);
@@ -259,9 +283,117 @@ public abstract class HTTPHandler {
    * @throws HTTPException  When you do bad things.
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
-      String methodName) throws HTTPException {
+          String methodName) throws HTTPException {
     MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
+  }
+
+  /***************************
+    Response-specific things
+   ***************************/
+
+  /**
+   * Send data back to the client. <p>
+   *
+   * If the response hasn't been handled, try handling it, and sending
+   * that data back to the client. <p>
+   *
+   * This method only writes the headers, and calls {@link writeData()}
+   * to send the determined response back to the client. This is done
+   * because the headers are fairly global, and shouldn't need to be changed,
+   * where the actual response data might need some "special sauce".
+   *
+   * @see HTTPHandler#writeData
+   */
+  public void respond() {
+    try {
+      if (!isHandled()) {
+        handle();
+      }
+
+      writeLine("HTTP/1.1 " + getResponseCodeMessage());
+      writeLine("Server: " + getServerInfo());
+      writeLine("Content-Type: " + getResponseType());
+
+      writeLine("Connection: close");
+
+      if (getResponseSize() != -1) {
+        writeLine("Content-Size: " + getResponseSize());
+      }
+      else {
+        writeLine("Content-Size: " + getResponseText().length());
+      }
+
+      writeLine("");
+
+      if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
+              || getResponseCode() == 204) {
+        return;
+      }
+
+      writeData();
+    }
+    catch (HTTPException | IOException e) {
+      System.err.println("Something bad happened while trying to send data "
+              + "to the client");
+      e.printStackTrace();
+    }
+    finally {
+      try {
+        getWriter().close();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  /**
+   * Send the actual response back to the client. <p>
+   *
+   * Where the actual data is sent back to the client. If a child handler
+   * has non-generic text data to be sent, this is what should be modified.
+   *
+   * @see HTTPHandler#respond
+   */
+  public void writeData() throws IOException {
+    writeLine(getResponseText());
+  }
+
+  protected void writeLine(String line) throws IOException {
+    getWriter().writeBytes(line + "\n");
+  }
+
+  /**
+   * Return the response code + the response message.
+   *
+   * @see HTTPHandler#getResponseCode
+   * @see HTTPHandler#setResponseCode
+   */
+  public String getResponseCodeMessage() {
+    if (responses == null || responses.isEmpty()) {
+      setupResponses();
+    }
+
+    if (responses.containsKey(getResponseCode())) {
+      return getResponseCode() + " " + responses.get(getResponseCode());
+    }
+
+    return Integer.toString(getResponseCode());
+  }
+
+  private void setupResponses() {
+    responses = new HashMap<Integer, String>();
+
+    responses.put(200, "OK");
+    responses.put(201, "Created");
+    responses.put(204, "No content");
+
+    responses.put(404, "Not Found");
+    responses.put(418, "I'm a teapot");
+
+    responses.put(500, "Internal Server Error");
+    responses.put(501, "Not implemented");
   }
 
 
@@ -308,5 +440,36 @@ public abstract class HTTPHandler {
   }
   public String getResponseType() {
     return responseType;
+  }
+
+  public void setSocket(Socket socket) {
+    this.socket = socket;
+  }
+  public Socket getSocket() {
+    return socket;
+  }
+
+  public void setWriter(DataOutputStream writer) {
+    this.writer = writer;
+  }
+  public DataOutputStream getWriter() {
+    return writer;
+  }
+
+  public void setupServerInfo() {
+    StringBuilder info = new StringBuilder();
+    info.append(HTTPServer.SERVER_NAME);
+    info.append(" v");
+    info.append(HTTPServer.SERVER_VERSION);
+    info.append(" (");
+    info.append(HTTPServer.SERVER_ETC);
+    info.append(")");
+    setServerInfo(info.toString());
+  }
+  public static void setServerInfo(String serverInfo) {
+    HTTPHandler.serverInfo = serverInfo;
+  }
+  public static String getServerInfo() {
+    return serverInfo;
   }
 }
