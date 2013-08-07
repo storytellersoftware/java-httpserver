@@ -12,11 +12,11 @@ import httpserver.HTTPRequest;
 /**
  * A {@link HTTPHandler} that handles file requests.<p>
  * 
- * This class overrides {@link HTTPHandler#handle()} because it needs to do 
+ * This class overrides {@link HTTPHandler#handle()} because it needs to do
  * special things in order to server files.<p>
  * 
- * It also overrides {@link HTTPHandler#writeData()} because it needs two 
- * different types of responses since images are not written the same way as 
+ * It also overrides {@link HTTPHandler#writeData()} because it needs two
+ * different types of responses since images are not written the same way as
  * text data.
  *
  */
@@ -58,6 +58,8 @@ public class FileHandler extends HTTPHandler {
       if(path.substring(path.length() - 1).equals("/")) {
         path += defaultFile;
       }
+
+      System.out.println(path);
 
       path = CONTENT_DIRECTORY + path;
 
