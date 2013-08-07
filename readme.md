@@ -33,7 +33,7 @@ default. If you want to see the math or hello handlers, you can go to
 `/math/add/1/2` or `/hello/firstname/lastname` or many other paths that we have
 setup. See the constructors of those classes for more information.
 
-## Documenatation
+## Documentation
 
 The `javadoc` directory includes the generated javadoc for all of the included
 files. Additionally, each file is fairly well documented (some are a little

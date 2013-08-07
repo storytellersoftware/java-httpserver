@@ -59,8 +59,6 @@ public class FileHandler extends HTTPHandler {
         path += defaultFile;
       }
 
-      System.out.println(path);
-
       path = CONTENT_DIRECTORY + path;
 
       // Set the response type
