@@ -1,5 +1,7 @@
 package httpserver;
 
+import java.net.*;
+
 /**
  * An HTTPHandlerFactory is a factory that's used to determine what kind of
  * HTTPHandler should be used in the HTTPRequest.

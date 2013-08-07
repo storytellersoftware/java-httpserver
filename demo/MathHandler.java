@@ -1,11 +1,13 @@
 package demo;
 
 import httpserver.*;
+import java.io.*;
+import java.net.*;
 
 public class MathHandler extends HTTPHandler {
 
-  public MathHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public MathHandler(Socket sock, HTTPRequest request) throws HTTPException {
+    super(sock, request);
 
     try {
       addGET("*", "noMath");

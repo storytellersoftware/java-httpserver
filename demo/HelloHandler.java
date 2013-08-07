@@ -1,11 +1,14 @@
 package demo;
 
 import httpserver.*;
+import java.io.*;
+import java.net.*;
+
 
 public class HelloHandler extends HTTPHandler {
 
-  public HelloHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public HelloHandler(Socket sock, HTTPRequest request) throws HTTPException {
+    super(sock, request);
 
     try {
       addGET("/", "sayHello");

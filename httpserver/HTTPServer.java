@@ -59,7 +59,8 @@ public class HTTPServer implements Runnable {
           connection = socket.accept();
 
           HTTPRequest request = new HTTPRequest(connection);
-          handleRequest(connection, request);
+          request.getHandler().respond();
+          //handleRequest(connection, request);
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection, 
