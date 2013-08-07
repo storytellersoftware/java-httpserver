@@ -11,7 +11,7 @@ import httpserver.HTTPRequest;
 
 public class FileHandler extends HTTPHandler {
 
-  private static final String CONTENT_DIRECTORY = "javadoc";
+  private static final String CONTENT_DIRECTORY = "demo/www";
   private static String defaultFile;
 
 
