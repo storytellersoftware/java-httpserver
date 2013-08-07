@@ -3,3 +3,6 @@
 
 # vim stuff
 *.swp
+
+# javadoc directory
+javadoc/
