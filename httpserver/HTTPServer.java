@@ -20,13 +20,13 @@ public class HTTPServer implements Runnable {
   public static int PORT = 8000;
 
   /** The server's name */
-  public static final String SERVER_NAME = "Simple Java Server";
+  public static String SERVER_NAME = "Simple Java Server";
 
   /** The server's version */
-  public static final String SERVER_VERSION = "0.0.1";
+  public static String SERVER_VERSION = "0.0.1";
 
   /** Extra information about the server */
-  public static final String SERVER_ETC = "now in Glorious Extra Color";
+  public static String SERVER_ETC = "now in Glorious Extra Color";
 
 
   private ServerSocket socket = null;
@@ -121,5 +121,20 @@ public class HTTPServer implements Runnable {
 
   public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
     HTTPRequest.setHandlerFactory(handlerFactory);
+  }
+
+  /**
+   * Set information about the server that will be sent through the
+   * server header to the client in this format: <p>
+   * 
+   * <code>{name} v{version} ({etc})</code>
+   * @param name The name of your server
+   * @param version The version of your server
+   * @param etc A message about your server
+   */
+  public static void setServerInfo(String name, String version, String etc) {
+    SERVER_NAME = name;
+    SERVER_VERSION = version;
+    SERVER_ETC = etc;
   }
 }
