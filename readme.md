@@ -34,7 +34,7 @@ things occur. Don't let bad things occur.
 You can test this out by running the provided Driver. It includes a `FileHandler`,
 a `HelloHandler`, and a `MathHandler`. The demo takes you to our javadoc pages by
 default. If you want to see the math or hello handlers, you can go to
-`/math/add/1/2` or '/hello/firstname/lastname' or many other paths that we have
+`/math/add/1/2` or `/hello/firstname/lastname` or many other paths that we have
 setup. See the constructors of those classes for more information.
 
 ## Documenatation
