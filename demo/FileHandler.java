@@ -63,10 +63,10 @@ public class FileHandler extends HTTPHandler {
       }
 
 
-      if (isImage()) {
+      if (isImageResponse()) {
         setResponseText("file://" + getResource(path));
         setResponseSize(new File(
-                        new URL(getResponseText()).toString()).length());
+                new URL(getResponseText()).toString()).length());
 
         return;
       }
@@ -80,11 +80,11 @@ public class FileHandler extends HTTPHandler {
       }
 
       BufferedReader bufferedReader = new BufferedReader(
-                      new InputStreamReader(inputStream));
+              new InputStreamReader(inputStream));
       StringBuilder builder = new StringBuilder();
 
       for (String line = bufferedReader.readLine(); line != null;
-                      line = bufferedReader.readLine()) {
+              line = bufferedReader.readLine()) {
         builder.append(line);
         builder.append("\n");
       }
@@ -96,10 +96,6 @@ public class FileHandler extends HTTPHandler {
     catch (IOException e) {
       throw new HTTPException("File Not Found", e);
     }
-  }
-
-  private boolean isImage() {
-    return getResponseType().contains("image");
   }
 
   public static void setDefaultFile(String path) {
@@ -115,8 +111,8 @@ public class FileHandler extends HTTPHandler {
   public static String getResource(String path) {
     try {
       return URLDecoder.decode(
-                      ClassLoader.getSystemClassLoader().getResource(
-                                      URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+              ClassLoader.getSystemClassLoader().getResource(
+                      URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
     }
     catch (UnsupportedEncodingException e) {
       // This won't happen...
@@ -126,6 +122,7 @@ public class FileHandler extends HTTPHandler {
     return ClassLoader.getSystemClassLoader().getResource(path).getPath();
   }
 
+  @Override
   public void writeData() throws IOException {
     if (isImageResponse()) {
       String imgType = getResponseType().substring(
