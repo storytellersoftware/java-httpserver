@@ -29,6 +29,7 @@ public class FileHandler extends HTTPHandler {
    *                        problems reading the file.
    * @Override
    */
+  @Override
   public void handle() throws HTTPException {
     try {
       StringBuilder pathBuilder = new StringBuilder();
@@ -63,7 +64,7 @@ public class FileHandler extends HTTPHandler {
       if (isImage()) {
         setResponseText("file://" + getResource(path));
         setResponseSize(new File(
-                new URL(getResponseText()).toString()).length());
+                        new URL(getResponseText()).toString()).length());
 
         return;
       }
@@ -77,11 +78,11 @@ public class FileHandler extends HTTPHandler {
       }
 
       BufferedReader bufferedReader = new BufferedReader(
-              new InputStreamReader(inputStream));
+                      new InputStreamReader(inputStream));
       StringBuilder builder = new StringBuilder();
 
-      for (String line = bufferedReader.readLine(); line != null; 
-              line = bufferedReader.readLine()) {
+      for (String line = bufferedReader.readLine(); line != null;
+                      line = bufferedReader.readLine()) {
         builder.append(line);
         builder.append("\n");
       }
@@ -89,7 +90,7 @@ public class FileHandler extends HTTPHandler {
       bufferedReader.close();
 
       setResponseText(builder.toString());
-    } 
+    }
     catch (IOException e) {
       throw new HTTPException("File Not Found", e);
     }
@@ -112,8 +113,8 @@ public class FileHandler extends HTTPHandler {
   public static String getResource(String path) {
     try {
       return URLDecoder.decode(
-              ClassLoader.getSystemClassLoader().getResource(
-                      URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+                      ClassLoader.getSystemClassLoader().getResource(
+                                      URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
     }
     catch (UnsupportedEncodingException e) {
       // This won't happen...
