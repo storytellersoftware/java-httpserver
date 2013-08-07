@@ -10,21 +10,17 @@ is now here, waiting for you to use it.
 
 ## How does it work?
 
-java-httpserver has four main components:
+java-httpserver has three main components:
 
 -   **HTTPServer**, a really simple class that usually runs in the background,
-    waiting for requests, and sending them off to the *HTTPRequest* and
-    *HTTPResponse* classes to get things done.
+    waiting for requests, and sending them off to the *HTTPRequest* class to get things done.
 
 -   **HTTPRequest**, a class that takes in a Socket, reads from it, and splits
     apart the incoming data into its component parts (provided that the incoming
     Socket is following the HTTP protocol).
 
 -   **HTTPHandler**, an abstract class whos subclasses are used to actually do
-    things with the data.
-
--   **HTTPResponse**, a class that takes in an *HTTPHandler* and sends the
-    handled data back to the browser.
+    things with the data. It also sends stuff back to the client.
 
 There's also an `HTTPException`, and `DeathHandler`, which are used when bad
 things occur. Don't let bad things occur.

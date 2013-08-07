@@ -1,0 +1,142 @@
+@import "geared/stylesheet.css";
+@import "http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,600,400italic,600italic|Source+Code+Pro";
+
+
+$lightgray: hsl(170, 5%, 85%);
+$medgray: hsla(170, 5%, 65%, 0.4);
+$blue: hsl(200, 90%, 50%);
+$lightblue: lighten($blue, 25%);
+
+@mixin iebox {
+  -moz-box-sizing:border-box;
+  box-sizing:border-box;
+}
+
+
+body {
+  background:url(gray_jean.png);
+  font-family: "Source Sans Pro",  sans-serif;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Geared Slab", "Source Sans Pro", sans-serif;
+}
+h1 { font-size: 40px; }
+h2 { font-size: 30px; }
+h3 { font-size: 20px; }
+h4 { font-size: 1em;  }
+
+p, li {
+  line-height:1.5em;
+}
+
+code {
+  font-family: "Source Code Pro", cousine, "Droid Sans", monospace;
+  font-size:.9em;
+  border:1px solid $lightgray;
+  padding:0 5px;
+  border-radius:2px;
+}
+
+a {
+  color:$blue;
+
+  &:hover {
+    color: darken($blue, 10%);
+  }
+
+  &:active {
+    color: darken($blue, 20%);
+  }
+}
+
+.left {
+  float:left;
+}
+
+.right {
+  float:right;
+}
+
+
+.wrap {
+  @include iebox;
+
+  background:white;
+  width:800px;
+  margin:50px auto;
+  padding:0 50px;
+
+  border:1px solid $lightgray;
+  box-shadow:3px 3px 3px $medgray;
+}
+
+header {
+  clear:both;
+  padding:25px 0 15px;
+  border-bottom:1px solid $lightgray;
+  margin-bottom:25px;
+
+  h1 {
+    @include iebox;
+    //float:left;
+    //width:65%;
+    margin:0;
+    font-size:40px;
+    height:50px;
+    line-height:50px;
+
+    text-align:center;
+  }
+
+  nav {
+    border-top:1px solid $lightgray;
+    margin-top:25px;
+    padding-top:15px;
+
+    ul {
+      list-style:none;
+      display:table;
+      margin:0 auto;
+      padding:0;
+
+      li {
+        float:left;
+        padding:0 10px;
+      }
+    }
+  }
+}
+
+footer {
+  @include iebox;
+  clear:both;
+  border-top:1px solid $lightgray;
+
+  width:100%;
+  //margin-left:-20px;
+  margin-top:25px;
+  padding:25px 0;
+
+  p {
+    text-align:center;
+    font-size:.8em;
+    color: darken($lightgray, 20%);
+
+    a {
+      color: $lightblue;
+
+      &:hover {
+        color: darken($lightblue, 10%);
+      }
+
+      &:active {
+        color: darken($lightblue, 20%);
+      }    
+    }
+  }
+}
+
+section {
+  @include iebox;
+}
