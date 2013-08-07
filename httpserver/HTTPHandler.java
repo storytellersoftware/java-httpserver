@@ -21,13 +21,13 @@ import java.io.DataOutputStream;
  * request, you can use a MessageHandler, instead of creating a new Handler.
  *
  * @see HTTPHandler#handle
- * @see HTTPHandler#addGet
- * @see HTTPHandler#addPost
+ * @see HTTPHandler#addGET
+ * @see HTTPHandler#addPOST
  */
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-  = "an exception occured while processing your request";
+          = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -42,9 +42,9 @@ public abstract class HTTPHandler {
   private static String serverInfo;
 
   private HashMap<String, MethodWrapper> getMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -75,7 +75,6 @@ public abstract class HTTPHandler {
    *
    * @param request HTTPRequest with the browser's request information.
    *
-   * @see HTTPResponse
    * @see HTTPRequest
    * @see HTTPHandler#setResponseCode
    * @see HTTPHandler#setResponseSize
@@ -244,8 +243,8 @@ public abstract class HTTPHandler {
    * Additionally, primitives are not permited, because they're not classes in
    * the java.lang library.
    *
-   * @param path         Path to match
-   * @param classMethod   Class and Method in class#method form.
+   * @param path        Path to match
+   * @param methodName  Class and Method in class#method form.
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addPOST
@@ -260,7 +259,7 @@ public abstract class HTTPHandler {
    * For a more detailed explanation, see addGET.
    *
    * @param path         Path to match
-   * @param classMethod   Class and Method in class#method form.
+   * @param methodName   Class and Method in class#method form.
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addGET
@@ -300,10 +299,11 @@ public abstract class HTTPHandler {
    * If the response hasn't been handled, try handling it, and sending
    * that data back to the client. <p>
    *
-   * This method only writes the headers, and calls {@link writeData()}
-   * to send the determined response back to the client. This is done
-   * because the headers are fairly global, and shouldn't need to be changed,
-   * where the actual response data might need some "special sauce".
+   * This method only writes the headers, and calls 
+   * {@link HTTPHandler#writeData()} to send the determined response back to 
+   * the client. This is done because the headers are fairly global, and 
+   * shouldn't need to be changed, where the actual response data might need 
+   * some "special sauce".
    *
    * @see HTTPHandler#writeData
    */

@@ -12,11 +12,12 @@ import httpserver.HTTPRequest;
 /**
  * A {@link HTTPHandler} that handles file requests.<p>
  * 
- * This class overrides {@link handle()} because it needs to do special things in
- * order to server files.<p>
+ * This class overrides {@link HTTPHandler#handle()} because it needs to do 
+ * special things in order to server files.<p>
  * 
- * It also overrides {@link writeData()} because it needs two different types of
- * responses since images are not written the same way as text data.
+ * It also overrides {@link HTTPHandler#writeData()} because it needs two 
+ * different types of responses since images are not written the same way as 
+ * text data.
  *
  */
 public class FileHandler extends HTTPHandler {
@@ -39,7 +40,6 @@ public class FileHandler extends HTTPHandler {
    * @throws HTTPException  When an IOException occurs, either because the
    *                        the requested file doesn't exist, or there are
    *                        problems reading the file.
-   * @Override
    */
   @Override
   public void handle() throws HTTPException {

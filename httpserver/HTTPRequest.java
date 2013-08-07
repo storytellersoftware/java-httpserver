@@ -14,7 +14,6 @@ import java.util.*;
  *
  * @see   <a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">
  *        HTTP 1.1 Spec</a>
- * @see HTTPResponse
  * @see HTTPHandler
  */
 public class HTTPRequest {
@@ -76,16 +75,16 @@ public class HTTPRequest {
    *
    * @param connection The socket between the server and client
    * @throws IOException      When it gets thrown by
-   *                          {@link HTTPHandler#parseRequest}.
+   *                          {@link HTTPRequest#parseRequest}.
    * @throws SocketException  When it gets thrown by
-   *                          {@link HTTPHandler#parseRequest}.
+   *                          {@link HTTPRequest#parseRequest}.
    * @throws HTTPException    When something that doesn't follow HTTP spec
    *                          occurs.
    *
-   * @see HTTPHandler#parseRequest
+   * @see HTTPRequest#parseRequest
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
-  HTTPException {
+          HTTPException {
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
