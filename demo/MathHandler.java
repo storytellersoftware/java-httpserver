@@ -1,7 +1,6 @@
 package demo;
 
 import httpserver.*;
-import java.net.*;
 
 /**
  * A slightly complex example of how to setup requests.<p>
@@ -11,8 +10,8 @@ import java.net.*;
  */
 public class MathHandler extends HTTPHandler {
 
-  public MathHandler(Socket sock, HTTPRequest request) throws HTTPException {
-    super(sock, request);
+  public MathHandler(HTTPRequest request) throws HTTPException {
+    super(request);
 
     try {
       addGET("*", "noMath");

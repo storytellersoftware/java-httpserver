@@ -25,7 +25,7 @@ class DeathHandler extends HTTPHandler {
    * Creates a new DeathHandler...
    */
   public DeathHandler(HTTPRequest request) throws HTTPException {
-    super(request.getConnection(), request);
+    super(request);
 
     if (errorMessages == null || errorMessages.isEmpty()) {
       setupErrorMessages();

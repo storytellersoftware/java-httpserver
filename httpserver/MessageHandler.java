@@ -5,11 +5,11 @@ package httpserver;
  * the client.
  *
  * A MessageHandler solves the problem of sending a simple message back to the
- * client regardless of the request, without requiring developers to create a 
+ * client regardless of the request, without requiring developers to create a
  * new HTTPHandler.
  */
 public class MessageHandler extends HTTPHandler {
-  
+
   /**
    * Create a message handler
    *
@@ -22,9 +22,9 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, int code, String message) 
+  public MessageHandler(HTTPRequest request, int code, String message)
           throws HTTPException {
-    super(request.getConnection(), request);
+    super(request);
     message(code, message);
   }
 
@@ -39,7 +39,7 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, String message) 
+  public MessageHandler(HTTPRequest request, String message)
           throws HTTPException {
     this(request, 200, message);
   }
@@ -47,8 +47,9 @@ public class MessageHandler extends HTTPHandler {
   /**
    * Does nothing...
    *
-   * The message was set in the constructor, we don't need to do anything 
+   * The message was set in the constructor, we don't need to do anything
    * here.
    */
+  @Override
   public void handle() { }
 }
