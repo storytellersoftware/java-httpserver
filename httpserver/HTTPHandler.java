@@ -81,9 +81,9 @@ public abstract class HTTPHandler {
    * @see HTTPHandler#setHandled
    * @see HTTPHandler#setResponseType
    */
-  public HTTPHandler(Socket socket, HTTPRequest request) throws HTTPException {
+  public HTTPHandler(HTTPRequest request) throws HTTPException {
     try {
-      setSocket(socket);
+      setSocket(request.getConnection());
       setRequest(request);
       setWriter(new DataOutputStream(getSocket().getOutputStream()));
     }
@@ -471,11 +471,11 @@ public abstract class HTTPHandler {
    */
   public void setupServerInfo() {
     StringBuilder info = new StringBuilder();
-    info.append(HTTPServer.SERVER_NAME);
+    info.append(HTTPServer.getServerName());
     info.append(" v");
-    info.append(HTTPServer.SERVER_VERSION);
+    info.append(HTTPServer.getServerVersion());
     info.append(" (");
-    info.append(HTTPServer.SERVER_ETC);
+    info.append(HTTPServer.getServerETC());
     info.append(")");
     setServerInfo(info.toString());
   }

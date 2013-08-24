@@ -16,42 +16,74 @@ import java.net.SocketException;
  * provide an existing mechanism for using the rest of the httpserver package.
  */
 public class HTTPServer implements Runnable {
-  /** The port being listend on */
-  public static int PORT = 8000;
+
+  public static final int defaultPort = 8000;
 
   /** The server's name */
-  public static String SERVER_NAME = "Simple Java Server";
+  private static String serverName = "Simple Java Server";
 
   /** The server's version */
-  public static String SERVER_VERSION = "0.0.1";
+  private static String serverVersion = "0.0.1";
 
   /** Extra information about the server */
-  public static String SERVER_ETC = "now in Glorious Extra Color";
+  private static String serverETC = "now in Glorious Extra Color";
 
-
+  public int port;
   private ServerSocket socket = null;
 
+
   /**
-   * Tells the server to run on a specified port
-   * @param port The port to run on.
+   * Create an HTTPServer with default values.
    */
-  public void run(int port) {
-    PORT = port;
-    run();
+  public HTTPServer() {
+    this(defaultPort);
   }
 
   /**
-   * Tell the server to run on the default port, 8000.
+   * Create an HTTPServer specifying the server information.
+   * @param name The name of the server.
+   * @param version The version of the server.
+   * @param etc More information about the server.
+   */
+  public HTTPServer(String name, String version, String etc) {
+    this(defaultPort, name, version, etc);
+  }
+
+  /**
+   * Create an HTTPServer specifying the server port and information
+   * @param port The port the server will listen on.
+   * @param name The name of the server.
+   * @param version The version of the server.
+   * @param etc More information about the server.
+   */
+  public HTTPServer(int port, String name, String version, String etc) {
+    this(port);
+    setServerInfo(name, version, etc);
+  }
+
+  /**
+   * Create an HTTPServer specifying the port.
+   * @param port The port the server will listen on.
+   */
+  public HTTPServer(int port) {
+    setPort(port);
+  }
+
+  /**
+   * Tell the server to run.<p>
+   * 
+   * Unless you specify the port with {@link HTTPServer#setSocket()},
+   * the server will run on http://127.0.0.1:{@value #defaultPort}.
    */
   @Override
   public void run() {
     try {
       socket = new ServerSocket();
 
-      System.out.println("Starting HTTPServer at http://127.0.0.1:" + PORT);
+      System.out.println("Starting HTTPServer at http://127.0.0.1:" + getPort());
 
       socket.setReuseAddress(true);
-      socket.bind(new InetSocketAddress(PORT));
+      socket.bind(new InetSocketAddress(getPort()));
 
       while (true) {
         Socket connection = null;
@@ -120,7 +152,7 @@ public class HTTPServer implements Runnable {
   }
 
   /**
-   * Set the {@link HTTPHandlerFactory} to determine the what 
+   * Set the {@link HTTPHandlerFactory} to determine the what
    * {@link HTTPHandler} will be used.
    *
    * @param handlerFactory  The HTTPHandlerFactory to be used to figure out
@@ -140,8 +172,45 @@ public class HTTPServer implements Runnable {
    * @param etc A message about your server
    */
   public static void setServerInfo(String name, String version, String etc) {
-    SERVER_NAME = name;
-    SERVER_VERSION = version;
-    SERVER_ETC = etc;
+    serverName = name;
+    serverVersion = version;
+    serverETC = etc;
+  }
+
+  /**
+   * Gets the server's name.
+   * @return The server's name.
+   */
+  public static String getServerName() {
+    return serverName;
+  }
+  /**
+   * Gets the server's version.
+   * @return The server's version
+   */
+  public static String getServerVersion() {
+    return serverVersion;
+  }
+  /**
+   * Gets the server's etc information.
+   * @return More information about the server.
+   */
+  public static String getServerETC() {
+    return serverETC;
+  }
+
+  /**
+   * Set the port the server will be listening on.
+   * @param port The port the server will use.
+   */
+  public void setPort(int port) {
+    this.port = port;
+  }
+  /**
+   * Get the port the server will be listening on.
+   * @return the port number the server is using.
+   */
+  public int getPort() {
+    return port;
   }
 }

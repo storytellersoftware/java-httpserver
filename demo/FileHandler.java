@@ -29,8 +29,8 @@ public class FileHandler extends HTTPHandler {
   /**
    * Create a FileHandler.
    */
-  public FileHandler(Socket sock, HTTPRequest request) throws HTTPException {
-    super(sock, request);
+  public FileHandler(HTTPRequest request) throws HTTPException {
+    super(request);
     setDefaultFile("index.html");
   }
 

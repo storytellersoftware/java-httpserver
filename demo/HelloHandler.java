@@ -1,7 +1,6 @@
 package demo;
 
 import httpserver.*;
-import java.net.*;
 
 
 /**
@@ -12,8 +11,8 @@ import java.net.*;
  */
 public class HelloHandler extends HTTPHandler {
 
-  public HelloHandler(Socket sock, HTTPRequest request) throws HTTPException {
-    super(sock, request);
+  public HelloHandler(HTTPRequest request) throws HTTPException {
+    super(request);
 
     try {
       addGET("/", "sayHello");
