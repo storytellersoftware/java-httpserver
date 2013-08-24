@@ -8,7 +8,9 @@ import java.net.ServerSocket;
 import java.util.HashMap;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 
@@ -16,14 +18,14 @@ public class HTTPRequestTest {
   
   private static ServerSocket server;
   
-  @Before
-  public void setUp() throws IOException {
+  @BeforeClass
+  public static void init() throws IOException {
     HTTPRequest.setHandlerFactory(new MockHTTPHandlerFactory());
     server = new ServerSocket(MockClient.DESIRED_PORT);
   }
   
-  @After
-  public void tearDown() throws IOException {
+  @AfterClass
+  public static void deinit() throws IOException {
     server.close();
   }
   
