@@ -147,7 +147,7 @@ public class HTTPRequest {
 
       getHeaders().put(items[0], value);
     }
-    setHTTPRequest(requestBuilder.toString());
+    
 
     /*  If the client sent over a POST request, there's *probably* still data
         in the stream. This reads in only the number of chars specified in the
@@ -161,10 +161,14 @@ public class HTTPRequest {
       for (int i = 0; i < contentLength; i++) {
         b.append((char)input.read());
       }
+      
+      requestBuilder.append(b.toString());
 
       String[] data = b.toString().split("&");
       getPostData().putAll(parseInputData(data));
     }
+    
+    setHTTPRequest(requestBuilder.toString());
   }
 
 
