@@ -219,6 +219,10 @@ public class HTTPRequest {
    */
   public HTTPHandler determineHandler() throws HTTPException {
     try {
+      if (handlerFactory == null) {
+        throw new Exception();
+      }
+      
       String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
       return handlerFactory.determineHandler(path, this);
     }
