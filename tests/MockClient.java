@@ -49,7 +49,8 @@ public class MockClient {
     writer.write("\n");
     
     if (!getPostData().isEmpty()) {
-      getHeaders().put("Content-Length", getDataInHTTP(getPostData()));
+      getHeaders().put("Content-Length", 
+              Integer.toString(getDataInHTTP(getPostData()).length()));
     }
     
     writer.write(getHeadersInHTTP());
