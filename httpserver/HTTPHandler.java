@@ -45,9 +45,9 @@ public abstract class HTTPHandler {
           new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods =
           new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> deleteMethods = 
+  private HashMap<String, MethodWrapper> deleteMethods =
           new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> putMethods = 
+  private HashMap<String, MethodWrapper> putMethods =
           new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
@@ -337,6 +337,10 @@ public abstract class HTTPHandler {
     try {
       if (!isHandled()) {
         handle();
+      }
+
+      if(getResponseText() == null) {
+        noContent();
       }
 
       writeLine("HTTP/1.1 " + getResponseCodeMessage());
