@@ -226,7 +226,6 @@ public abstract class HTTPHandler {
     if(getRequest().isType(HTTPRequest.DELETE_REQUEST_TYPE)) {
       return deleteMethods;
     }
-    if (getRequest().isType(HTTPRequest.PUT_DELETE_TYPE))
 
     return getMethods;
   }

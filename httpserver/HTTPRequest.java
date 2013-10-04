@@ -291,6 +291,9 @@ public class HTTPRequest {
     else if (splitty[0].equalsIgnoreCase(HEAD_REQUEST_TYPE)) {
       setRequestType(HEAD_REQUEST_TYPE);
     }
+    else if (splitty[0].equalsIgnoreCase(DELETE_REQUEST_TYPE)) {
+      setRequestType(DELETE_REQUEST_TYPE);
+    }
     else {
       throw new HTTPException("Unexpected request type: " + splitty[0]);
     }

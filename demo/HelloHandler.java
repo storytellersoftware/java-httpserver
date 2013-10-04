@@ -19,7 +19,7 @@ public class HelloHandler extends HTTPHandler {
       addGET("/{String}/", "sayHello");
       addGET("/{String}/{String}", "sayHello");
 
-      addGET("/goodbye", "sayGoodbye");
+      addDELETE("/goodbye", "sayGoodbye");
     } catch (HTTPException e) {
       e.printStackTrace();
     }
