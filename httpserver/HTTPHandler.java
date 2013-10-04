@@ -45,6 +45,10 @@ public abstract class HTTPHandler {
           new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods =
           new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> deleteMethods = 
+          new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> putMethods = 
+          new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -212,14 +216,18 @@ public abstract class HTTPHandler {
 
   /**
    * Gets the correct Map of Methods the request wants to use.
-   * @return The HashMap for the correct request.
+   * @return  The HashMap for the correct request. Defaults to GET if
+   *          the method isn't known.
    */
   private HashMap<String, MethodWrapper> getMap() {
-    if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE)) {
-      return getMethods;
+    if(getRequest().isType(HTTPRequest.POST_REQUEST_TYPE)) {
+      return postMethods;
+    }
+    if(getRequest().isType(HTTPRequest.DELETE_REQUEST_TYPE)) {
+      return deleteMethods;
     }
 
-    return postMethods;
+    return getMethods;
   }
 
   /**
@@ -248,6 +256,7 @@ public abstract class HTTPHandler {
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addPOST
+   * @see HTTPHandler#addDELETE
    */
   public void addGET(String path, String methodName) throws HTTPException {
     addMethod(getMethods, path, methodName);
@@ -256,16 +265,33 @@ public abstract class HTTPHandler {
   /**
    * Attach a method to a POST request at a path. <p>
    *
-   * For a more detailed explanation, see addGET.
+   * For a more detailed explanation, see {@link HTTPHandler#addGET}.
    *
    * @param path         Path to match
    * @param methodName   Class and Method in class#method form.
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addGET
+   * @see HTTPHandler#addDELETE
    */
   public void addPOST(String path, String methodName) throws HTTPException {
     addMethod(postMethods, path, methodName);
+  }
+
+  /**
+   * Attach a method to a DELETE request at a path. <p>
+   *
+   * For a more detailed explanation, see {@link HTTPHandler#addGET}.
+   *
+   * @param path        Path to match
+   * @param methodName  Class and Method in class#method form.
+   * @throws HTTPException when you do bad things.
+   *
+   * @see HTTPHandler#addGET
+   * @see HTTPHandler#addPOST
+   */
+  public void addDELETE(String path, String methodName) throws HTTPException {
+    addMethod(deleteMethods, path, methodName);
   }
 
   /**
