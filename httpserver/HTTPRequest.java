@@ -119,8 +119,17 @@ public class HTTPRequest {
 
     StringBuilder requestBuilder = new StringBuilder();
 
-    // The first line of a request *should* be the request line
-    setRequestLine(input.readLine());
+    /*  The HTTP spec (Section 4.1) says that a blank first line should be
+        ignored, and that the next line SHOULD have the request line. To be
+        extra sure, all initial blank lines are discarded.
+    */
+    String firstLine = input.readLine();
+    while (firstLine.isEmpty()) {
+      firstLine = input.readLine();
+    }
+
+    // start with the first non-empty line.
+    setRequestLine(firstLine);
     requestBuilder.append(getRequestLine());
     requestBuilder.append("\n");
 
