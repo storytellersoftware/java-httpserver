@@ -9,6 +9,14 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A MockClient is used for creating an HTTP request to test
+ * parts of the httpserver.
+ * 
+ * It has an interface similar to {@link httpserver.HTTPRequest}
+ * 
+ * @see httpserver.HTTPRequest
+ */
 public class MockClient {
   
   public static int DESIRED_PORT = 4444;
