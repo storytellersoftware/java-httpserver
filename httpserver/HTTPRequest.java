@@ -26,6 +26,12 @@ public class HTTPRequest {
   /** HTTP HEAD request type */
   public static final String HEAD_REQUEST_TYPE = "HEAD";
 
+  /** HTTP DELETE request type */
+  public static final String DELETE_REQUEST_TYPE = "DELETE";
+
+  /** HTTP PUT request type */
+  public static final String PUT_REQUEST_TYPE = "PUT";
+
 
   // used to determine what one does with the request
   private static HTTPHandlerFactory handlerFactory;
