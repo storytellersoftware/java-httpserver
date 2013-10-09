@@ -311,7 +311,22 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
-    MethodWrapper method = new MethodWrapper(path, methodName, getClass());
+
+	// Edit the path to allow variable names in paths.
+	StringBuilder editedPath = new StringBuilder();	
+	String paths[] = path.split("/");
+	
+	// Go through each path segment and add the actual path part.
+	for(int i=0; i<paths.length; i++) {
+		// We can split it no matter what because if it doesn't contain a " ",
+		// it will just be an array of size 1.
+		String pathSpace[] = paths[i].split(" ");
+		// Append a '/' because we got rid of the '/' when we split it.
+		editedPath.append("/");
+		editedPath.append(pathSpace[0]);
+	}
+	
+    MethodWrapper method = new MethodWrapper(editedPath.toString(), methodName, getClass());
     map.put(path, method);
   }
 

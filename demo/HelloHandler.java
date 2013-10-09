@@ -16,8 +16,8 @@ public class HelloHandler extends HTTPHandler {
 
     try {
       addGET("/", "sayHello");
-      addGET("/{String}/", "sayHello");
-      addGET("/{String}/{String}", "sayHello");
+      addGET("/{String} name/", "sayHello");
+      addGET("/{String} first/{String} last", "sayHello");
 
       addDELETE("/goodbye", "sayGoodbye");
     } catch (HTTPException e) {
