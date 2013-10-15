@@ -69,6 +69,7 @@ class MethodWrapper {
         if (isDynamic(part)) {
           String paramClass = LANG_PATH + getParamType(part);
           parameterTypes.add(Class.forName(paramClass));
+          //part = "{" + part + "}"; // TODO: this is a dirty hack. Fix it.
         }
         else {
           part.toLowerCase();
@@ -129,7 +130,7 @@ class MethodWrapper {
       for (int i = 0; i < methodPaths.length; i++) {
         if (isDynamic(methodPaths[i])) {
           Class paramClass = Class.forName(LANG_PATH
-                  + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+                  + getParamType(methodPaths[i]));
 
           Constructor paramConstructor
                   = paramClass.getConstructor(String.class);
@@ -150,7 +151,7 @@ class MethodWrapper {
             | InvocationTargetException | SecurityException
             | ClassNotFoundException | NoSuchMethodException
             | InstantiationException e) {
-      throw new HTTPException("Could not invoke method.", e);
+      throw new HTTPException("Could not invoke method `" + method + "`.", e);
     }
   }
 
@@ -193,7 +194,7 @@ class MethodWrapper {
       else if (isDynamic(methodPaths[i])) {
         try {
           Class paramClass = Class.forName(LANG_PATH
-                  + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+                  + getParamType(methodPaths[i]));
           Constructor constructor = paramClass.getConstructor(String.class);
           constructor.newInstance(paths[i]);
 
@@ -257,14 +258,9 @@ class MethodWrapper {
   public String getParamType(String part) {
     // strip off anything after the `}`
     if (part.indexOf('}') < part.length())
-      part = part.substring(0, part.indexOf('}'));
-	  
-    // remove braces
-    if (part.indexOf('}') < part.length())
       part = part.substring(0, part.indexOf('}') + 1);
-	  
-    part = part.substring(1, part.length() - 1).split(" ")[0];
     
+    part = part.substring(1, part.length() - 1).split(" ")[0];
     return part;
   }
   
