@@ -45,6 +45,10 @@ public abstract class HTTPHandler {
           new HashMap<String, MethodWrapper>();
   private HashMap<String, MethodWrapper> postMethods =
           new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> deleteMethods =
+          new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> putMethods =
+          new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -212,14 +216,18 @@ public abstract class HTTPHandler {
 
   /**
    * Gets the correct Map of Methods the request wants to use.
-   * @return The HashMap for the correct request.
+   * @return  The HashMap for the correct request. Defaults to GET if
+   *          the method isn't known.
    */
   private HashMap<String, MethodWrapper> getMap() {
-    if(getRequest().isType(HTTPRequest.GET_REQUEST_TYPE)) {
-      return getMethods;
+    if(getRequest().isType(HTTPRequest.POST_REQUEST_TYPE)) {
+      return postMethods;
+    }
+    if(getRequest().isType(HTTPRequest.DELETE_REQUEST_TYPE)) {
+      return deleteMethods;
     }
 
-    return postMethods;
+    return getMethods;
   }
 
   /**
@@ -248,6 +256,7 @@ public abstract class HTTPHandler {
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addPOST
+   * @see HTTPHandler#addDELETE
    */
   public void addGET(String path, String methodName) throws HTTPException {
     addMethod(getMethods, path, methodName);
@@ -256,16 +265,33 @@ public abstract class HTTPHandler {
   /**
    * Attach a method to a POST request at a path. <p>
    *
-   * For a more detailed explanation, see addGET.
+   * For a more detailed explanation, see {@link HTTPHandler#addGET}.
    *
    * @param path         Path to match
    * @param methodName   Class and Method in class#method form.
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addGET
+   * @see HTTPHandler#addDELETE
    */
   public void addPOST(String path, String methodName) throws HTTPException {
     addMethod(postMethods, path, methodName);
+  }
+
+  /**
+   * Attach a method to a DELETE request at a path. <p>
+   *
+   * For a more detailed explanation, see {@link HTTPHandler#addGET}.
+   *
+   * @param path        Path to match
+   * @param methodName  Class and Method in class#method form.
+   * @throws HTTPException when you do bad things.
+   *
+   * @see HTTPHandler#addGET
+   * @see HTTPHandler#addPOST
+   */
+  public void addDELETE(String path, String methodName) throws HTTPException {
+    addMethod(deleteMethods, path, methodName);
   }
 
   /**
@@ -285,7 +311,22 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
-    MethodWrapper method = new MethodWrapper(path, methodName, getClass());
+
+	// Edit the path to allow variable names in paths.
+	StringBuilder editedPath = new StringBuilder();	
+	String paths[] = path.split("/");
+	
+	// Go through each path segment and add the actual path part.
+	for(int i=0; i<paths.length; i++) {
+		// We can split it no matter what because if it doesn't contain a " ",
+		// it will just be an array of size 1.
+		String pathSpace[] = paths[i].split(" ");
+		// Append a '/' because we got rid of the '/' when we split it.
+		editedPath.append("/");
+		editedPath.append(pathSpace[0]);
+	}
+	
+    MethodWrapper method = new MethodWrapper(editedPath.toString(), methodName, getClass());
     map.put(path, method);
   }
 
@@ -311,6 +352,10 @@ public abstract class HTTPHandler {
     try {
       if (!isHandled()) {
         handle();
+      }
+
+      if(getResponseText() == null) {
+        noContent();
       }
 
       writeLine("HTTP/1.1 " + getResponseCodeMessage());
@@ -402,7 +447,7 @@ public abstract class HTTPHandler {
     responses.put(201, "Created");
     responses.put(202, "Accepted");
     responses.put(203, "Non-Authoritative Information");
-    responses.put(204, "No content");
+    responses.put(204, "No Content");
     responses.put(205, "Reset Content");
     responses.put(206, "Partial Content");
 
@@ -427,10 +472,20 @@ public abstract class HTTPHandler {
     responses.put(410, "Gone");
     responses.put(411, "Length Required");
     responses.put(412, "Precondition Failed");
+    responses.put(413, "Request Entity Too Large");
+    responses.put(414, "Request-URI Too Long");
+    responses.put(415, "Unsupported Media Type");
+    responses.put(416, "Request Range Not Satisfiable");
+    responses.put(417, "Expectation Failed");
     responses.put(418, "I'm a teapot");
+    responses.put(420, "Enhance Your Calm");
 
     responses.put(500, "Internal Server Error");
     responses.put(501, "Not implemented");
+    responses.put(502, "Bad Gateway");
+    responses.put(503, "Service Unavaliable");
+    responses.put(504, "Gateway Timeout");
+    responses.put(505, "HTTP Version Not Supported");
   }
 
 
