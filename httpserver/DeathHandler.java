@@ -12,10 +12,6 @@ import java.util.ArrayList;
  *
  * It's also set as the initial wildcard handler, meaning if there aren't any
  * other handlers available, it'll be used.
- *
- * TODO:  at some point, maybe create a list of potential error phrases
- *        in a list, and have handle randomly select a message to be sent back
- *        to the browser. It could be fun!
  */
 class DeathHandler extends HTTPHandler {
 

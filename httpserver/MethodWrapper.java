@@ -8,12 +8,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A MethodWrapper is a wrapper for the reflect.Method class. It allows us to
- * easily invoke a method based on a path without worrying about parsing out
- * the variables and whatnot.
+ * A MethodWrapper is a wrapper for the {@link java.lang.reflect.Method} class. 
+ * It allows us to easily invoke a method based on a path without worrying 
+ * about parsing out the variables and whatnot.
+ *
+ * MethodWrapper isn't visible to the outside world, because it shouldn't be
+ * used outside of this httpserver. This documentation exists to help people
+ * better understand and modify the underlying server.
  */
 class MethodWrapper {
-
   private static final String LANG_PATH = "java.lang.";
 
   private String path;
@@ -27,7 +30,7 @@ class MethodWrapper {
    * variable in a path, it should come in
    * <code>/path/with/{VariableType}</code> form, where VariableType is a
    * class inside of the `java.lang` package, and has a constructor that takes
-   * in a String. A better explaination is in HTTPHandler#addGET
+   * in a String. A better explaination is in {@link HTTPHandler#addGET}
    *
    * @param path          Path the be matched for this method to be used.
    * @param methodName    Name of the method to be called.
@@ -41,7 +44,7 @@ class MethodWrapper {
    * @see HTTPHandler#addGET
    */
   public MethodWrapper(String path, String methodName, Class callingClass)
-      throws HTTPException {
+          throws HTTPException {
     try {
       // Get a list of the parameter types
       List<Class> parameterTypes = new ArrayList<Class>();
@@ -53,18 +56,18 @@ class MethodWrapper {
           This is done so that a path may include or exclude a `/` at the end
           of it. It also makes sure that non-dynamic parts of the path are
           lower case'd.
-       */
+      */
       for (String part : paths) {
         /*  if, for some reason, there's something like a `//` in the path,
-            or if it's the first one (because of the preceeding /), part is
+            or if it's the first one (because of the proceeding /), part is
             empty, which means we have nothing to do here.
-         */
+        */
         if (part.isEmpty()) {
           continue;
         }
 
         if (isDynamic(part)) {
-          String paramClass = LANG_PATH + part.substring(1, part.length() - 1);
+          String paramClass = LANG_PATH + getParamType(part);
           parameterTypes.add(Class.forName(paramClass));
         }
         else {
@@ -85,8 +88,8 @@ class MethodWrapper {
 
       /*  Because Class.getMethod() takes in an array of Classes, and because
           List.toArray() returns an array of Objects, we need to manually
-         convert parameterTypes from a list to an array.
-       */
+          convert parameterTypes from a list to an array.
+      */
       Class[] paramTypes = new Class[parameterTypes.size()];
       for (int i=0; i < parameterTypes.size(); i++) {
         paramTypes[i] = parameterTypes.get(i);
@@ -95,7 +98,7 @@ class MethodWrapper {
       method = callingClass.getMethod(methodName, paramTypes);
     }
     catch(ClassNotFoundException | NoSuchMethodException
-        | SecurityException e) {
+            | SecurityException e) {
       throw new HTTPException("Could not add path.", e);
     }
   }
@@ -108,7 +111,7 @@ class MethodWrapper {
    * @param path          The path that caused the method to be called. This is
    *                      where variables come from.
    *
-   * @throws HTTPException  If anything bad happend in invoking the underlying
+   * @throws HTTPException  If anything bad happened in invoking the underlying
    *                        method. Probably shouldn't happen, because the
    *                        issues would be found first when making the
    *                        MethodWrapper, but there's a chance they could
@@ -126,10 +129,10 @@ class MethodWrapper {
       for (int i = 0; i < methodPaths.length; i++) {
         if (isDynamic(methodPaths[i])) {
           Class paramClass = Class.forName(LANG_PATH
-              + methodPaths[i].substring(1, methodPaths[i].length() - 1));
+                  + methodPaths[i].substring(1, methodPaths[i].length() - 1));
 
           Constructor paramConstructor
-          = paramClass.getConstructor(String.class);
+                  = paramClass.getConstructor(String.class);
 
           params.add(paramConstructor.newInstance(paths[i]));
         }
@@ -144,9 +147,9 @@ class MethodWrapper {
       }
     }
     catch (IllegalAccessException | IllegalArgumentException
-        | InvocationTargetException | SecurityException
-        | ClassNotFoundException | NoSuchMethodException
-        | InstantiationException e) {
+            | InvocationTargetException | SecurityException
+            | ClassNotFoundException | NoSuchMethodException
+            | InstantiationException e) {
       throw new HTTPException("Could not invoke method.", e);
     }
   }
@@ -189,8 +192,8 @@ class MethodWrapper {
       }
       else if (isDynamic(methodPaths[i])) {
         try {
-          Class paramClass = Class.forName(LANG_PATH +
-              methodPaths[i].substring(1, methodPaths[i].length() - 1));
+          Class paramClass = Class.forName(LANG_PATH
+                  + methodPaths[i].substring(1, methodPaths[i].length() - 1));
           Constructor constructor = paramClass.getConstructor(String.class);
           constructor.newInstance(paths[i]);
 
@@ -201,9 +204,9 @@ class MethodWrapper {
           }
         }
         catch (ClassNotFoundException | NoSuchMethodException
-            | SecurityException | InstantiationException
-            | IllegalAccessException | IllegalArgumentException
-            | InvocationTargetException e) {
+                | SecurityException | InstantiationException
+                | IllegalAccessException | IllegalArgumentException
+                | InvocationTargetException e) {
           return 0;
         }
       }
@@ -219,9 +222,9 @@ class MethodWrapper {
    * @return  If the class is a BigDecimal, Double, or Float.
    */
   private boolean hasDecimal(Class<? extends Number> paramClass) {
-    return paramClass.equals(BigDecimal.class) ||
-        paramClass.equals(Double.class) ||
-        paramClass.equals(Float.class);
+    return paramClass.equals(BigDecimal.class)
+            || paramClass.equals(Double.class)
+            || paramClass.equals(Float.class);
   }
 
 
@@ -232,7 +235,9 @@ class MethodWrapper {
    * @return  If the path matches the regex pattern `\{[A-Za-z0-9]{1,}\}`
    */
   private boolean isDynamic(String path) {
-    return path.matches("\\{[A-Za-z0-9]{1,}\\}");
+    return path.matches("\\{[A-Za-z0-9]{1,}\\}") 
+            || path.matches("\\{[A-Za-z0-9]{1,} [A-Za-z0-9-_]{1,}\\}")
+            || path.matches("\\{[A-Za-z0-9]{1,}\\} [A-Za-z0-9-_]{1,}");
   }
 
   /**
@@ -248,4 +253,19 @@ class MethodWrapper {
   public String toString() {
     return method.toString();
   }
+  
+  public String getParamType(String part) {
+    // strip off anything after the `}`
+    if (part.indexOf('}') < part.length())
+      part = part.substring(0, part.indexOf('}'));
+	  
+    // remove braces
+    if (part.indexOf('}') < part.length())
+      part = part.substring(0, part.indexOf('}') + 1);
+	  
+    part = part.substring(1, part.length() - 1).split(" ")[0];
+    
+    return part;
+  }
+  
 }

@@ -26,8 +26,8 @@ import java.io.DataOutputStream;
  */
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
-  public static final String EXCEPTION_ERROR =
-          "an exception occured while processing your request";
+  public static final String EXCEPTION_ERROR
+          = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -41,14 +41,14 @@ public abstract class HTTPHandler {
 
   private static String serverInfo;
 
-  private HashMap<String, MethodWrapper> getMethods =
-          new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> postMethods =
-          new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> deleteMethods =
-          new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> putMethods =
-          new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> getMethods
+          = new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> postMethods
+          = new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> deleteMethods
+          = new HashMap<String, MethodWrapper>();
+  private HashMap<String, MethodWrapper> putMethods
+          = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -128,21 +128,27 @@ public abstract class HTTPHandler {
     String path = getRequest().getPath();
     MethodWrapper method = getMap().get(path);
 
-    int mostCorrect = 0;
-
-    if(method == null) {
+    /*  If the above MethodWrapper is null (occurs when the requested path
+        is dynamic), find the best fit method based on MethodWrapper's scoring
+        technique (see MethodWrapper#howCorrect for more information).
+    */
+    if (method == null) {
+      int bestFit = 0;
       Set<String> keys = getMap().keySet();
       for (String key : keys) {
         MethodWrapper testMethod = getMap().get(key);
-        int testCorrect = testMethod.howCorrect(path);
+        int testScore = testMethod.howCorrect(path);
 
-        if (testCorrect > mostCorrect) {
+        if (testScore > bestFit) {
           method = testMethod;
-          mostCorrect = testCorrect;
+          bestFit = testScore;
         }
       }
     }
 
+    /*  If none of the paths match the request's path, try using a wild-card
+        or root path in that order.
+    */
     if (method == null) {
       if (getMap().containsKey("*")) {
         method = getMap().get("*");
@@ -152,6 +158,9 @@ public abstract class HTTPHandler {
       }
     }
 
+    /*  If, following the whole ordeal, no acceptable method is found, send the
+        client a 501, Not a Method error.
+    */
     if (method == null) {
       message(501, NOT_A_METHOD_ERROR);
       return;
@@ -311,22 +320,8 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
-
-	// Edit the path to allow variable names in paths.
-	StringBuilder editedPath = new StringBuilder();	
-	String paths[] = path.split("/");
-	
-	// Go through each path segment and add the actual path part.
-	for(int i=0; i<paths.length; i++) {
-		// We can split it no matter what because if it doesn't contain a " ",
-		// it will just be an array of size 1.
-		String pathSpace[] = paths[i].split(" ");
-		// Append a '/' because we got rid of the '/' when we split it.
-		editedPath.append("/");
-		editedPath.append(pathSpace[0]);
-	}
-	
-    MethodWrapper method = new MethodWrapper(editedPath.toString(), methodName, getClass());
+    
+    MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
 
