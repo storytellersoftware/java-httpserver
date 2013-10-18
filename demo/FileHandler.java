@@ -1,13 +1,20 @@
 package demo;
 
-import java.io.*;
-import java.net.*;
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
+
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.net.URLDecoder;
+
+import javax.imageio.ImageIO;
 
 /**
  * A {@link HTTPHandler} that handles file requests.<p>
