@@ -1,6 +1,8 @@
 package demo;
 
-import httpserver.*;
+import httpserver.HTTPException;
+import httpserver.HTTPHandler;
+import httpserver.HTTPRequest;
 
 /**
  * A slightly complex example of how to setup requests.<p>

@@ -1,6 +1,6 @@
 package demo;
 
-import httpserver.*;
+import httpserver.HTTPServer;
 
 /**
  * This is where everything is started.<p>

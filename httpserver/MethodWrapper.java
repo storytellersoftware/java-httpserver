@@ -1,5 +1,6 @@
 package httpserver;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A MethodWrapper is a wrapper for the {@link java.lang.reflect.Method} class. 
- * It allows us to easily invoke a method based on a path without worrying 
+ * A MethodWrapper is a wrapper for the {@link java.lang.reflect.Method} class.
+ * It allows us to easily invoke a method based on a path without worrying
  * about parsing out the variables and whatnot.
  *
  * MethodWrapper isn't visible to the outside world, because it shouldn't be
@@ -51,32 +52,48 @@ class MethodWrapper {
       String[] paths = path.split("/");
       StringBuilder pathBuilder = new StringBuilder();
 
-
       /*  Recreate the path.
           This is done so that a path may include or exclude a `/` at the end
           of it. It also makes sure that non-dynamic parts of the path are
           lower case'd.
-      */
-      for (String part : paths) {
+       */
+      for (int i=0; i<paths.length; i++) {
         /*  if, for some reason, there's something like a `//` in the path,
             or if it's the first one (because of the proceeding /), part is
             empty, which means we have nothing to do here.
-        */
-        if (part.isEmpty()) {
+         */
+        if (paths[i].isEmpty()) {
           continue;
         }
 
-        if (isDynamic(part)) {
-          String paramClass = LANG_PATH + getParamType(part);
+        if (isDynamic(paths[i])) {
+          String paramClass = null;
+
+          if(!isArray(paths[i])) {
+            paramClass = LANG_PATH + getParamType(paths[i]);
+          }
+          // If we have an array, we have to handle it slightly different.
+          else {
+            // Make sure they are not trying to add an array in the middle of
+            // the parameter's list.
+            if(i != paths.length - 1)
+              throw new HTTPException("An array must be the last parameter.");
+
+            String arrayType = LANG_PATH + getParamType(paths[i].substring(0, paths[i].indexOf('.')) + "}");
+
+            // This is how an array is represented in reflection.
+            paramClass = "[L" + arrayType + ";";
+          }
+
           parameterTypes.add(Class.forName(paramClass));
-          //part = "{" + part + "}"; // TODO: this is a dirty hack. Fix it.
+          //paths[i] = "{" + paths[i] + "}"; // TODO: this is a dirty hack. Fix it.
         }
         else {
-          part.toLowerCase();
+          paths[i].toLowerCase();
         }
 
         pathBuilder.append('/');
-        pathBuilder.append(part);
+        pathBuilder.append(paths[i]);
       }
 
 
@@ -90,7 +107,7 @@ class MethodWrapper {
       /*  Because Class.getMethod() takes in an array of Classes, and because
           List.toArray() returns an array of Objects, we need to manually
           convert parameterTypes from a list to an array.
-      */
+       */
       Class[] paramTypes = new Class[parameterTypes.size()];
       for (int i=0; i < parameterTypes.size(); i++) {
         paramTypes[i] = parameterTypes.get(i);
@@ -127,15 +144,45 @@ class MethodWrapper {
       String[] methodPaths = this.path.split("/");
       List<Object> params = new ArrayList<Object>();
 
-      for (int i = 0; i < methodPaths.length; i++) {
+      for (int i = 0; i < paths.length; i++) {
         if (isDynamic(methodPaths[i])) {
-          Class paramClass = Class.forName(LANG_PATH
-                  + getParamType(methodPaths[i]));
+          if (!isArray(methodPaths[i])) {
+            Class paramClass = Class.forName(LANG_PATH
+                    + getParamType(methodPaths[i]));
 
-          Constructor paramConstructor
-                  = paramClass.getConstructor(String.class);
+            Constructor paramConstructor
+            = paramClass.getConstructor(String.class);
 
-          params.add(paramConstructor.newInstance(paths[i]));
+            params.add(paramConstructor.newInstance(paths[i]));
+          }
+          // If we have an array.
+          else {
+            // Figure out the class type / constructor.
+            Class paramClass =
+                    Class.forName(LANG_PATH + getParamType(methodPaths[i]));
+            Constructor paramConstructor =
+                    paramClass.getConstructor(String.class);
+
+            // Create an arraylist so we can have variable sizes.
+            ArrayList<Object> list = new ArrayList<>();
+
+            // Place the values in our list.
+            for(int j=i; j<paths.length; j++) {
+              list.add(paramConstructor.newInstance(paths[j]));
+            }
+
+            // Use reflection to create a list of our objects at a set size.
+            Object[] listObj = (Object[]) Array.newInstance(paramClass, list.size());
+            for(int j=0; j<list.size(); j++){
+              listObj[j] = list.get(j);
+            }
+
+            // Add our full list to our parameters array.
+            params.add(listObj);
+
+            // Break out because we've been through all of the `methodPaths`.
+            break;
+          }
         }
       }
 
@@ -180,40 +227,78 @@ class MethodWrapper {
     String[] paths = path.split("/");
     String[] methodPaths = this.path.split("/");
 
-    // If the paths aren't the same length, this is the wrong method
+    // If the paths aren't the same length and it is not an array,
+    // this is the wrong method.
     if (paths.length != methodPaths.length) {
-      return 0;
+      if(!isArray(this.path))
+        return 0;
     }
 
-    // Start at one because the paths are the same length
+    // Start count at 1 because of the length matching.
     int count = 1;
     for (int i = 0; i < paths.length && i < methodPaths.length; i++) {
+      // If the paths are equal, give it priority over other methods.
       if (paths[i].equals(methodPaths[i])) {
         count += 3;
       }
       else if (isDynamic(methodPaths[i])) {
-        try {
-          Class paramClass = Class.forName(LANG_PATH
-                  + getParamType(methodPaths[i]));
-          Constructor constructor = paramClass.getConstructor(String.class);
-          constructor.newInstance(paths[i]);
-
-          count++;
-
-          if (!hasDecimal(paramClass)) {
+        // If we can create the object, we can count up
+        if(!isArray(methodPaths[i])) {
+          if(canInstantiate(getParamType(methodPaths[i]), paths[i])) {
             count++;
+
+            // Give priority to non-decimal types.
+            if (!hasDecimal(methodPaths[i])) {
+              count++;
+            }
           }
         }
-        catch (ClassNotFoundException | NoSuchMethodException
-                | SecurityException | InstantiationException
-                | IllegalAccessException | IllegalArgumentException
-                | InvocationTargetException e) {
-          return 0;
+        // If we can't create the object, check if it's an array.
+        else {
+          String paramType = getParamType(methodPaths[i]);
+
+          // Give priority to non-decimal types.
+          if(!hasDecimal(methodPaths[i]))
+            count++;
+
+          for(int j=i; j<paths.length; j++) {
+            if(canInstantiate(paramType, paths[j])) {
+              count++;
+            }
+            // If we can't instantiate part of the path, we don't have a match.
+            else {
+              return 0;
+            }
+          }
         }
       }
     }
-
     return count;
+  }
+
+
+  /**
+   * Checks to see if we can instantiate an object of a class type,
+   * given a `String`.
+   * @param classType The class type to instantiate.
+   * @param value The string value.
+   * @return
+   */
+  private boolean canInstantiate(String classType, String value) {
+    try {
+      Class paramClass = Class.forName(LANG_PATH + classType);
+      Constructor constructor = paramClass.getConstructor(String.class);
+
+      constructor.newInstance(value);
+    } catch (NoSuchMethodException | SecurityException | ClassNotFoundException
+            | InstantiationException | IllegalAccessException
+            | IllegalArgumentException | InvocationTargetException e) {
+      // If anything bad happens, we can't instantiate.
+      return false;
+    }
+
+    // If we got through everything, we're good.
+    return true;
   }
 
   /**
@@ -222,13 +307,22 @@ class MethodWrapper {
    * @param paramClass  Class being checked
    * @return  If the class is a BigDecimal, Double, or Float.
    */
-  private boolean hasDecimal(Class<? extends Number> paramClass) {
-    return paramClass.equals(BigDecimal.class)
-            || paramClass.equals(Double.class)
-            || paramClass.equals(Float.class);
+  private boolean hasDecimal(String path) {
+    try {
+      Class paramClass = Class.forName(LANG_PATH
+              + getParamType(path));
+
+      return paramClass.equals(BigDecimal.class)
+              || paramClass.equals(Double.class)
+              || paramClass.equals(Float.class);
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+
   }
 
 
+  // TODO Clean up regex.
   /**
    * Checks if there is dynamic text in part of a path.
    *
@@ -236,9 +330,16 @@ class MethodWrapper {
    * @return  If the path matches the regex pattern `\{[A-Za-z0-9]{1,}\}`
    */
   private boolean isDynamic(String path) {
-    return path.matches("\\{[A-Za-z0-9]{1,}\\}") 
+    //         Normal dynamic: `{Integer}`
+    return path.matches("\\{[A-Za-z0-9]{1,}\\}")
+            // Dynamic with variable name: `{Integer name}`
             || path.matches("\\{[A-Za-z0-9]{1,} [A-Za-z0-9-_]{1,}\\}")
-            || path.matches("\\{[A-Za-z0-9]{1,}\\} [A-Za-z0-9-_]{1,}");
+            // Dynamic with variable name: `{Integer} name`
+            || path.matches("\\{[A-Za-z0-9]{1,}\\} [A-Za-z0-9-_]{1,}")
+            // Array `{Integer... name} || `{Integer...}` || `{Integer ... name}` etc.
+            || path.matches("\\{[A-Za-z0-9]{1,} {0,}[.]{3} {1,}[A-Za-z0-9]{0,}\\}")
+            // Array `{Integer...} name || `{Integer...}` || `{Integer ...} name` etc.
+            || path.matches("\\{[A-Za-z0-9]{1,} {0,}[.]{3}\\} {0,}[A-Za-z0-9]{0,}");
   }
 
   /**
@@ -254,14 +355,32 @@ class MethodWrapper {
   public String toString() {
     return method.toString();
   }
-  
+
   public String getParamType(String part) {
+    // If the part is an array, it will have to start it after the "{" and
+    // before the "..."
+    if(isArray(part)) {
+      if(part.contains(" ..."))
+        return part.substring(1, part.indexOf(" ..."));
+      else
+        return part.substring(1, part.indexOf("..."));
+    }
+
     // strip off anything after the `}`
     if (part.indexOf('}') < part.length())
       part = part.substring(0, part.indexOf('}') + 1);
-    
+
     part = part.substring(1, part.length() - 1).split(" ")[0];
     return part;
   }
-  
+
+  /**
+   * Checks if the type in a method's path is an array
+   * @param path a part of the path of the method's paths.
+   * @return if it is an array
+   */
+  public boolean isArray(String path) {
+    return path.contains("...");
+  }
+
 }
