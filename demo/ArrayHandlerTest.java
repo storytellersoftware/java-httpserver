@@ -13,7 +13,7 @@ public class ArrayHandlerTest extends HTTPHandler {
     addGET("/add/{Double... numbers}/", "add");
     addGET("/add/{Integer one}/{Integer two}", "add");
 
-    addGET("/print/{String ...}", "print");
+    addGET("/print/{String p}/{String ...}", "print");
   }
 
   /**
@@ -63,8 +63,8 @@ public class ArrayHandlerTest extends HTTPHandler {
     message(200, one + " + " + two + " = "  + (one + two));
   }
 
-  public void print(String... strings) {
-    String message = "";
+  public void print(String p, String[] strings) {
+    String message = p + " ";
     for(String s : strings) {
       message += s + " ";
     }
