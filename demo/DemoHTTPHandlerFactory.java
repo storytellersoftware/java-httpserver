@@ -1,6 +1,9 @@
 package demo;
 
-import httpserver.*;
+import httpserver.HTTPException;
+import httpserver.HTTPHandler;
+import httpserver.HTTPHandlerFactory;
+import httpserver.HTTPRequest;
 
 public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
   public DemoHTTPHandlerFactory() {}
@@ -16,6 +19,9 @@ public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
     if (checkIfEquals(pathSegment, "math", request))
       return new MathHandler(request);
 
-    return new FileHandler(request);
+    if(checkIfEquals(pathSegment, "mathtest", request))
+      return new ArrayHandlerTest(request);
+
+    return new FileHandlerTest(request);
   }
 }

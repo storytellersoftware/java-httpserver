@@ -1,11 +1,11 @@
 package httpserver;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.net.Socket;
-import java.io.IOException;
-import java.io.DataOutputStream;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from. <p>
@@ -27,7 +27,7 @@ import java.io.DataOutputStream;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-          = "an exception occured while processing your request";
+  = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -41,13 +41,13 @@ public abstract class HTTPHandler {
 
   private static String serverInfo;
 
-  private HashMap<String, MethodWrapper> getMethods
+  private final HashMap<String, MethodWrapper> getMethods
           = new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> postMethods
+  private final HashMap<String, MethodWrapper> postMethods
           = new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> deleteMethods
+  private final HashMap<String, MethodWrapper> deleteMethods
           = new HashMap<String, MethodWrapper>();
-  private HashMap<String, MethodWrapper> putMethods
+  private final HashMap<String, MethodWrapper> putMethods
           = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
@@ -56,6 +56,8 @@ public abstract class HTTPHandler {
   private String responseText;
   private long responseSize;
   private boolean handled;
+
+  private HashMap<String, String> headers;
 
   private Socket socket;
   private DataOutputStream writer;
@@ -131,7 +133,7 @@ public abstract class HTTPHandler {
     /*  If the above MethodWrapper is null (occurs when the requested path
         is dynamic), find the best fit method based on MethodWrapper's scoring
         technique (see MethodWrapper#howCorrect for more information).
-    */
+     */
     if (method == null) {
       int bestFit = 0;
       Set<String> keys = getMap().keySet();
@@ -148,7 +150,7 @@ public abstract class HTTPHandler {
 
     /*  If none of the paths match the request's path, try using a wild-card
         or root path in that order.
-    */
+     */
     if (method == null) {
       if (getMap().containsKey("*")) {
         method = getMap().get("*");
@@ -160,7 +162,7 @@ public abstract class HTTPHandler {
 
     /*  If, following the whole ordeal, no acceptable method is found, send the
         client a 501, Not a Method error.
-    */
+     */
     if (method == null) {
       message(501, NOT_A_METHOD_ERROR);
       return;
@@ -320,7 +322,7 @@ public abstract class HTTPHandler {
    */
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
-    
+
     MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
@@ -364,6 +366,17 @@ public abstract class HTTPHandler {
       }
       else {
         writeLine("Content-Size: " + getResponseText().length());
+      }
+
+      if (!getHeaders().isEmpty()) {
+        for (String key : getHeaders().keySet()) {
+          StringBuilder b = new StringBuilder();
+          b.append(key);
+          b.append(": ");
+          b.append(getHeader(key));
+
+          writeLine(b.toString());
+        }
       }
 
       writeLine("");
@@ -541,6 +554,23 @@ public abstract class HTTPHandler {
   }
   public DataOutputStream getWriter() {
     return writer;
+  }
+
+  public void setHeaders(HashMap<String, String> headers) {
+    this.headers = headers;
+  }
+  public Map<String, String> getHeaders() {
+    return headers;
+  }
+  public void setHeader(String key, String value) {
+    if (getHeaders() == null) {
+      setHeaders(new HashMap<String, String>());
+    }
+
+    getHeaders().put(key, value);
+  }
+  public String getHeader(String key) {
+    return getHeaders().get(key);
   }
 
   /**
