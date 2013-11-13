@@ -41,6 +41,7 @@ public class MathHandler extends HTTPHandler {
    */
   public void add(Double one, Double two) {
     message(200, one + " + " + two + " = " + (one + two));
+    setHeader("Math-Type", "addition");
   }
 
   /**
@@ -50,6 +51,7 @@ public class MathHandler extends HTTPHandler {
    */
   public void subtract(Double one, Double two) {
     message(200, one + " - " + two + " = " + (one - two));
+    setHeader("Math-Type", "subtraction");
   }
 
   /**

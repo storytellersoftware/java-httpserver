@@ -42,13 +42,13 @@ public abstract class HTTPHandler {
   private static String serverInfo;
 
   private final HashMap<String, MethodWrapper> getMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
   private final HashMap<String, MethodWrapper> postMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
   private final HashMap<String, MethodWrapper> deleteMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
   private final HashMap<String, MethodWrapper> putMethods
-  = new HashMap<String, MethodWrapper>();
+          = new HashMap<String, MethodWrapper>();
 
   private HTTPRequest request;
   private int responseCode;
@@ -56,6 +56,8 @@ public abstract class HTTPHandler {
   private String responseText;
   private long responseSize;
   private boolean handled;
+
+  private HashMap<String, String> headers;
 
   private Socket socket;
   private DataOutputStream writer;
@@ -366,6 +368,17 @@ public abstract class HTTPHandler {
         writeLine("Content-Size: " + getResponseText().length());
       }
 
+      if (!getHeaders().isEmpty()) {
+        for (String key : getHeaders().keySet()) {
+          StringBuilder b = new StringBuilder();
+          b.append(key);
+          b.append(": ");
+          b.append(getHeader(key));
+
+          writeLine(b.toString());
+        }
+      }
+
       writeLine("");
 
       if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
@@ -541,6 +554,23 @@ public abstract class HTTPHandler {
   }
   public DataOutputStream getWriter() {
     return writer;
+  }
+
+  public void setHeaders(HashMap<String, String> headers) {
+    this.headers = headers;
+  }
+  public Map<String, String> getHeaders() {
+    return headers;
+  }
+  public void setHeader(String key, String value) {
+    if (getHeaders() == null) {
+      setHeaders(new HashMap<String, String>());
+    }
+
+    getHeaders().put(key, value);
+  }
+  public String getHeader(String key) {
+    return getHeaders().get(key);
   }
 
   /**
