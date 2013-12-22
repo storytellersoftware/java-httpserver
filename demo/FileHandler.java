@@ -1,175 +1,159 @@
 package demo;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLDecoder;
-
-import javax.imageio.ImageIO;
-
-/**
- * A {@link HTTPHandler} that handles file requests.<p>
- * 
- * This class overrides {@link HTTPHandler#handle()} because it needs to do
- * special things in order to server files.<p>
- * 
- * It also overrides {@link HTTPHandler#writeData()} because it needs two
- * different types of responses since images are not written the same way as
- * text data.
- *
- */
 public class FileHandler extends HTTPHandler {
+	
+	public static final int BUFFER_SIZE = 8192;
 
-  private static final String CONTENT_DIRECTORY = "demo/www";
-  private static String defaultFile;
+	public String contentDirectory = "demo/www";
+	public String defaultFile = "index.html";
+	
+	public String path;
 
+	public FileHandler(HTTPRequest request) throws HTTPException {
+		super(request);
 
-  /**
-   * Create a FileHandler.
-   */
-  public FileHandler(HTTPRequest request) throws HTTPException {
-    super(request);
-    setDefaultFile("index.html");
+		addGET("/", "serveDefaultFile");
+		addGET("{String... paths}", "serveFile");
+	}
+
+	/**
+	 * Serve the default file.
+	 */
+	public void serveDefaultFile() {
+		// Serve the default file.
+		serveFile(getDefaultFile());
+	}
+
+	/**
+	 * Serve a file.
+	 * @param paths - The path to a file.
+	 */
+	public void serveFile(String... paths) {	
+		// Create a StringBuilder to build our path.
+		StringBuilder pathBuilder = 
+				new StringBuilder(getContentDirectory());
+		
+		// Build the path.
+		for (String segment : paths) {
+			pathBuilder.append("/");
+			pathBuilder.append(segment);
+		}
+		
+		// Now our path is complete.
+		path = pathBuilder.toString();
+		File file = new File(getResource(path));
+		System.out.println(path);
+		
+		// Setup header data for the file.
+		if(file.exists()) {
+			setContentType(path);
+			setResponseSize(new File(getResource(path)).length());
+		}
+		// If it doesn't exist, let the user know.
+		else {
+			setResponseType("text/html");
+			setResponseCode(404);
+		}
+		
+		// Do this so we don't return no content.
+		setResponseText(""); // TODO This seems kinda hacky to me.
+	}
+	
+	@Override
+	public void writeData() throws IOException {
+		try {
+			// Write the data back in binary form.
+			byte[] buffer = new byte[BUFFER_SIZE];
+			InputStream in = ClassLoader.getSystemResourceAsStream(path);
+			int read = 0;
+			while((read = in.read(buffer, 0, BUFFER_SIZE)) != -1) {
+				getWriter().write(buffer, 0, read);
+			}
+		} catch(Exception e) {
+			// If we couldn't send them data, we probably don't have the file.
+			System.err.println("File Not Found - " + path);
+			writeLine("<h1>404 - File Not Found</h1>");
+		} 
+	}
+
+	/**
+	 * Sets the content type that is being sent to the client.
+	 * 
+	 * @param path - The path the client is requesting.
+	 */
+  private void setContentType(String path) {
+	    try {
+	      setResponseType(Files.probeContentType(
+	      		FileSystems.getDefault().getPath(getResource(path))));
+      } catch (IOException e) {
+      	// Should never happen.
+	      e.printStackTrace();
+      }
   }
-
-  /**
-   * Set the response data to be a file on the server.
-   *
-   * @throws HTTPException  When an IOException occurs, either because the
-   *                        the requested file doesn't exist, or there are
-   *                        problems reading the file.
-   */
-  @Override
-  public void handle() throws HTTPException {
-    try {
-      StringBuilder pathBuilder = new StringBuilder();
-      for (String segment : getRequest().getSplitPath()) {
-        pathBuilder.append("/");
-        pathBuilder.append(segment);
-      }
-
-      String path = pathBuilder.toString();
-      if (path.isEmpty()) {
-        path = "/";
-      }
-
-      if(path.substring(path.length() - 1).equals("/")) {
-        path += defaultFile;
-      }
-
-      path = CONTENT_DIRECTORY + path;
-
-      // Set the response type
-      if (path.substring(path.length() - 4).equalsIgnoreCase("html")) {
-        setResponseType("text/html");
-      }
-      else if (path.substring(path.length() - 3).equalsIgnoreCase("css")) {
-        setResponseType("text/css");
-      }
-      else if (path.substring(path.length() - 3).equalsIgnoreCase("gif")) {
-        setResponseType("image/gif");
-      }
-      else if (path.substring(path.length() - 3).equalsIgnoreCase("jpg")) {
-        setResponseType("image/jpg");
-      }
-
-
-      if (isImageResponse()) {
-        setResponseText("file://" + getResource(path));
-        setResponseSize(new File(
-                new URL(getResponseText()).toString()).length());
-
-        return;
-      }
-
-      InputStream inputStream = ClassLoader.getSystemResourceAsStream(path);
-
-      // If the file wasn't found, alert the user that it was not found
-      if (inputStream == null) {
-        message(404, "<h1>404 - File Not Found</h1>");
-        return;
-      }
-
-      BufferedReader bufferedReader = new BufferedReader(
-              new InputStreamReader(inputStream));
-      StringBuilder builder = new StringBuilder();
-
-      for (String line = bufferedReader.readLine(); line != null;
-              line = bufferedReader.readLine()) {
-        builder.append(line);
-        builder.append("\n");
-      }
-
-      bufferedReader.close();
-
-      setResponseText(builder.toString());
-    }
-    catch (IOException e) {
-      throw new HTTPException("File Not Found", e);
-    }
-  }
-
-  /**
-   * Set the default file path.<p>
-   * NOTE: You should not include the '/' before the path
-   * @param path The path.
-   */
-  public static void setDefaultFile(String path) {
-    defaultFile = "/" + path;
-  }
-
+  
   /**
    * Gets an absolute path from a relative path
-   *
-   * @param path The relative path of a resource
+   * 
+   * @param path - The relative path of a resource
    * @return The relative path's absolute path
    */
   public static String getResource(String path) {
     try {
       return URLDecoder.decode(
-              ClassLoader.getSystemClassLoader().getResource(
-                      URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
-    }
-    catch (UnsupportedEncodingException e) {
-      // This won't happen...
-      e.printStackTrace();
-    }
-
-    return ClassLoader.getSystemClassLoader().getResource(path).getPath();
-  }
-
-  // This must be overridden because images are different than regular files.
-  @Override
-  public void writeData() throws IOException {
-    if (isImageResponse()) {
-      String imgType = getResponseType().substring(
-              getResponseType().length() - 3);
-
-      BufferedImage img = ImageIO.read(
-              new URL(getResponseText()).openStream());
-
-      ImageIO.write(img, imgType, getWriter());
-    }
-    else {
-      writeLine(getResponseText());
+      		ClassLoader.getSystemClassLoader().getResource(
+              URLDecoder.decode(path, "UTF-8")).getPath(), "UTF-8");
+    } catch (UnsupportedEncodingException | NullPointerException e) {
+      // This will only happen if the file doesn't exist and is handled later.
+      return "";
     }
   }
 
   /**
-   * Checks if an image will be returned to the client.
-   * @return whether the response type is an image type.
+   * Sets the content directory of all files.
+   * 
+   * @param contentDirectory - Where all files are stored.
    */
-  private boolean isImageResponse() {
-    return getResponseType().contains("image");
-  }
+	public void setContentDirectory(String dir) {
+		contentDirectory = dir;
+	}
+
+  /**
+   * Gets the content directory of all files.
+   * 
+   * @return The files content directory.
+   */
+	public String getContentDirectory() {
+		return contentDirectory;
+	}
+
+  /**
+   * Set the default file path.<p>
+   * NOTE: You should not include the '/' before the path
+   * @param pathToFile -  The path.
+   */
+	public void setDefaultFile(String pathToFile) {
+		defaultFile = "/" + pathToFile;
+	}
+	
+  /**
+   * Gets the path of the default file, whose path is '/'
+   * 
+   * @return The path of the default file.
+   */
+	public String getDefaultFile() {
+		return defaultFile;
+	}
 
 }

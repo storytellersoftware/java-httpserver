@@ -22,6 +22,6 @@ public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
     if(checkIfEquals(pathSegment, "mathtest", request))
       return new ArrayHandlerTest(request);
 
-    return new FileHandlerTest(request);
+    return new FileHandler(request);
   }
 }

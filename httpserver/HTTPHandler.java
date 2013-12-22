@@ -100,7 +100,8 @@ public abstract class HTTPHandler {
     if (getServerInfo() == null || getServerInfo().isEmpty()) {
       setupServerInfo();
     }
-
+    
+    setHeaders(new HashMap<String, String>());
     setResponseCode(200);
     setResponseSize(-1);
     setHandled(false);
