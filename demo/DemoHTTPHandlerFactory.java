@@ -20,7 +20,7 @@ public class DemoHTTPHandlerFactory extends HTTPHandlerFactory {
       return new MathHandler(request);
 
     if(checkIfEquals(pathSegment, "mathtest", request))
-      return new ArrayHandlerTest(request);
+      return new MathArrayHandler(request);
 
     return new FileHandler(request);
   }

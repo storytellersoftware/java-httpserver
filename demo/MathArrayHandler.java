@@ -4,9 +4,9 @@ import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
 
-public class ArrayHandlerTest extends HTTPHandler {
+public class MathArrayHandler extends HTTPHandler {
 
-  public ArrayHandlerTest(HTTPRequest request) throws HTTPException {
+  public MathArrayHandler(HTTPRequest request) throws HTTPException {
     super(request);
 
     addGET("/add/{Integer... numbers}/", "add");
