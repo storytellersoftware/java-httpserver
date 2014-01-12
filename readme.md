@@ -52,7 +52,7 @@ agree, we'll make the fix.
 
 java-httpserver is based on some of the work done by
 [Don Kuntz](http://don.kuntz.co) and 
-[Michael Peterson](https://github.com/mpeterson2) over the summer of 2013 while
+[Michael Peterson](http://mpeterson2.github.io) over the summer of 2013 while
 working on [Storyteller](http://storytellersoftware.com).
 
 This project is licensed under the MIT License (see license.md). While not
