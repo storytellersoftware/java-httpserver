@@ -1,17 +1,20 @@
 package tests;
 
-import static org.junit.Assert.*;
-import httpserver.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import httpserver.HTTPException;
+import httpserver.HTTPHandlerFactory;
+import httpserver.HTTPRequest;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.HashMap;
 
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import demo.MathArrayHandler;
 
 
 public class HTTPRequestTest {
@@ -20,7 +23,10 @@ public class HTTPRequestTest {
   
   @BeforeClass
   public static void init() throws IOException {
-    HTTPRequest.setHandlerFactory(new MockHTTPHandlerFactory());
+    HTTPHandlerFactory f = new HTTPHandlerFactory();
+    f.addHandler("math", new MathArrayHandler());
+	HTTPRequest.setHandlerFactory(f);
+    
     server = new ServerSocket(MockClient.DESIRED_PORT);
   }
   
@@ -112,6 +118,26 @@ public class HTTPRequestTest {
     }
   }
   
+  @Test
+  public void testAddition() {
+	  try {
+		  MockClient c = new MockClient();
+		  Integer[] ints = {3, 6, 9, 11, 12};
+		  
+		  c.setPath("/math/add");
+		  c.addToPath(ints);
+		  c.fillInSocket();
+		  HTTPRequest r = new HTTPRequest(server.accept());
+		  
+		  r.getHandler().respond(r);
+		  
+		  
+	  }	  
+	  catch (Exception e) {
+		  e.printStackTrace();
+		  fail("Exception occured...");
+	  }
+  }
 }
 
 

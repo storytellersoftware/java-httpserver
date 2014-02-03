@@ -1,7 +1,7 @@
 package httpserver;
 
-import java.util.Random;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * A DeathHandler should only be called if something bad occurs.
@@ -20,9 +20,7 @@ class DeathHandler extends HTTPHandler {
   /**
    * Creates a new DeathHandler...
    */
-  public DeathHandler(HTTPRequest request) throws HTTPException {
-    super(request);
-
+  public DeathHandler() {
     if (errorMessages == null || errorMessages.isEmpty()) {
       setupErrorMessages();
     }
@@ -34,9 +32,12 @@ class DeathHandler extends HTTPHandler {
    * Regardless of what you *think* we should do, we're just going to send a
    * 500 error to the browser, with a random, generic error message. Including
    * some from our good friend, Han Solo.
+ * @throws HTTPException 
    */
   @Override
-  public void handle() {
+  public void handle(HTTPRequest request) {
+    super.handle(request);
+
     String message = errorMessages.get(
             new Random().nextInt(errorMessages.size()));
 

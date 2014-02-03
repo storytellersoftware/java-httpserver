@@ -1,5 +1,8 @@
 package demo;
 
+import httpserver.HTTPException;
+import httpserver.HTTPHandler;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,10 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-
-import httpserver.HTTPException;
-import httpserver.HTTPHandler;
-import httpserver.HTTPRequest;
 
 public class FileHandler extends HTTPHandler {
 	
@@ -21,11 +20,14 @@ public class FileHandler extends HTTPHandler {
 	
 	public String path;
 
-	public FileHandler(HTTPRequest request) throws HTTPException {
-		super(request);
-
-		addGET("/", "serveDefaultFile");
-		addGET("{String... paths}", "serveFile");
+	public FileHandler() {
+    try {
+  		addGET("/", "serveDefaultFile");
+	   	addGET("{String... paths}", "serveFile");
+    } catch (HTTPException e) {
+      e.printStackTrace();
+      message(500, EXCEPTION_ERROR);
+    }
 	}
 
 	/**

@@ -1,8 +1,16 @@
 package httpserver;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An HTTPRequest takes an incoming connection and parses out all of the
@@ -16,7 +24,7 @@ import java.util.*;
  *        HTTP 1.1 Spec</a>
  * @see HTTPHandler
  */
-public class HTTPRequest {
+public class HTTPRequest implements Runnable {
   /** HTTP GET request type */
   public static final String GET_REQUEST_TYPE = "GET";
 
@@ -91,17 +99,31 @@ public class HTTPRequest {
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
           HTTPException {
+    connection.setKeepAlive(true);
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
     setSplitPath(new ArrayList<String>());
     setGetData(new HashMap<String, String>());
     setPostData(new HashMap<String, String>());
-
-    parseRequest();
-    setHandler(determineHandler());
   }
 
+  @Override
+  public void run() {
+    if (getConnection().isClosed())
+      System.out.println("Socket is closed...");
+    
+    try {
+      parseRequest();
+      setHandler(determineHandler());
+      getHandler().respond(this);
+    } catch (IOException | HTTPException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
+    
+  }
+  
 
   /**
    * Kicks off the request's parsing. Called inside constructor.
@@ -130,6 +152,9 @@ public class HTTPRequest {
         extra sure, all initial blank lines are discarded.
     */
     String firstLine = input.readLine();
+    if (firstLine == null)
+    	throw new HTTPException("Input is returning nulls...", new NullPointerException());
+    
     while (firstLine.isEmpty()) {
       firstLine = input.readLine();
     }
@@ -237,18 +262,12 @@ public class HTTPRequest {
    * @see HTTPHandler
    */
   public HTTPHandler determineHandler() throws HTTPException {
-    try {
-      if (handlerFactory == null) {
-        throw new Exception();
-      }
-      
-      String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
-      return handlerFactory.determineHandler(path, this);
+    if (handlerFactory == null) {
+      return new DeathHandler();
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      return new DeathHandler(this);
-    }
+    
+    String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
+    return handlerFactory.determineHandler(path, this);
   }
 
   /**

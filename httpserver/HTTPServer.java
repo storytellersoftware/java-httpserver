@@ -15,7 +15,7 @@ import java.net.SocketException;
  * and might not be the best base server for one to use. It exists solely to
  * provide an existing mechanism for using the rest of the httpserver package.
  */
-public class HTTPServer implements Runnable {
+public class HTTPServer {
 
   public static final int defaultPort = 8000;
 
@@ -75,7 +75,6 @@ public class HTTPServer implements Runnable {
    * Unless you specify the port with {@link HTTPServer#setSocket()},
    * the server will run on http://127.0.0.1:{@value #defaultPort}.
    */
-  @Override
   public void run() {
     try {
       socket = new ServerSocket();
@@ -89,9 +88,11 @@ public class HTTPServer implements Runnable {
         Socket connection = null;
         try {
           connection = socket.accept();
+          //connection.setKeepAlive(true);
 
           HTTPRequest request = new HTTPRequest(connection);
-          request.getHandler().respond();
+          Thread t = new Thread(request);
+          t.start();
           //handleRequest(connection, request);
         }
         catch (SocketException e) {
@@ -128,9 +129,6 @@ public class HTTPServer implements Runnable {
               because you probably don't want to kill the server...
            */
           break;
-        }
-        finally {
-          connection.close();
         }
       }
     }

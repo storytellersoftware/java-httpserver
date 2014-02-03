@@ -2,18 +2,23 @@ package demo;
 
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
-import httpserver.HTTPRequest;
 
 public class MathArrayHandler extends HTTPHandler {
 
-  public MathArrayHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public MathArrayHandler() {
+    try {
+      addGET("/add/{Integer... numbers}/", "add");
+      addGET("/add/{Double... numbers}/", "add");
+      addGET("/add/{Integer one}/{Integer two}", "add");
 
-    addGET("/add/{Integer... numbers}/", "add");
-    addGET("/add/{Double... numbers}/", "add");
-    addGET("/add/{Integer one}/{Integer two}", "add");
-
-    addGET("/print/{String p}/{String ...}", "print");
+      //addGET("/print/{String p}/{String ...}", "print");
+      
+      //addGET("/*", "nomath");
+    }
+    catch (HTTPException e) {
+      e.printStackTrace();
+      message(500, EXCEPTION_ERROR);
+    }
   }
 
   /**
@@ -21,6 +26,7 @@ public class MathArrayHandler extends HTTPHandler {
    * @param numbers
    */
   public void add(Integer... numbers) {
+    System.out.println("numbers:" + numbers);
     int answer = 0;
     String message = "";
     for(Integer i : numbers) {
@@ -70,5 +76,10 @@ public class MathArrayHandler extends HTTPHandler {
     }
 
     message(200, message);
+  }
+  
+  
+  public void noMath() {
+	  message(404, "No math...");
   }
 }

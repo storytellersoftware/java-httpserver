@@ -22,9 +22,8 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, int code, String message)
-          throws HTTPException {
-    super(request);
+  public MessageHandler(HTTPRequest request, int code, String message) {
+    setRequest(request);
     message(code, message);
   }
 
@@ -44,12 +43,4 @@ public class MessageHandler extends HTTPHandler {
     this(request, 200, message);
   }
 
-  /**
-   * Does nothing...
-   *
-   * The message was set in the constructor, we don't need to do anything
-   * here.
-   */
-  @Override
-  public void handle() { }
 }

@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -139,11 +140,36 @@ class MethodWrapper {
    */
   public void invoke(Object callingClass, String path) throws HTTPException {
     try {
-      // Get the parameters
-      String[] paths = path.split("/");
+      if (this.path.equals("*")) {
+    	if (method.getTypeParameters().length == 0) {
+    		method.invoke(callingClass);
+    	}
+    	else {
+    		method.invoke(callingClass, path);
+    	}
+    	
+    	return;
+      }
+      
       String[] methodPaths = this.path.split("/");
+      
+      path = path.trim();
+      if (path.startsWith("/"))
+    	  path = path.substring(1);
+      
+      // Get the parameters
+      String[] paths;
+      if (path.length() == 0)
+    	paths = new String[0];
+      else
+    	  paths = path.split("/");
+      
       List<Object> params = new ArrayList<Object>();
-
+      
+      System.out.println("Path: " + path);
+      System.out.println("Paths: " + Arrays.asList(paths).toString());
+      System.out.println("Method Path: " + Arrays.asList(methodPaths).toString());
+     
       for (int i = 0; i < paths.length; i++) {
         if (isDynamic(methodPaths[i])) {
           if (!isArray(methodPaths[i])) {

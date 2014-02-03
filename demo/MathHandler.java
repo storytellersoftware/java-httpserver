@@ -2,7 +2,6 @@ package demo;
 
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
-import httpserver.HTTPRequest;
 
 /**
  * A slightly complex example of how to setup requests.<p>
@@ -12,8 +11,7 @@ import httpserver.HTTPRequest;
  */
 public class MathHandler extends HTTPHandler {
 
-  public MathHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public MathHandler() {
 
     try {
       addGET("*", "noMath");

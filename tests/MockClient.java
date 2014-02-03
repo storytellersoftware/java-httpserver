@@ -25,7 +25,7 @@ public class MockClient {
   public String requestType;
   public String path;
   public String protocol;
-  
+    
   public Map<String, String> getData;
   public Map<String, String> postData;
   public Map<String, String> headers;
@@ -66,10 +66,8 @@ public class MockClient {
     writer.write(getDataInHTTP(getPostData()));
     writer.flush();
     writer.close();
-    socket.close();
-    
-    //return s.accept();
   }
+  
   
   public String getRequestLine() {
     StringBuilder b = new StringBuilder();
@@ -152,6 +150,26 @@ public class MockClient {
   public void setPath(String path) {
     this.path = path;
   }
+  public void setPath(Object... parts) {
+	  StringBuilder b = new StringBuilder();
+	  for (Object p : parts) {
+		  b.append(p.toString());
+		  b.append("/");
+	  }
+	  setPath(b.toString());
+  }
+  public void addToPath(Object... parts) {
+	  StringBuilder b = new StringBuilder(getPath());
+	  if (!b.toString().endsWith("/"))
+		  b.append("/");
+	  
+	  for (Object p : parts) {
+		  b.append(p.toString());
+		  b.append("/");
+	  }
+	  setPath(b.toString());
+  }
+  
   public String getProtocol() {
     return protocol;
   }

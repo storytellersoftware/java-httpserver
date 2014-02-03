@@ -27,7 +27,7 @@ import java.util.Set;
 public abstract class HTTPHandler {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
-  = "an exception occured while processing your request";
+          = "an exception occured while processing your request";
 
   /** Generic error message for when there isn't a method assigned to the
           requested path */
@@ -87,8 +87,14 @@ public abstract class HTTPHandler {
    * @see HTTPHandler#setHandled
    * @see HTTPHandler#setResponseType
    */
-  public HTTPHandler(HTTPRequest request) throws HTTPException {
+  public HTTPHandler() { }
+
+
+  public void newRequest(HTTPRequest request) throws HTTPException {
+    
+    
     try {
+      System.out.println(request.getConnection().isConnected());
       setSocket(request.getConnection());
       setRequest(request);
       setWriter(new DataOutputStream(getSocket().getOutputStream()));
@@ -127,50 +133,57 @@ public abstract class HTTPHandler {
    * @see HTTPHandler#addPOST
    * @see HTTPHandler#NOT_A_METHOD_ERROR
    */
-  public void handle() throws HTTPException {
-    String path = getRequest().getPath();
-    MethodWrapper method = getMap().get(path);
-
-    /*  If the above MethodWrapper is null (occurs when the requested path
-        is dynamic), find the best fit method based on MethodWrapper's scoring
-        technique (see MethodWrapper#howCorrect for more information).
-     */
-    if (method == null) {
-      int bestFit = 0;
-      Set<String> keys = getMap().keySet();
-      for (String key : keys) {
-        MethodWrapper testMethod = getMap().get(key);
-        int testScore = testMethod.howCorrect(path);
-
-        if (testScore > bestFit) {
-          method = testMethod;
-          bestFit = testScore;
+  public void handle(HTTPRequest request) {
+    try {
+      //newRequest(request);
+      
+      String path = getRequest().getPath().substring(1);
+      MethodWrapper method = getMap().get(path);
+  
+      /*  If the above MethodWrapper is null (occurs when the requested path
+          is dynamic), find the best fit method based on MethodWrapper's scoring
+          technique (see MethodWrapper#howCorrect for more information).
+       */
+      if (method == null) {
+        int bestFit = 0;
+        Set<String> keys = getMap().keySet();
+        for (String key : keys) {
+          MethodWrapper testMethod = getMap().get(key);
+          int testScore = testMethod.howCorrect(path);
+  
+          if (testScore > bestFit) {
+            method = testMethod;
+            bestFit = testScore;
+          }
         }
       }
-    }
-
-    /*  If none of the paths match the request's path, try using a wild-card
-        or root path in that order.
-     */
-    if (method == null) {
-      if (getMap().containsKey("*")) {
-        method = getMap().get("*");
+  
+      /*  If none of the paths match the request's path, try using a wild-card
+          or root path in that order.
+       */
+      if (method == null) {
+        if (getMap().containsKey("*")) {
+          method = getMap().get("*");
+        }
+        else if (getMap().containsKey("/")) {
+          method = getMap().get("/");
+        }
       }
-      else if (getMap().containsKey("/")) {
-        method = getMap().get("/");
+  
+      /*  If, following the whole ordeal, no acceptable method is found, send the
+          client a 501, Not a Method error.
+       */
+      if (method == null) {
+        message(501, NOT_A_METHOD_ERROR);
+        return;
       }
+  
+      System.out.println("Method Invoked: " + method);
+      method.invoke(this, path);
     }
-
-    /*  If, following the whole ordeal, no acceptable method is found, send the
-        client a 501, Not a Method error.
-     */
-    if (method == null) {
-      message(501, NOT_A_METHOD_ERROR);
-      return;
+    catch (HTTPException e) {
+      message(500, EXCEPTION_ERROR);
     }
-
-    System.out.println("Method Invoked: " + method);
-    method.invoke(this, path);
   }
 
 
@@ -324,6 +337,9 @@ public abstract class HTTPHandler {
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
 
+	if (path.startsWith("/"))
+		path = path.substring(1);
+	
     MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
@@ -346,12 +362,18 @@ public abstract class HTTPHandler {
    *
    * @see HTTPHandler#writeData
    */
-  public void respond() {
+  public void respond(HTTPRequest request) {
     try {
-      if (!isHandled()) {
-        handle();
-      }
-
+      newRequest(request);
+      
+      
+      if (getSocket() == null)
+        throw new HTTPException("Socket is null...");
+      else if (getSocket().isClosed())
+        throw new HTTPException("Socket is closed...");
+      
+      handle(request);
+  
       if(getResponseText() == null) {
         noContent();
       }
@@ -398,7 +420,7 @@ public abstract class HTTPHandler {
       try {
         getWriter().close();
       }
-      catch (IOException e) {
+      catch (NullPointerException | IOException e) {
         e.printStackTrace();
       }
     }

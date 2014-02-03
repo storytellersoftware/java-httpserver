@@ -1,6 +1,7 @@
 package demo;
 
-import httpserver.*;
+import httpserver.HTTPException;
+import httpserver.HTTPHandler;
 
 
 /**
@@ -11,9 +12,7 @@ import httpserver.*;
  */
 public class HelloHandler extends HTTPHandler {
 
-  public HelloHandler(HTTPRequest request) throws HTTPException {
-    super(request);
-
+  public HelloHandler() {
     try {
       addGET("/", "sayHello");
       addGET("/{String name}/", "sayHello");
@@ -26,7 +25,7 @@ public class HelloHandler extends HTTPHandler {
   }
 
   /**
-   * Returns the text: "Hellow World".
+   * Returns the text: "Hello World".
    */
   public void sayHello() {
     setResponseText("Hello World");

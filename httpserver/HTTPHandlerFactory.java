@@ -1,5 +1,8 @@
 package httpserver;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * An HTTPHandlerFactory is a factory that's used to determine what kind of
  * HTTPHandler should be used in the HTTPRequest.
@@ -7,16 +10,41 @@ package httpserver;
  * @see HTTPHandler
  * @see HTTPRequest
  */
-public abstract class HTTPHandlerFactory {
-  public HTTPHandlerFactory() {};
+public class HTTPHandlerFactory {
+  private Map<String, HTTPHandler> handlers;
+
+  public HTTPHandlerFactory() {
+    handlers = new HashMap<>();
+  };
 
 
   /**
    * Figures out what kind of HTTPHandler should be used to set the response
    * data.
    */
-  public abstract HTTPHandler determineHandler(String pathSegment,
-          HTTPRequest request) throws HTTPException;
+  public HTTPHandler determineHandler(String pathSegment,
+          HTTPRequest request) throws HTTPException {
+
+    if (getHandlers().containsKey(pathSegment)) {
+      String path = request.getPath();
+      request.setPath(path.substring(path.indexOf(pathSegment) + pathSegment.length()));
+      return getHandlers().get(pathSegment);
+    }
+    else if (getHandlers().containsKey("*")) {
+      return getHandlers().get("*");
+    }
+
+    return new DeathHandler();
+  }
+
+
+  public Map<String, HTTPHandler> getHandlers() {
+    return handlers;
+  }
+
+  public void addHandler(String pathSegment, HTTPHandler handler) {
+    getHandlers().put(pathSegment, handler);
+  }
 
   /**
    * Check if the pathSegment is equal to the key.
