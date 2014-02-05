@@ -42,7 +42,7 @@ public class HTTPRequest implements Runnable {
 
 
   // used to determine what one does with the request
-  private static HTTPHandlerFactory handlerFactory;
+  private static HTTPRouter handlerFactory;
 
   // connection with client
   private Socket connection;
@@ -250,15 +250,15 @@ public class HTTPRequest implements Runnable {
   /**
    * Figure out what kind of HTTPHandler you want, based on the path. <p>
    *
-   * This uses the statically set {@link HTTPHandlerFactory} to determine the
+   * This uses the statically set {@link HTTPRouter} to determine the
    * correct HTTPHandler to be used for the current request. If there isn't
    * a statically set HTTPHandlerFactory, a 500 error is sent back to the
    * client.
    *
    * @return a new instance of some form of HTTPHandler.
    *
-   * @see HTTPHandlerFactory
-   * @see HTTPHandlerFactory#determineHandler
+   * @see HTTPRouter
+   * @see HTTPRouter#determineHandler
    * @see HTTPHandler
    */
   public HTTPHandler determineHandler() throws HTTPException {
@@ -494,10 +494,10 @@ public class HTTPRequest implements Runnable {
     return handler;
   }
 
-  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+  public static void setHandlerFactory(HTTPRouter handlerFactory) {
     HTTPRequest.handlerFactory = handlerFactory;
   }
-  public static HTTPHandlerFactory getHTTPHandlerFactory() {
+  public static HTTPRouter getHTTPHandlerFactory() {
     return handlerFactory;
   }
 

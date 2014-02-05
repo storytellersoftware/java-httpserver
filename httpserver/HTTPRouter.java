@@ -10,10 +10,10 @@ import java.util.Map;
  * @see HTTPHandler
  * @see HTTPRequest
  */
-public class HTTPHandlerFactory {
+public class HTTPRouter {
   private Map<String, HTTPHandler> handlers;
 
-  public HTTPHandlerFactory() {
+  public HTTPRouter() {
     handlers = new HashMap<>();
   };
 

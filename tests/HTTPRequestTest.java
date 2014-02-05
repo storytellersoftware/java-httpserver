@@ -3,7 +3,7 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import httpserver.HTTPException;
-import httpserver.HTTPHandlerFactory;
+import httpserver.HTTPRouter;
 import httpserver.HTTPRequest;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ public class HTTPRequestTest {
   
   @BeforeClass
   public static void init() throws IOException {
-    HTTPHandlerFactory f = new HTTPHandlerFactory();
+    HTTPRouter f = new HTTPRouter();
     f.addHandler("math", new MathArrayHandler());
 	HTTPRequest.setHandlerFactory(f);
     

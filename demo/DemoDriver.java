@@ -1,6 +1,6 @@
 package demo;
 
-import httpserver.HTTPHandlerFactory;
+import httpserver.HTTPRouter;
 import httpserver.HTTPServer;
 
 /**
@@ -15,7 +15,7 @@ public class DemoDriver {
    */
   public static void main(String[] args) {
     HTTPServer s = new HTTPServer();
-    HTTPHandlerFactory f = new HTTPHandlerFactory();
+    HTTPRouter f = new HTTPRouter();
     f.addHandler("hello", new HelloHandler());
     f.addHandler("math", new MathHandler());
     f.addHandler("matharray", new MathArrayHandler());

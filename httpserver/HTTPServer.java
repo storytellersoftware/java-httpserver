@@ -150,13 +150,13 @@ public class HTTPServer {
   }
 
   /**
-   * Set the {@link HTTPHandlerFactory} to determine the what
+   * Set the {@link HTTPRouter} to determine the what
    * {@link HTTPHandler} will be used.
    *
    * @param handlerFactory  The HTTPHandlerFactory to be used to figure out
    *                        what kind of HTTPHandler we're going to use...
    */
-  public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
+  public void setHandlerFactory(HTTPRouter handlerFactory) {
     HTTPRequest.setHandlerFactory(handlerFactory);
   }
 
