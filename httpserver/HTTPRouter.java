@@ -4,64 +4,87 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An HTTPHandlerFactory is a factory that's used to determine what kind of
- * HTTPHandler should be used in the HTTPRequest.
+ * An HTTPRouter is used to route incoming requests to specific handlers. 
  *
  * @see HTTPHandler
  * @see HTTPRequest
  */
 public class HTTPRouter {
   private Map<String, HTTPHandler> handlers;
+  private HTTPHandler errorHandler;
+  private HTTPHandler defaultHandler;
 
   public HTTPRouter() {
     handlers = new HashMap<>();
+    try {
+      errorHandler = new DeathHandler(501);
+    } catch (HTTPException e) {
+      throw new RuntimeException(
+        "DeathHandler threw an HTTPException. Something really, really bad has happened.");
+    }
+    
+    defaultHandler = null;
   };
 
 
   /**
-   * Figures out what kind of HTTPHandler should be used to set the response
-   * data.
+   * Route determines which {@link HTTPHandler} to use based on the first path
+   * segment (between the first and second `/`). <p>
+   * 
+   * If no {@link HTTPHandler} can be found for the specified path segment, an
+   * error handler is used. You can specify a specific error handler using the
+   * {@link #setErrorHandler(HTTPHandler)} method. The default error handler
+   * will send a `501` status code (Not Implemented) to the client.
+   * 
+   * @see HTTPHandler
    */
-  public HTTPHandler determineHandler(String pathSegment,
-          HTTPRequest request) throws HTTPException {
-
+  public HTTPHandler route(String pathSegment, HTTPRequest request) 
+      throws HTTPException {
+    
     if (getHandlers().containsKey(pathSegment)) {
-      String path = request.getPath();
-      request.setPath(path.substring(path.indexOf(pathSegment) + pathSegment.length()));
+      request.setPath(request.getPath().substring(pathSegment.length() + 1));
       return getHandlers().get(pathSegment);
     }
-    else if (getHandlers().containsKey("*")) {
-      return getHandlers().get("*");
+    else if (defaultHandler != null) {
+      return defaultHandler;
     }
 
-    return new DeathHandler();
+    return getErrorHandler();
   }
 
 
+  /**
+   * Get the map used to route paths to specific handlers
+   * @return The router's map of path segments and handlers.
+   */
   public Map<String, HTTPHandler> getHandlers() {
     return handlers;
   }
 
+  
+  /**
+   * Add a new route.
+   * 
+   * @param pathSegment     The first path segment (
+   *                        between the first and second {@code /) to match
+   * @param handler         An HTTPHandler to be routed to.
+   */
   public void addHandler(String pathSegment, HTTPHandler handler) {
     getHandlers().put(pathSegment, handler);
   }
-
-  /**
-   * Check if the pathSegment is equal to the key.
-   * Removes the pathSegment from the request's path
-   * ({@code HTTPRequest.getPath()})
-   *
-   * @param pathSegment The first part of the URL.
-   * @param key The key to check against.
-   * @param request The request given by the client.
-   *
-   * @return Whether the path segment is equal to the key.
-   */
-  public boolean checkIfEquals(String pathSegment, String key,
-          HTTPRequest request) {
-    String path = request.getPath();
-    request.setPath(path.substring(path.indexOf(key) + 1));
-
-    return pathSegment.equalsIgnoreCase(key);
+  
+  
+  public void setErrorHandler(HTTPHandler handler) {
+    errorHandler = handler;
+  }
+  public HTTPHandler getErrorHandler() {
+    return errorHandler;
+  }
+  
+  public void setDefaultHandler(HTTPHandler handler) {
+    defaultHandler = handler;
+  }
+  public HTTPHandler getDefaultHandler() {
+    return defaultHandler;
   }
 }

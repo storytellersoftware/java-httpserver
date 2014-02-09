@@ -115,10 +115,11 @@ public class HTTPRequest implements Runnable {
     
     try {
       parseRequest();
-      setHandler(determineHandler());
-      getHandler().respond(this);
+      HTTPResponse resp = new HTTPResponse(this);
+      determineHandler().handle(this, resp);
+      resp.respond();
+      
     } catch (IOException | HTTPException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
     
@@ -267,7 +268,7 @@ public class HTTPRequest implements Runnable {
     }
     
     String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
-    return handlerFactory.determineHandler(path, this);
+    return handlerFactory.route(path, this);
   }
 
   /**

@@ -3,8 +3,8 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import httpserver.HTTPException;
-import httpserver.HTTPRouter;
 import httpserver.HTTPRequest;
+import httpserver.HTTPRouter;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,7 +22,7 @@ public class HTTPRequestTest {
   private static ServerSocket server;
   
   @BeforeClass
-  public static void init() throws IOException {
+  public static void init() throws IOException, HTTPException {
     HTTPRouter f = new HTTPRouter();
     f.addHandler("math", new MathArrayHandler());
 	HTTPRequest.setHandlerFactory(f);
@@ -129,7 +129,7 @@ public class HTTPRequestTest {
 		  c.fillInSocket();
 		  HTTPRequest r = new HTTPRequest(server.accept());
 		  
-		  r.getHandler().respond(r);
+		  //r.getHandler().respond(r);
 		  
 		  
 	  }	  

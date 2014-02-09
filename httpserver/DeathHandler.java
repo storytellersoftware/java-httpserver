@@ -14,16 +14,23 @@ import java.util.Random;
  * other handlers available, it'll be used.
  */
 class DeathHandler extends HTTPHandler {
-
+  private int code;
+  
+  
   public static ArrayList<String> errorMessages;
 
   /**
    * Creates a new DeathHandler...
    */
-  public DeathHandler() {
-    if (errorMessages == null || errorMessages.isEmpty()) {
-      setupErrorMessages();
-    }
+  public DeathHandler() throws HTTPException {
+    this(500);
+  }
+  
+  
+  public DeathHandler(int statusCode) throws HTTPException {
+    super();
+    setupErrorMessages();
+    code = statusCode;
   }
 
   /**
@@ -35,13 +42,13 @@ class DeathHandler extends HTTPHandler {
  * @throws HTTPException 
    */
   @Override
-  public void handle(HTTPRequest request) {
-    super.handle(request);
+  public void handle(HTTPRequest request, HTTPResponse resp) {
+    //super.handle(request);
 
     String message = errorMessages.get(
             new Random().nextInt(errorMessages.size()));
 
-    message(500, message);
+    resp.message(code, message);
   }
 
 
@@ -60,6 +67,7 @@ class DeathHandler extends HTTPHandler {
             + "everything's perfectly all right now. We're fine. We're all "
             + "fine here now, thank you. How are you?");
     errorMessages.add("Definitely feeling aggressive tendency, sir!");
+    errorMessages.add("If they move, shoot 'em.");
 
   }
 }

@@ -10,6 +10,9 @@ package httpserver;
  */
 public class MessageHandler extends HTTPHandler {
 
+  private String body;
+  private int code;
+  
   /**
    * Create a message handler
    *
@@ -22,9 +25,9 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, int code, String message) {
-    setRequest(request);
-    message(code, message);
+  public MessageHandler(int code, String message) throws HTTPException {
+    body = message;
+    this.code = code;
   }
 
   /**
@@ -38,9 +41,12 @@ public class MessageHandler extends HTTPHandler {
    * @see HTTPHandler#message
    * @see HTTPRequest
    */
-  public MessageHandler(HTTPRequest request, String message)
-          throws HTTPException {
-    this(request, 200, message);
+  public MessageHandler(String message) throws HTTPException {
+    this(200, message);
+  }
+  
+  public void handle(HTTPRequest req, HTTPResponse resp) {
+    resp.message(code, body);
   }
 
 }

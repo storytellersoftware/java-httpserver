@@ -1,7 +1,6 @@
 package httpserver;
 
 import java.io.DataOutputStream;
-import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,94 +24,26 @@ import java.util.Set;
  * @see HTTPHandler#addPOST
  */
 public abstract class HTTPHandler {
-  /** Generic error message for when an exception occurs on the server */
-  public static final String EXCEPTION_ERROR
-          = "an exception occured while processing your request";
-
-  /** Generic error message for when there isn't a method assigned to the
-          requested path */
-  public static final String NOT_A_METHOD_ERROR = "No known method";
-
-  /** Generic error message for when the browser sends bad data */
-  public static final String MALFORMED_INPUT_ERROR = "Malformed Input";
-
-  /** Generic status message for when everything is good */
-  public static final String STATUS_GOOD = "All systems are go";
-
-  private static String serverInfo;
-
   private final HashMap<String, MethodWrapper> getMethods
           = new HashMap<String, MethodWrapper>();
   private final HashMap<String, MethodWrapper> postMethods
           = new HashMap<String, MethodWrapper>();
   private final HashMap<String, MethodWrapper> deleteMethods
           = new HashMap<String, MethodWrapper>();
-  private final HashMap<String, MethodWrapper> putMethods
-          = new HashMap<String, MethodWrapper>();
-
-  private HTTPRequest request;
-  private int responseCode;
-  private String responseType;
-  private String responseText;
-  private long responseSize;
-  private boolean handled;
-
-  private HashMap<String, String> headers;
 
   private Socket socket;
   private DataOutputStream writer;
-  private Map<Integer, String> responses;
+  
 
   /**
    * Create an HTTPHandler. <p>
    * 
-   * This is where paths should be setup<p>
-   *
-   * This also sets some acceptable defaults: <ul>
-   *    <li>The response code is set to 200 (OK, which means everything happend
-   *    all nice and good-like);
-   *
-   *    <li>The response size is set to -1, which tells the HTTPResponse to
-   *    determine the correct size when sends back the information;
-   *
-   *    <li>The response is told it hasn't been handled yet;
-   *
-   *    <li>And the response mimetype is set to "text/plain".
-   *
-   * @param request HTTPRequest with the browser's request information.
-   *
-   * @see HTTPRequest
-   * @see HTTPHandler#setResponseCode
-   * @see HTTPHandler#setResponseSize
-   * @see HTTPHandler#setHandled
-   * @see HTTPHandler#setResponseType
+   * When writing your own HTTPHandler, this is where you should add the
+   * handler's internal routing, as well performing any setup tasks. Handlers
+   * are multi-use, which means that only one of any kind of handler should be
+   * created in an application (unless you have custom needs). 
    */
-  public HTTPHandler() { }
-
-
-  public void newRequest(HTTPRequest request) throws HTTPException {
-    
-    
-    try {
-      System.out.println(request.getConnection().isConnected());
-      setSocket(request.getConnection());
-      setRequest(request);
-      setWriter(new DataOutputStream(getSocket().getOutputStream()));
-    }
-    catch (IOException e) {
-      throw new HTTPException("IOException...", e);
-    }
-
-    if (getServerInfo() == null || getServerInfo().isEmpty()) {
-      setupServerInfo();
-    }
-    
-    setHeaders(new HashMap<String, String>());
-    setResponseCode(200);
-    setResponseSize(-1);
-    setHandled(false);
-    setResponseType("text/plain");
-  }
+  public HTTPHandler() throws HTTPException { }
 
 
   /**
@@ -127,18 +58,19 @@ public abstract class HTTPHandler {
    * order. If, after that, no method can be found, a 501 is sent over to the
    * client, with the <code>NOT_A_METHOD_ERROR</code> message.
    *
-   * @throws HTTPException  when an attached method can't be invoked.
+   * @param request     The incoming HTTPRequest.
+   * @param response    The outgoing HTTPResponse, waiting to be filled by an
+   *                    HTTPHandler.
    *
    * @see HTTPHandler#addGET
    * @see HTTPHandler#addPOST
-   * @see HTTPHandler#NOT_A_METHOD_ERROR
+   * @see HTTPResponse#NOT_A_METHOD_ERROR
    */
-  public void handle(HTTPRequest request) {
+  public void handle(HTTPRequest request, HTTPResponse response) {
     try {
-      //newRequest(request);
-      
-      String path = getRequest().getPath().substring(1);
-      MethodWrapper method = getMap().get(path);
+      Map<String, MethodWrapper> map = getMap(request);
+      String path = request.getPath().substring(1);
+      MethodWrapper method = map.get(path);
   
       /*  If the above MethodWrapper is null (occurs when the requested path
           is dynamic), find the best fit method based on MethodWrapper's scoring
@@ -146,9 +78,9 @@ public abstract class HTTPHandler {
        */
       if (method == null) {
         int bestFit = 0;
-        Set<String> keys = getMap().keySet();
+        Set<String> keys = map.keySet();
         for (String key : keys) {
-          MethodWrapper testMethod = getMap().get(key);
+          MethodWrapper testMethod = map.get(key);
           int testScore = testMethod.howCorrect(path);
   
           if (testScore > bestFit) {
@@ -162,11 +94,8 @@ public abstract class HTTPHandler {
           or root path in that order.
        */
       if (method == null) {
-        if (getMap().containsKey("*")) {
-          method = getMap().get("*");
-        }
-        else if (getMap().containsKey("/")) {
-          method = getMap().get("/");
+        if (map.containsKey("*")) {
+          method = map.get("*");
         }
       }
   
@@ -174,69 +103,17 @@ public abstract class HTTPHandler {
           client a 501, Not a Method error.
        */
       if (method == null) {
-        message(501, NOT_A_METHOD_ERROR);
+        response.message(501, HTTPResponse.NOT_A_METHOD_ERROR);
         return;
       }
   
       System.out.println("Method Invoked: " + method);
-      method.invoke(this, path);
+      method.invoke(this, response, request, path);
     }
     catch (HTTPException e) {
-      message(500, EXCEPTION_ERROR);
+      response.error(500, HTTPResponse.EXCEPTION_ERROR, e);
     }
   }
-
-
-
-  /**
-   * Send a simple string message with an HTTP response code back to
-   * the client. <p>
-   *
-   * Can be used for sending all data back.
-   *
-   * @param code      An HTTP response code.
-   * @param message   The content of the server's response to the browser
-   *
-   * @see HTTPHandler#error
-   * @see HTTPHandler#noContent
-   */
-  public void message(int code, String message) {
-    setResponseCode(code);
-    setResponseText(message);
-    setHandled(true);
-  }
-
-  /**
-   * Tell the browser there is no response data. <p>
-   *
-   * This is done by sending over a 204 code, which means there isn't
-   * any data in the stream, but the server correctly processed the request
-   *
-   * @see HTTPHandler#message
-   */
-  public void noContent() {
-    setResponseCode(204);
-    setResponseText("");
-    setHandled(true);
-  }
-
-  /**
-   * Send a message to the browser and print an exception<p>
-   *
-   * Prints the stackTrace of `t`, and sends a message `message` back to the
-   * browser, with that HTTP status of `code`
-   * 
-   * @param code      HTTP status code
-   * @param message   the content being sent back to the browser
-   * @param t         A throwable object, to be printed to the screen
-   * 
-   * @see httpserver.HTTPHandler#message
-   */
-  public void error(int code, String message, Throwable t) {
-    t.printStackTrace();
-    message(code, message);
-  }
-
 
 
   /**
@@ -244,11 +121,11 @@ public abstract class HTTPHandler {
    * @return  The HashMap for the correct request. Defaults to GET if
    *          the method isn't known.
    */
-  private HashMap<String, MethodWrapper> getMap() {
-    if(getRequest().isType(HTTPRequest.POST_REQUEST_TYPE)) {
+  private HashMap<String, MethodWrapper> getMap(HTTPRequest req) {
+    if(req.isType(HTTPRequest.POST_REQUEST_TYPE)) {
       return postMethods;
     }
-    if(getRequest().isType(HTTPRequest.DELETE_REQUEST_TYPE)) {
+    if(req.isType(HTTPRequest.DELETE_REQUEST_TYPE)) {
       return deleteMethods;
     }
 
@@ -343,228 +220,12 @@ public abstract class HTTPHandler {
     MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
   }
-
-  /***************************
-    Response-specific things
-   ***************************/
-
-  /**
-   * Send data back to the client. <p>
-   *
-   * If the response hasn't been handled, try handling it, and sending
-   * that data back to the client. <p>
-   *
-   * This method only writes the headers, and calls
-   * {@link HTTPHandler#writeData()} to send the determined response back to
-   * the client. This is done because the headers are fairly global, and
-   * shouldn't need to be changed, where the actual response data might need
-   * some "special sauce".
-   *
-   * @see HTTPHandler#writeData
-   */
-  public void respond(HTTPRequest request) {
-    try {
-      newRequest(request);
-      
-      
-      if (getSocket() == null)
-        throw new HTTPException("Socket is null...");
-      else if (getSocket().isClosed())
-        throw new HTTPException("Socket is closed...");
-      
-      handle(request);
   
-      if(getResponseText() == null) {
-        noContent();
-      }
-
-      writeLine("HTTP/1.1 " + getResponseCodeMessage());
-      writeLine("Server: " + getServerInfo());
-      writeLine("Content-Type: " + getResponseType());
-
-      writeLine("Connection: close");
-
-      if (getResponseSize() != -1) {
-        writeLine("Content-Size: " + getResponseSize());
-      }
-      else {
-        writeLine("Content-Size: " + getResponseText().length());
-      }
-
-      if (!getHeaders().isEmpty()) {
-        for (String key : getHeaders().keySet()) {
-          StringBuilder b = new StringBuilder();
-          b.append(key);
-          b.append(": ");
-          b.append(getHeader(key));
-
-          writeLine(b.toString());
-        }
-      }
-
-      writeLine("");
-
-      if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
-              || getResponseCode() == 204) {
-        return;
-      }
-
-      writeData();
-    }
-    catch (HTTPException | IOException e) {
-      System.err.println("Something bad happened while trying to send data "
-              + "to the client");
-      e.printStackTrace();
-    }
-    finally {
-      try {
-        getWriter().close();
-      }
-      catch (NullPointerException | IOException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  /**
-   * Send the actual response back to the client. <p>
-   *
-   * Where the actual data is sent back to the client. If a child handler
-   * has non-generic text data to be sent, this is what should be modified.
-   *
-   * @see HTTPHandler#respond
-   */
-  public void writeData() throws IOException {
-    writeLine(getResponseText());
-  }
-
-  /**
-   * Writes a string and a "\n" to the DataOutputStream.
-   * @param line The line to write
-   * @throws IOException
-   */
-  protected void writeLine(String line) throws IOException {
-    getWriter().writeBytes(line + "\n");
-  }
-
-  /**
-   * Return the response code + the response message.
-   *
-   * @see HTTPHandler#getResponseCode
-   * @see HTTPHandler#setResponseCode
-   */
-  public String getResponseCodeMessage() {
-    if (responses == null || responses.isEmpty()) {
-      setupResponses();
-    }
-
-    if (responses.containsKey(getResponseCode())) {
-      return getResponseCode() + " " + responses.get(getResponseCode());
-    }
-
-    return Integer.toString(getResponseCode());
-  }
-
-  /**
-   * Sets up a list of response codes and text.
-   */
-  private void setupResponses() {
-    responses = new HashMap<Integer, String>();
-
-    responses.put(100, "Continue");
-    responses.put(101, "Switching Protocols");
-
-    responses.put(200, "OK");
-    responses.put(201, "Created");
-    responses.put(202, "Accepted");
-    responses.put(203, "Non-Authoritative Information");
-    responses.put(204, "No Content");
-    responses.put(205, "Reset Content");
-    responses.put(206, "Partial Content");
-
-    responses.put(300, "Multiple Choices");
-    responses.put(301, "Moved Permanently");
-    responses.put(302, "Found");
-    responses.put(303, "See Other");
-    responses.put(304, "Not Modified");
-    responses.put(305, "Use Proxy");
-    responses.put(307, "Temporary Redirect");
-
-    responses.put(400, "Bad Request");
-    responses.put(401, "Unauthorized");
-    responses.put(402, "Payment Required");
-    responses.put(403, "Forbidden");
-    responses.put(404, "Not Found");
-    responses.put(405, "Method Not Allowed");
-    responses.put(406, "Not Acceptable");
-    responses.put(407, "Proxy Authentication Required");
-    responses.put(408, "Request Timeout");
-    responses.put(409, "Conflict");
-    responses.put(410, "Gone");
-    responses.put(411, "Length Required");
-    responses.put(412, "Precondition Failed");
-    responses.put(413, "Request Entity Too Large");
-    responses.put(414, "Request-URI Too Long");
-    responses.put(415, "Unsupported Media Type");
-    responses.put(416, "Request Range Not Satisfiable");
-    responses.put(417, "Expectation Failed");
-    responses.put(418, "I'm a teapot");
-    responses.put(420, "Enhance Your Calm");
-
-    responses.put(500, "Internal Server Error");
-    responses.put(501, "Not implemented");
-    responses.put(502, "Bad Gateway");
-    responses.put(503, "Service Unavaliable");
-    responses.put(504, "Gateway Timeout");
-    responses.put(505, "HTTP Version Not Supported");
-  }
-
-
+  
+ 
   /******************************
     Generic getters and setters
    ******************************/
-  public void setRequest(HTTPRequest request) {
-    this.request = request;
-  }
-  public HTTPRequest getRequest() {
-    return request;
-  }
-
-  public void setResponseCode(int code) {
-    responseCode = code;
-  }
-  public int getResponseCode() {
-    return responseCode;
-  }
-
-  public void setResponseSize(long size) {
-    responseSize = size;
-  }
-  public long getResponseSize() {
-    return responseSize;
-  }
-
-  public void setHandled(boolean handled) {
-    this.handled = handled;
-  }
-  public boolean isHandled() {
-    return handled;
-  }
-
-  public void setResponseText(String responseText) {
-    this.responseText = responseText;
-  }
-  public String getResponseText() {
-    return responseText;
-  }
-
-  public void setResponseType(String responseType) {
-    this.responseType = responseType;
-  }
-  public String getResponseType() {
-    return responseType;
-  }
-
   public void setSocket(Socket socket) {
     this.socket = socket;
   }
@@ -577,42 +238,5 @@ public abstract class HTTPHandler {
   }
   public DataOutputStream getWriter() {
     return writer;
-  }
-
-  public void setHeaders(HashMap<String, String> headers) {
-    this.headers = headers;
-  }
-  public Map<String, String> getHeaders() {
-    return headers;
-  }
-  public void setHeader(String key, String value) {
-    if (getHeaders() == null) {
-      setHeaders(new HashMap<String, String>());
-    }
-
-    getHeaders().put(key, value);
-  }
-  public String getHeader(String key) {
-    return getHeaders().get(key);
-  }
-
-  /**
-   * Set the info of the server
-   */
-  public void setupServerInfo() {
-    StringBuilder info = new StringBuilder();
-    info.append(HTTPServer.getServerName());
-    info.append(" v");
-    info.append(HTTPServer.getServerVersion());
-    info.append(" (");
-    info.append(HTTPServer.getServerETC());
-    info.append(")");
-    setServerInfo(info.toString());
-  }
-  public static void setServerInfo(String serverInfo) {
-    HTTPHandler.serverInfo = serverInfo;
-  }
-  public static String getServerInfo() {
-    return serverInfo;
   }
 }
