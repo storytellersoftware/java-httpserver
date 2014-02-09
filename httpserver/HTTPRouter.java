@@ -66,7 +66,7 @@ public class HTTPRouter {
    * Add a new route.
    * 
    * @param pathSegment     The first path segment (
-   *                        between the first and second {@code /) to match
+   *                        between the first and second {@code /}) to match
    * @param handler         An HTTPHandler to be routed to.
    */
   public void addHandler(String pathSegment, HTTPHandler handler) {

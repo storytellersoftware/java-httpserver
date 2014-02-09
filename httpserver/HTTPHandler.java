@@ -8,9 +8,6 @@ import java.util.Set;
 
 /**
  * An HTTPHandler is what all handlers used by your server descend from. <p>
- *
- * HTTPHandlers also deal with the server -> client transmission of data,
- * making it easy to adjust how data is sent to the client. <p>
  * 
  * Extended classes have two options for determining their actions: they may
  * override the handle method (slightly harder), or use the addGet and addPost
@@ -22,6 +19,7 @@ import java.util.Set;
  * @see HTTPHandler#handle
  * @see HTTPHandler#addGET
  * @see HTTPHandler#addPOST
+ * @see MessageHandler
  */
 public abstract class HTTPHandler {
   private final HashMap<String, MethodWrapper> getMethods
@@ -42,6 +40,10 @@ public abstract class HTTPHandler {
    * handler's internal routing, as well performing any setup tasks. Handlers
    * are multi-use, which means that only one of any kind of handler should be
    * created in an application (unless you have custom needs). 
+   *
+   * @throws HTTPException  The exception typically comes from trying to add
+   *                        a new method. In a standard configuration this will
+   *                        keep the server from starting.
    */
   public HTTPHandler() throws HTTPException { }
 
@@ -51,12 +53,11 @@ public abstract class HTTPHandler {
    * based off of the paths specified in the Handler. <p>
    *
    * This can be overridden for more fine-grained handling. As is, it uses
-   * the data behind the addGET and addPOST methods for determining the
-   * correct action to take. <p>
+   * the data behind the addGET, addPOST, and addDELETE methods for determining 
+   * the correct action to take. <p>
    *
-   * If there is not exact match, the `*` and `/` path's are used, in that
-   * order. If, after that, no method can be found, a 501 is sent over to the
-   * client, with the <code>NOT_A_METHOD_ERROR</code> message.
+   * If there is not exact match, the `*` path is used. If you don't have a `*`
+   * catchall route, a 501 (Not implemented) is sent to the client.
    *
    * @param request     The incoming HTTPRequest.
    * @param response    The outgoing HTTPResponse, waiting to be filled by an
@@ -64,6 +65,7 @@ public abstract class HTTPHandler {
    *
    * @see HTTPHandler#addGET
    * @see HTTPHandler#addPOST
+   * @see HTTPHandler#addDELETE
    * @see HTTPResponse#NOT_A_METHOD_ERROR
    */
   public void handle(HTTPRequest request, HTTPResponse response) {
@@ -111,13 +113,17 @@ public abstract class HTTPHandler {
       method.invoke(this, response, request, path);
     }
     catch (HTTPException e) {
+      // Whilst attempting to find a method, or invoking a method, an error
+      // occured, tell the client.
       response.error(500, HTTPResponse.EXCEPTION_ERROR, e);
     }
   }
 
 
   /**
-   * Gets the correct Map of Methods the request wants to use.
+   * Return the correct request methods map based on an HTTPRequest
+   *
+   * @param req   The incoming HTTPRequest. Used to determine the correct map.
    * @return  The HashMap for the correct request. Defaults to GET if
    *          the method isn't known.
    */
@@ -135,30 +141,36 @@ public abstract class HTTPHandler {
   /**
    * Attach a method to a GET request at a path. <p>
    *
-   * Methods are passed in using "className#methodName" form so that
-   * we can parse out the correct Method. Who knows, you might want to
-   * use a method somewhere else, and who are we to argue with that? <p>
-   *
-   * If no # is included, we assume it belongs to the class it's called in. <p>
+   * Methods are passed in as a String, and must be a member of the current
+   * handler.<p>
    *
    * Path's should come in "/path/to/action" form. If the method requires
-   * parameters, they should be included in the path, in the order they're
-   * listed in the method definition, but in "{ClassName}" form. Example:
+   * any parameters that aren't an HTTPResponse, HTTPRequest, or Map, 
+   * they should be included in the path, in the order they're
+   * listed in the method header, in "{ClassName}" form. Example:
    * <code>/hello/{String}/{String}</code> is a good path. <p>
    *
-   * Methods being used should <strong>only</strong> have parameters that are
-   * included in the java.lang library. Any other type of parameter will cause
-   * an exception to occur. <p>
+   * Methods being passed in must accept an HTTPResponse as their first
+   * parameter. Methods may optionally accept an HTTPRequest and a 
+   * Map&lt;String, String&gt; in that order (they may accept a Map but not an
+   * HTTPRequest, but if they accept both the HTTPRequest must come first).
+   *
+   * Parameters following the above must be included in the java.lang library
+   * and have a constructor that takes in a String. 
+   * Any other type of parameter will cause an exception to occur. <p>
    *
    * Additionally, primitives are not permited, because they're not classes in
-   * the java.lang library.
+   * the java.lang library. The three most common parameter types are String,
+   * Integer, and Double.
    *
    * @param path        Path to match
-   * @param methodName  Class and Method in class#method form.
+   * @param methodName  Method belonging to the current class, in String form.
    * @throws HTTPException When you do bad things.
    *
    * @see HTTPHandler#addPOST
    * @see HTTPHandler#addDELETE
+   * @see HTTPResponse
+   * @see HTTPRequest
    */
   public void addGET(String path, String methodName) throws HTTPException {
     addMethod(getMethods, path, methodName);
@@ -199,11 +211,8 @@ public abstract class HTTPHandler {
   /**
    * Add a method to a path in a map. <p>
    *
-   * Methods are passed in using "className#methodName" form so that
-   * we can parse out the correct Method. Who knows, you might want to
-   * use a method somewhere else, and who are we to argue with that? <p>
-   *
-   * If no # is included, we assume it belongs to the class it's called in.
+   * Methods are passed in using "methodName", meaning they must be a member of
+   * the current handler.
    *
    * @param map             The map to add this junks to.
    * @param path            Path to match
@@ -214,8 +223,8 @@ public abstract class HTTPHandler {
   private void addMethod(HashMap<String, MethodWrapper> map, String path,
           String methodName) throws HTTPException {
 
-	if (path.startsWith("/"))
-		path = path.substring(1);
+	  if (path.startsWith("/"))
+		  path = path.substring(1);
 	
     MethodWrapper method = new MethodWrapper(path, methodName, getClass());
     map.put(path, method);
@@ -226,6 +235,7 @@ public abstract class HTTPHandler {
   /******************************
     Generic getters and setters
    ******************************/
+  
   public void setSocket(Socket socket) {
     this.socket = socket;
   }

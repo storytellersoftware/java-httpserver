@@ -88,12 +88,9 @@ public class HTTPServer {
         Socket connection = null;
         try {
           connection = socket.accept();
-          //connection.setKeepAlive(true);
-
           HTTPRequest request = new HTTPRequest(connection);
           Thread t = new Thread(request);
           t.start();
-          //handleRequest(connection, request);
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection,

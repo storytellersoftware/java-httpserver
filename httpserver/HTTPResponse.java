@@ -6,6 +6,11 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
+
+/**
+ * An HTTPResponse is used to set output values, and to write those values
+ * to the client.
+ */
 public class HTTPResponse {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
@@ -36,6 +41,13 @@ public class HTTPResponse {
   private Socket socket;
   private DataOutputStream writer;
   
+
+  /**
+   * Create a new HTTPResponse to fill out. <p>
+   *
+   * It defaults to sending a {@code text/plain} type document, with
+   * a status of {@code 200 Ok}, with a body of nothing.
+   */
   public HTTPResponse(HTTPRequest req) throws IOException {
     if (getServerInfo() == null || getServerInfo().isEmpty()) {
       setupServerInfo();
@@ -61,8 +73,8 @@ public class HTTPResponse {
    * @param code      An HTTP response code.
    * @param message   The content of the server's response to the browser
    *
-   * @see HTTPHandler#error
-   * @see HTTPHandler#noContent
+   * @see HTTPResponse#error
+   * @see HTTPResponse#noContent
    */
   public void message(int code, String message) {
     setCode(code);
@@ -76,7 +88,7 @@ public class HTTPResponse {
    * This is done by sending over a 204 code, which means there isn't
    * any data in the stream, but the server correctly processed the request
    *
-   * @see HTTPHandler#message
+   * @see HTTPResponse#message
    */
   public void noContent() {
     setCode(204);
@@ -94,7 +106,7 @@ public class HTTPResponse {
    * @param message   the content being sent back to the browser
    * @param t         A throwable object, to be printed to the screen
    * 
-   * @see httpserver.HTTPHandler#message
+   * @see HTTPResponse#message
    */
   public void error(int code, String message, Throwable t) {
     t.printStackTrace();
@@ -103,31 +115,29 @@ public class HTTPResponse {
   
   
   /**
-   * Send data back to the client. <p>
-   *
-   * If the response hasn't been handled, try handling it, and sending
-   * that data back to the client. <p>
-   *
-   * This method only writes the headers, and calls
-   * {@link HTTPHandler#writeData()} to send the determined response back to
-   * the client. This is done because the headers are fairly global, and
-   * shouldn't need to be changed, where the actual response data might need
-   * some "special sauce".
-   *
-   * @see HTTPHandler#writeData
+   * Send data back to the client.
    */
   public void respond() {
     try {
+      // If the socket doesn't exist, or is null, we have a small problem.
+      // Because no data can be written to the client (there's no way to talk
+      // to the client), we need to get out of here, let the user know something
+      // janky is going on, and stop trying to do things.
+      //
+      // Thankfully that can all be done by throwing an exception.
       if (getSocket() == null)
         throw new HTTPException("Socket is null...");
       else if (getSocket().isClosed())
         throw new HTTPException("Socket is closed...");
       
-  
+    
+      // If the user never filled out the response's body, there isn't any
+      // content. Make sure the response code matches that.
       if(getBody() == null) {
         noContent();
       }
 
+      // Send the required headers down the pipe.
       writeLine("HTTP/1.1 " + getResponseCodeMessage(getCode()));
       writeLine("Server: " + getServerInfo());
       writeLine("Content-Type: " + getMimeType());
@@ -135,30 +145,36 @@ public class HTTPResponse {
       writeLine("Connection: close");
 
       if (getSize() != -1) {
+        // Someone manually set the size of the body. Go team!
         writeLine("Content-Size: " + getSize());
       }
       else {
+        // We don't know how large the body is. Determine that using the body...
         writeLine("Content-Size: " + getBody().length());
       }
 
+      // Send all other miscellaneous headers down the shoots.
       if (!getHeaders().isEmpty()) {
+        StringBuilder b = new StringBuilder();
         for (String key : getHeaders().keySet()) {
-          StringBuilder b = new StringBuilder();
           b.append(key);
           b.append(": ");
           b.append(getHeader(key));
-
-          writeLine(b.toString());
+          b.append("\n")
         }
+        writeLine(b.toString());
       }
 
+      // Blank line separating headers from the body.
       writeLine("");
 
-      if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE)
-              || getCode() == 204) {
+      // If there isn't a body, or the client made a HEAD request, stop doing
+      // things.
+      if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE) || getCode() == 204) {
         return;
       }
 
+      // Give the client the body.
       getWriter().writeBytes(getBody());
     }
     catch (HTTPException | IOException e) {
@@ -184,82 +200,11 @@ public class HTTPResponse {
   protected void writeLine(String line) throws IOException {
     getWriter().writeBytes(line + "\n");
   }
-  
-  
-  /**
-   * Return the response code + the response message.
-   *
-   * @see HTTPHandler#getResponseCode
-   * @see HTTPHandler#setResponseCode
-   */
-  public static String getResponseCodeMessage(int code) {
-    if (responses == null || responses.isEmpty()) {
-      setupResponses();
-    }
 
-    if (responses.containsKey(code)) {
-      return code + " " + responses.get(code);
-    }
 
-    return Integer.toString(code);
-  }
-  
-  /**
-   * Sets up a list of response codes and text.
-   */
-  private static void setupResponses() {
-    responses = new HashMap<Integer, String>();
-
-    responses.put(100, "Continue");
-    responses.put(101, "Switching Protocols");
-
-    responses.put(200, "OK");
-    responses.put(201, "Created");
-    responses.put(202, "Accepted");
-    responses.put(203, "Non-Authoritative Information");
-    responses.put(204, "No Content");
-    responses.put(205, "Reset Content");
-    responses.put(206, "Partial Content");
-
-    responses.put(300, "Multiple Choices");
-    responses.put(301, "Moved Permanently");
-    responses.put(302, "Found");
-    responses.put(303, "See Other");
-    responses.put(304, "Not Modified");
-    responses.put(305, "Use Proxy");
-    responses.put(307, "Temporary Redirect");
-
-    responses.put(400, "Bad Request");
-    responses.put(401, "Unauthorized");
-    responses.put(402, "Payment Required");
-    responses.put(403, "Forbidden");
-    responses.put(404, "Not Found");
-    responses.put(405, "Method Not Allowed");
-    responses.put(406, "Not Acceptable");
-    responses.put(407, "Proxy Authentication Required");
-    responses.put(408, "Request Timeout");
-    responses.put(409, "Conflict");
-    responses.put(410, "Gone");
-    responses.put(411, "Length Required");
-    responses.put(412, "Precondition Failed");
-    responses.put(413, "Request Entity Too Large");
-    responses.put(414, "Request-URI Too Long");
-    responses.put(415, "Unsupported Media Type");
-    responses.put(416, "Request Range Not Satisfiable");
-    responses.put(417, "Expectation Failed");
-    responses.put(418, "I'm a teapot");
-    responses.put(420, "Enhance Your Calm");
-
-    responses.put(500, "Internal Server Error");
-    responses.put(501, "Not implemented");
-    responses.put(502, "Bad Gateway");
-    responses.put(503, "Service Unavaliable");
-    responses.put(504, "Gateway Timeout");
-    responses.put(505, "HTTP Version Not Supported");
-  }
-
-  
-  
+  /*********************
+    GETTERS AND SETTERS
+   *********************/
   
   public int getCode() {
     return code;
@@ -320,6 +265,82 @@ public class HTTPResponse {
   }
 
 
+  /**
+   * Return the response code + the response message.
+   *
+   * @see HTTPHandler#getResponseCode
+   * @see HTTPHandler#setResponseCode
+   */
+  public static String getResponseCodeMessage(int code) {
+    if (responses == null || responses.isEmpty()) {
+      setupResponses();
+    }
+
+    if (responses.containsKey(code)) {
+      return code + " " + responses.get(code);
+    }
+
+    return Integer.toString(code);
+  }
+
+  /**************
+    STATIC STUFF
+   **************/
+  
+  /**
+   * Sets up a list of response codes and text.
+   */
+  private static void setupResponses() {
+    responses = new HashMap<Integer, String>();
+
+    responses.put(100, "Continue");
+    responses.put(101, "Switching Protocols");
+
+    responses.put(200, "OK");
+    responses.put(201, "Created");
+    responses.put(202, "Accepted");
+    responses.put(203, "Non-Authoritative Information");
+    responses.put(204, "No Content");
+    responses.put(205, "Reset Content");
+    responses.put(206, "Partial Content");
+
+    responses.put(300, "Multiple Choices");
+    responses.put(301, "Moved Permanently");
+    responses.put(302, "Found");
+    responses.put(303, "See Other");
+    responses.put(304, "Not Modified");
+    responses.put(305, "Use Proxy");
+    responses.put(307, "Temporary Redirect");
+
+    responses.put(400, "Bad Request");
+    responses.put(401, "Unauthorized");
+    responses.put(402, "Payment Required");
+    responses.put(403, "Forbidden");
+    responses.put(404, "Not Found");
+    responses.put(405, "Method Not Allowed");
+    responses.put(406, "Not Acceptable");
+    responses.put(407, "Proxy Authentication Required");
+    responses.put(408, "Request Timeout");
+    responses.put(409, "Conflict");
+    responses.put(410, "Gone");
+    responses.put(411, "Length Required");
+    responses.put(412, "Precondition Failed");
+    responses.put(413, "Request Entity Too Large");
+    responses.put(414, "Request-URI Too Long");
+    responses.put(415, "Unsupported Media Type");
+    responses.put(416, "Request Range Not Satisfiable");
+    responses.put(417, "Expectation Failed");
+    responses.put(418, "I'm a teapot");
+    responses.put(420, "Enhance Your Calm");
+
+    responses.put(500, "Internal Server Error");
+    responses.put(501, "Not implemented");
+    responses.put(502, "Bad Gateway");
+    responses.put(503, "Service Unavaliable");
+    responses.put(504, "Gateway Timeout");
+    responses.put(505, "HTTP Version Not Supported");
+  }
+  
 
   /**
    * Set the info of the server

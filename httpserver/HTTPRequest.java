@@ -141,7 +141,7 @@ public class HTTPRequest implements Runnable {
    * @see HTTPServer
    */
   private void parseRequest() throws IOException, SocketException,
-  HTTPException {
+          HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(
             new InputStreamReader(getConnection().getInputStream()));
@@ -154,7 +154,7 @@ public class HTTPRequest implements Runnable {
     */
     String firstLine = input.readLine();
     if (firstLine == null)
-    	throw new HTTPException("Input is returning nulls...", new NullPointerException());
+    	throw new HTTPException("Input is returning nulls...");
     
     while (firstLine.isEmpty()) {
       firstLine = input.readLine();
@@ -169,6 +169,15 @@ public class HTTPRequest implements Runnable {
         which is a key/value pair.
 
         The key is before the ": ", the value, after
+
+        TODO: parse this to spec. Spec says it's cool to have any number of
+              whitespace characters following the colon, and the values 
+              can be spread accross multiple lines provided each following line
+              starts with a whitespace character.
+
+              For more information, see issue 12 and RFC 2616#4.2.
+              Issue 12: https://github.com/dkuntz2/java-httpserver/issues/12
+              RFC 2616#4.2: http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
     for (String line = input.readLine(); line != null && !line.isEmpty();
             line = input.readLine()) {
@@ -216,9 +225,7 @@ public class HTTPRequest implements Runnable {
   /**
    * Turns an array of "key=value" strings into a map. <p>
    * 
-   * Any item in the array missing an "=" is ignored, and not added to the
-   * returned map. If an empty value is wanted, an "=" is required at the end
-   * of the key.
+   * Any item in the array missing an "=" is given a value of null.
    *
    * @param data  List of strings in "key=value" form, you know, like HTTP GET
    *              or POST lines?
@@ -228,6 +235,7 @@ public class HTTPRequest implements Runnable {
     Map<String, String> out = new HashMap<String, String>();
     for (String item : data) {
       if (item.indexOf("=") == -1) {
+        out.put(item, null);
         continue;
       }
 
@@ -266,6 +274,10 @@ public class HTTPRequest implements Runnable {
     if (handlerFactory == null) {
       return new DeathHandler();
     }
+
+    if (isType(POST_REQUEST_TYPE) && getPostData.isEmpty()) {
+      return new MessageHandler(411, "You made a POST request without any data...");
+    }
     
     String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
     return handlerFactory.route(path, this);
@@ -287,7 +299,7 @@ public class HTTPRequest implements Runnable {
    * request protocol can be set.
    *
    * @param line  The first line in an HTTP request. Should be in
-   *              {@code [type] [full path] [protocol]}.
+   *              {@code [type] [full path] [protocol]} form.
    * @throws HTTPException  When the first line does not contain two spaces,
    *                        signifying that the passed in line is not in
    *                        HTTP 1.1. When the type is not an expected type
@@ -304,9 +316,9 @@ public class HTTPRequest implements Runnable {
         The request line should be:
           [request type] [path] [protocol]
      */
-    String[] splitty = requestLine.split(" ");
-    if (splitty.length < 3) {
-      throw new HTTPException("Incomplete request line");
+    String[] splitty = requestLine.trim().split(" ");
+    if (splitty.length != 3) {
+      throw new HTTPException("Request line has a number of spaces other than 3.");
     }
 
 
