@@ -221,9 +221,6 @@ class MethodWrapper {
       }
       
       String[] methodPaths = methodPath.split("/");
-      for (String p : methodPaths) {
-        System.out.print(p + " / ");
-      }
       
       path = cleanPath(path);
       
@@ -280,12 +277,12 @@ class MethodWrapper {
       params.add(0, resp);
       
       // add other params
-      if (method.getParameterTypes().length > params.size() + 1) {
+      if (method.getParameterTypes().length > params.size()) {
         // is second param HTTPRequest?
         if (method.getParameterTypes()[1].equals(HTTPRequest.class)) {
           params.add(1, req);
           
-          if (method.getParameterTypes().length == params.size() + 3 &&
+          if (method.getParameterTypes().length == params.size() + 2 &&
               method.getParameterTypes()[2].equals(Map.class)) {
             params.add(2, req.getPostData());
           }

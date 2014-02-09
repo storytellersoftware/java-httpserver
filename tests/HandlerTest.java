@@ -22,13 +22,14 @@ public class HandlerTest extends HTTPHandler {
   public void showHeaders(HTTPResponse resp, HTTPRequest req) {
     StringBuilder b = new StringBuilder();
     for (String key: req.getHeaders().keySet()) {
+      b.append("\n\t");
       b.append(key);
       b.append(":\t");
       b.append(req.getHeaders().get(key));
-      b.append("\n\n");
+      b.append("\n");
     }
     
-    resp.setBody("Headers: \n\n" + b.toString());
+    resp.setBody("Headers:" + b.toString());
   }
   
   public void sayHello(HTTPResponse resp) {
