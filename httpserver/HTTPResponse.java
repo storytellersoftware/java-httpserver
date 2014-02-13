@@ -79,6 +79,7 @@ public class HTTPResponse {
   public void message(int code, String message) {
     setCode(code);
     setBody(message);
+    setMimeType("text/plain");
   }
   
   
@@ -93,6 +94,7 @@ public class HTTPResponse {
   public void noContent() {
     setCode(204);
     setBody("");
+    setMimeType("");
   }
   
   
