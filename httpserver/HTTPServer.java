@@ -154,7 +154,7 @@ public class HTTPServer {
    *                        what kind of HTTPHandler we're going to use...
    */
   public void setHandlerFactory(HTTPRouter handlerFactory) {
-    HTTPRequest.setHandlerFactory(handlerFactory);
+    HTTPRequest.setRouter(handlerFactory);
   }
 
   /**

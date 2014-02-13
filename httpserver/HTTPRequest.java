@@ -42,7 +42,7 @@ public class HTTPRequest implements Runnable {
 
 
   // used to determine what one does with the request
-  private static HTTPRouter handlerFactory;
+  private static HTTPRouter router;
 
   // connection with client
   private Socket connection;
@@ -261,7 +261,7 @@ public class HTTPRequest implements Runnable {
    *
    * This uses the statically set {@link HTTPRouter} to determine the
    * correct HTTPHandler to be used for the current request. If there isn't
-   * a statically set HTTPHandlerFactory, a 500 error is sent back to the
+   * a statically set HTTPRouter, a 500 error is sent back to the
    * client.
    *
    * @return a new instance of some form of HTTPHandler.
@@ -271,16 +271,16 @@ public class HTTPRequest implements Runnable {
    * @see HTTPHandler
    */
   public HTTPHandler determineHandler() throws HTTPException {
-    if (handlerFactory == null) {
+    if (router == null) {
       return new DeathHandler();
     }
 
-    if (isType(POST_REQUEST_TYPE) && getPostData.isEmpty()) {
+    if (isType(POST_REQUEST_TYPE) && getPostData().isEmpty()) {
       return new MessageHandler(411, "You made a POST request without any data...");
     }
     
     String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
-    return handlerFactory.route(path, this);
+    return router.route(path, this);
   }
 
   /**
@@ -507,11 +507,11 @@ public class HTTPRequest implements Runnable {
     return handler;
   }
 
-  public static void setHandlerFactory(HTTPRouter handlerFactory) {
-    HTTPRequest.handlerFactory = handlerFactory;
+  public static void setRouter(HTTPRouter router) {
+    HTTPRequest.router = router;
   }
-  public static HTTPRouter getHTTPHandlerFactory() {
-    return handlerFactory;
+  public static HTTPRouter getRouter() {
+    return router;
   }
 
   @Override

@@ -71,7 +71,8 @@ public abstract class HTTPHandler {
   public void handle(HTTPRequest request, HTTPResponse response) {
     try {
       Map<String, MethodWrapper> map = getMap(request);
-      String path = request.getPath().substring(1);
+      System.out.println("Path: `" + request.getPath() + "`");
+      String path = MethodWrapper.cleanPath(request.getPath());
       MethodWrapper method = map.get(path);
   
       /*  If the above MethodWrapper is null (occurs when the requested path

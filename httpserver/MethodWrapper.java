@@ -509,7 +509,7 @@ class MethodWrapper {
     return out;
   }
   
-  private String cleanPath(String path) {
+  public static String cleanPath(String path) {
     path = path.trim();
     if (path.startsWith("/"))
       path = path.substring(1);

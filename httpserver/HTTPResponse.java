@@ -160,7 +160,7 @@ public class HTTPResponse {
           b.append(key);
           b.append(": ");
           b.append(getHeader(key));
-          b.append("\n")
+          b.append("\n");
         }
         writeLine(b.toString());
       }
