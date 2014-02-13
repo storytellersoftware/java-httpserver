@@ -66,6 +66,8 @@ public class MockClient {
     writer.write(getDataInHTTP(getPostData()));
     writer.flush();
     writer.close();
+    
+    socket.close();
   }
   
   

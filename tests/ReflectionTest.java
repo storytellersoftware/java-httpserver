@@ -38,8 +38,8 @@ public class ReflectionTest {
         // i goes up because inParams and parameterTypes will have different
         // lengths.
         
-        Class inClass = parameterTypes.get(parameterTypes.size() - i);
-        Class reqClass = reqParams[reqParams.length - i];
+        Class<?> inClass = parameterTypes.get(parameterTypes.size() - i);
+        Class<?> reqClass = reqParams[reqParams.length - i];
         
         if (!inClass.equals(reqClass)) {
           hellos.remove(m);
@@ -69,7 +69,7 @@ public class ReflectionTest {
   }
 
   
-  public static List<Method> getMethodsByName(Class c, String name) {
+  public static List<Method> getMethodsByName(Class<?> c, String name) {
     List<Method> out = new ArrayList<>();
     
     for (Method m: c.getMethods()) {

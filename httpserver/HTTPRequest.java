@@ -121,8 +121,7 @@ public class HTTPRequest implements Runnable {
       
     } catch (IOException | HTTPException e) {
       e.printStackTrace();
-    }
-    
+    } 
   }
   
 
@@ -140,7 +139,7 @@ public class HTTPRequest implements Runnable {
    *
    * @see HTTPServer
    */
-  private void parseRequest() throws IOException, SocketException,
+  public void parseRequest() throws IOException, SocketException,
           HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(

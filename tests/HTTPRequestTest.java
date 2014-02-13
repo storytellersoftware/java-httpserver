@@ -41,6 +41,7 @@ public class HTTPRequestTest {
       MockClient c = new MockClient();
       c.fillInSocket();
       HTTPRequest r = new HTTPRequest(server.accept());
+      r.parseRequest();
       
       
       assertEquals(c.getRequestType(), r.getRequestType());
@@ -70,6 +71,7 @@ public class HTTPRequestTest {
       
       c.fillInSocket();
       HTTPRequest r = new HTTPRequest(server.accept());
+      r.parseRequest();
       
       assertEquals(c.getRequestType(), r.getRequestType());
       assertEquals(c.getPostData(), r.getPostData());
@@ -106,6 +108,7 @@ public class HTTPRequestTest {
       
       c.fillInSocket();
       HTTPRequest r = new HTTPRequest(server.accept());
+      r.parseRequest();
       
       assertEquals(c.getGetData(), r.getGetData());
       assertEquals(c.getPostData(), r.getPostData());
@@ -118,26 +121,6 @@ public class HTTPRequestTest {
     }
   }
   
-  @Test
-  public void testAddition() {
-	  try {
-		  MockClient c = new MockClient();
-		  Integer[] ints = {3, 6, 9, 11, 12};
-		  
-		  c.setPath("/math/add");
-		  c.addToPath(ints);
-		  c.fillInSocket();
-		  HTTPRequest r = new HTTPRequest(server.accept());
-		  
-		  //r.getHandler().respond(r);
-		  
-		  
-	  }	  
-	  catch (Exception e) {
-		  e.printStackTrace();
-		  fail("Exception occured...");
-	  }
-  }
 }
 
 

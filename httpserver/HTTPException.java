@@ -6,7 +6,9 @@ package httpserver;
  * We just use it when something bad happens with us...
  */
 public class HTTPException extends Exception {
-	public HTTPException() {
+  private static final long serialVersionUID = -1318922991257945983L;
+
+  public HTTPException() {
 		super();
 	}
 
