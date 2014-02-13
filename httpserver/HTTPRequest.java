@@ -1,8 +1,16 @@
 package httpserver;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * An HTTPRequest takes an incoming connection and parses out all of the
@@ -16,7 +24,7 @@ import java.util.*;
  *        HTTP 1.1 Spec</a>
  * @see HTTPHandler
  */
-public class HTTPRequest {
+public class HTTPRequest implements Runnable {
   /** HTTP GET request type */
   public static final String GET_REQUEST_TYPE = "GET";
 
@@ -34,7 +42,7 @@ public class HTTPRequest {
 
 
   // used to determine what one does with the request
-  private static HTTPHandlerFactory handlerFactory;
+  private static HTTPRouter router;
 
   // connection with client
   private Socket connection;
@@ -91,17 +99,32 @@ public class HTTPRequest {
    */
   public HTTPRequest(Socket connection) throws IOException, SocketException,
           HTTPException {
+    connection.setKeepAlive(true);
     setConnection(connection);
 
     setHeaders(new HashMap<String, String>());
     setSplitPath(new ArrayList<String>());
     setGetData(new HashMap<String, String>());
     setPostData(new HashMap<String, String>());
-
-    parseRequest();
-    setHandler(determineHandler());
   }
 
+  @Override
+  public void run() {
+    if (getConnection().isClosed())
+      System.out.println("Socket is closed...");
+    
+    try {
+      parseRequest();
+      HTTPResponse resp = new HTTPResponse(this);
+      determineHandler().handle(this, resp);
+      resp.respond();
+      
+    } catch (IOException | HTTPException e) {
+      e.printStackTrace();
+    }
+    
+  }
+  
 
   /**
    * Kicks off the request's parsing. Called inside constructor.
@@ -118,7 +141,7 @@ public class HTTPRequest {
    * @see HTTPServer
    */
   private void parseRequest() throws IOException, SocketException,
-  HTTPException {
+          HTTPException {
     // Used to read in from the socket
     BufferedReader input = new BufferedReader(
             new InputStreamReader(getConnection().getInputStream()));
@@ -130,6 +153,9 @@ public class HTTPRequest {
         extra sure, all initial blank lines are discarded.
     */
     String firstLine = input.readLine();
+    if (firstLine == null)
+    	throw new HTTPException("Input is returning nulls...");
+    
     while (firstLine.isEmpty()) {
       firstLine = input.readLine();
     }
@@ -143,6 +169,15 @@ public class HTTPRequest {
         which is a key/value pair.
 
         The key is before the ": ", the value, after
+
+        TODO: parse this to spec. Spec says it's cool to have any number of
+              whitespace characters following the colon, and the values 
+              can be spread accross multiple lines provided each following line
+              starts with a whitespace character.
+
+              For more information, see issue 12 and RFC 2616#4.2.
+              Issue 12: https://github.com/dkuntz2/java-httpserver/issues/12
+              RFC 2616#4.2: http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
      */
     for (String line = input.readLine(); line != null && !line.isEmpty();
             line = input.readLine()) {
@@ -190,9 +225,7 @@ public class HTTPRequest {
   /**
    * Turns an array of "key=value" strings into a map. <p>
    * 
-   * Any item in the array missing an "=" is ignored, and not added to the
-   * returned map. If an empty value is wanted, an "=" is required at the end
-   * of the key.
+   * Any item in the array missing an "=" is given a value of null.
    *
    * @param data  List of strings in "key=value" form, you know, like HTTP GET
    *              or POST lines?
@@ -202,6 +235,7 @@ public class HTTPRequest {
     Map<String, String> out = new HashMap<String, String>();
     for (String item : data) {
       if (item.indexOf("=") == -1) {
+        out.put(item, null);
         continue;
       }
 
@@ -225,30 +259,28 @@ public class HTTPRequest {
   /**
    * Figure out what kind of HTTPHandler you want, based on the path. <p>
    *
-   * This uses the statically set {@link HTTPHandlerFactory} to determine the
+   * This uses the statically set {@link HTTPRouter} to determine the
    * correct HTTPHandler to be used for the current request. If there isn't
-   * a statically set HTTPHandlerFactory, a 500 error is sent back to the
+   * a statically set HTTPRouter, a 500 error is sent back to the
    * client.
    *
    * @return a new instance of some form of HTTPHandler.
    *
-   * @see HTTPHandlerFactory
-   * @see HTTPHandlerFactory#determineHandler
+   * @see HTTPRouter
+   * @see HTTPRouter#determineHandler
    * @see HTTPHandler
    */
   public HTTPHandler determineHandler() throws HTTPException {
-    try {
-      if (handlerFactory == null) {
-        throw new Exception();
-      }
-      
-      String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
-      return handlerFactory.determineHandler(path, this);
+    if (router == null) {
+      return new DeathHandler();
     }
-    catch (Exception e) {
-      e.printStackTrace();
-      return new DeathHandler(this);
+
+    if (isType(POST_REQUEST_TYPE) && getPostData().isEmpty()) {
+      return new MessageHandler(411, "You made a POST request without any data...");
     }
+    
+    String path = getSplitPath().isEmpty() ? "" : getSplitPath().get(0);
+    return router.route(path, this);
   }
 
   /**
@@ -267,7 +299,7 @@ public class HTTPRequest {
    * request protocol can be set.
    *
    * @param line  The first line in an HTTP request. Should be in
-   *              {@code [type] [full path] [protocol]}.
+   *              {@code [type] [full path] [protocol]} form.
    * @throws HTTPException  When the first line does not contain two spaces,
    *                        signifying that the passed in line is not in
    *                        HTTP 1.1. When the type is not an expected type
@@ -284,9 +316,9 @@ public class HTTPRequest {
         The request line should be:
           [request type] [path] [protocol]
      */
-    String[] splitty = requestLine.split(" ");
-    if (splitty.length < 3) {
-      throw new HTTPException("Incomplete request line");
+    String[] splitty = requestLine.trim().split(" ");
+    if (splitty.length != 3) {
+      throw new HTTPException("Request line has a number of spaces other than 3.");
     }
 
 
@@ -475,11 +507,11 @@ public class HTTPRequest {
     return handler;
   }
 
-  public static void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
-    HTTPRequest.handlerFactory = handlerFactory;
+  public static void setRouter(HTTPRouter router) {
+    HTTPRequest.router = router;
   }
-  public static HTTPHandlerFactory getHTTPHandlerFactory() {
-    return handlerFactory;
+  public static HTTPRouter getRouter() {
+    return router;
   }
 
   @Override

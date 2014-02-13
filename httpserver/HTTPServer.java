@@ -15,7 +15,7 @@ import java.net.SocketException;
  * and might not be the best base server for one to use. It exists solely to
  * provide an existing mechanism for using the rest of the httpserver package.
  */
-public class HTTPServer implements Runnable {
+public class HTTPServer {
 
   public static final int defaultPort = 8000;
 
@@ -75,7 +75,6 @@ public class HTTPServer implements Runnable {
    * Unless you specify the port with {@link HTTPServer#setSocket()},
    * the server will run on http://127.0.0.1:{@value #defaultPort}.
    */
-  @Override
   public void run() {
     try {
       socket = new ServerSocket();
@@ -89,10 +88,9 @@ public class HTTPServer implements Runnable {
         Socket connection = null;
         try {
           connection = socket.accept();
-
           HTTPRequest request = new HTTPRequest(connection);
-          request.getHandler().respond();
-          //handleRequest(connection, request);
+          Thread t = new Thread(request);
+          t.start();
         }
         catch (SocketException e) {
           /*  This typically occurs when the client breaks the connection,
@@ -129,9 +127,6 @@ public class HTTPServer implements Runnable {
            */
           break;
         }
-        finally {
-          connection.close();
-        }
       }
     }
     catch (Exception e) {
@@ -152,14 +147,14 @@ public class HTTPServer implements Runnable {
   }
 
   /**
-   * Set the {@link HTTPHandlerFactory} to determine the what
+   * Set the {@link HTTPRouter} to determine the what
    * {@link HTTPHandler} will be used.
    *
    * @param handlerFactory  The HTTPHandlerFactory to be used to figure out
    *                        what kind of HTTPHandler we're going to use...
    */
-  public void setHandlerFactory(HTTPHandlerFactory handlerFactory) {
-    HTTPRequest.setHandlerFactory(handlerFactory);
+  public void setHandlerFactory(HTTPRouter handlerFactory) {
+    HTTPRequest.setRouter(handlerFactory);
   }
 
   /**

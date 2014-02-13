@@ -1,7 +1,7 @@
 package httpserver;
 
-import java.util.Random;
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  * A DeathHandler should only be called if something bad occurs.
@@ -14,18 +14,23 @@ import java.util.ArrayList;
  * other handlers available, it'll be used.
  */
 class DeathHandler extends HTTPHandler {
-
+  private int code;
+  
+  
   public static ArrayList<String> errorMessages;
 
   /**
    * Creates a new DeathHandler...
    */
-  public DeathHandler(HTTPRequest request) throws HTTPException {
-    super(request);
-
-    if (errorMessages == null || errorMessages.isEmpty()) {
-      setupErrorMessages();
-    }
+  public DeathHandler() throws HTTPException {
+    this(500);
+  }
+  
+  
+  public DeathHandler(int statusCode) throws HTTPException {
+    super();
+    setupErrorMessages();
+    code = statusCode;
   }
 
   /**
@@ -34,13 +39,16 @@ class DeathHandler extends HTTPHandler {
    * Regardless of what you *think* we should do, we're just going to send a
    * 500 error to the browser, with a random, generic error message. Including
    * some from our good friend, Han Solo.
+ * @throws HTTPException 
    */
   @Override
-  public void handle() {
+  public void handle(HTTPRequest request, HTTPResponse resp) {
+    //super.handle(request);
+
     String message = errorMessages.get(
             new Random().nextInt(errorMessages.size()));
 
-    message(500, message);
+    resp.message(code, message);
   }
 
 
@@ -59,6 +67,7 @@ class DeathHandler extends HTTPHandler {
             + "everything's perfectly all right now. We're fine. We're all "
             + "fine here now, thank you. How are you?");
     errorMessages.add("Definitely feeling aggressive tendency, sir!");
+    errorMessages.add("If they move, shoot 'em.");
 
   }
 }

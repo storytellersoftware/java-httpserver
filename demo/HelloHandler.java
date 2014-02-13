@@ -1,6 +1,8 @@
 package demo;
 
-import httpserver.*;
+import httpserver.HTTPException;
+import httpserver.HTTPHandler;
+import httpserver.HTTPResponse;
 
 
 /**
@@ -11,36 +13,28 @@ import httpserver.*;
  */
 public class HelloHandler extends HTTPHandler {
 
-  public HelloHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public HelloHandler() throws HTTPException {
+    addGET("/", "sayHello");
+    addGET("/{String name}/", "sayHello");
+    addGET("/{String} first/{String} last", "sayHello");
 
-    try {
-      addGET("/", "sayHello");
-      addGET("/{String name}/", "sayHello");
-      addGET("/{String} first/{String} last", "sayHello");
-
-      addDELETE("/goodbye", "sayGoodbye");
-    } catch (HTTPException e) {
-      e.printStackTrace();
-    }
+    addDELETE("/goodbye", "sayGoodbye");
   }
 
   /**
-   * Returns the text: "Hellow World".
+   * Returns the text: "Hello World".
    */
-  public void sayHello() {
-    setResponseText("Hello World");
-    setHandled(true);
+  public void sayHello(HTTPResponse resp) {
+    resp.setBody("Hello World");
   }
 
   /**
    * Returns the text: "Hello {firstName}".
    * @param firstName
    */
-  public void sayHello(String firstName) {
+  public void sayHello(HTTPResponse resp, String firstName) {
     String response = "Hello " + firstName;
-    setResponseText(response);
-    setHandled(true);
+    resp.setBody(response);
   }
 
   /**
@@ -48,17 +42,15 @@ public class HelloHandler extends HTTPHandler {
    * @param firstName
    * @param lastName
    */
-  public void sayHello(String firstName, String lastName) {
+  public void sayHello(HTTPResponse resp, String firstName, String lastName) {
     String response = "Hello " + firstName + " " + lastName;
-    setResponseText(response);
-    setHandled(true);
+    resp.setBody(response);
   }
 
   /**
    * Returns the text: "Goodbye World".
    */
-  public void sayGoodbye() {
-    setResponseText("Goodbye World");
-    setHandled(true);
+  public void sayGoodbye(HTTPResponse resp) {
+    resp.setBody("Goodbye World");
   }
 }

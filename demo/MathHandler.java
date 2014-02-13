@@ -3,6 +3,7 @@ package demo;
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
+import httpserver.HTTPResponse;
 
 /**
  * A slightly complex example of how to setup requests.<p>
@@ -12,25 +13,17 @@ import httpserver.HTTPRequest;
  */
 public class MathHandler extends HTTPHandler {
 
-  public MathHandler(HTTPRequest request) throws HTTPException {
-    super(request);
+  public MathHandler() throws HTTPException {
+    addGET("*", "noMath");
+    addGET("/add/{Double}/{Double}", "add");
+    addGET("/subtract/{Double}/{Double}", "subtract");
+    addGET("/multiply/{Double}/{Double}", "multiply");
+    addGET("/divide/{Double}/{Double}", "divide");
 
-    try {
-      addGET("*", "noMath");
-      addGET("/add/{Double}/{Double}", "add");
-      addGET("/subtract/{Double}/{Double}", "subtract");
-      addGET("/multiply/{Double}/{Double}", "multiply");
-      addGET("/divide/{Double}/{Double}", "divide");
-
-      addGET("/add/{Integer}/{Integer}", "add");
-      addGET("/subtract/{Integer}/{Integer}", "subtract");
-      addGET("/multiply/{Integer}/{Integer}", "multiply");
-      addGET("/divide/{Integer}/{Integer}", "divide");
-    }
-    catch (HTTPException e) {
-      e.printStackTrace();
-      message(500, EXCEPTION_ERROR);
-    }
+    addGET("/add/{Integer}/{Integer}", "add");
+    addGET("/subtract/{Integer}/{Integer}", "subtract");
+    addGET("/multiply/{Integer}/{Integer}", "multiply");
+    addGET("/divide/{Integer}/{Integer}", "divide");
   }
 
   // Double methods
@@ -39,9 +32,9 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void add(Double one, Double two) {
-    message(200, one + " + " + two + " = " + (one + two));
-    setHeader("Math-Type", "addition");
+  public void add(HTTPResponse resp, Double one, Double two) {
+    resp.message(200, one + " + " + two + " = " + (one + two));
+    resp.setHeader("Math-Type", "addition");
   }
 
   /**
@@ -49,9 +42,9 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void subtract(Double one, Double two) {
-    message(200, one + " - " + two + " = " + (one - two));
-    setHeader("Math-Type", "subtraction");
+  public void subtract(HTTPResponse resp, Double one, Double two) {
+    resp.message(200, one + " - " + two + " = " + (one - two));
+    resp.setHeader("Math-Type", "subtraction");
   }
 
   /**
@@ -59,8 +52,8 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void multiply(Double one, Double two) {
-    message(200, one + " * " + two + " = " + (one * two));
+  public void multiply(HTTPResponse resp, Double one, Double two) {
+    resp.message(200, one + " * " + two + " = " + (one * two));
   }
 
   /**
@@ -68,8 +61,8 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void divide(Double one, Double two) {
-    message(200, one + " / " + two + " = " + (one / two));
+  public void divide(HTTPResponse resp, Double one, Double two) {
+    resp.message(200, one + " / " + two + " = " + (one / two));
   }
 
   // Integer methods
@@ -78,8 +71,8 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void add(Integer one, Integer two) {
-    message(200, one + " + " + two + " = " + (one + two));
+  public void add(HTTPResponse resp, Integer one, Integer two) {
+    resp.message(200, one + " + " + two + " = " + (one + two));
   }
 
   /**
@@ -87,8 +80,8 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void subtract(Integer one, Integer two) {
-    message(200, one + " - " + two + " = " + (one - two));
+  public void subtract(HTTPResponse resp, Integer one, Integer two) {
+    resp.message(200, one + " - " + two + " = " + (one - two));
   }
 
   /**
@@ -96,8 +89,8 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void multiply(Integer one, Integer two) {
-    message(200, one + " * " + two + " = " + (one * two));
+  public void multiply(HTTPResponse resp, Integer one, Integer two) {
+    resp.message(200, one + " * " + two + " = " + (one * two));
   }
 
   /**
@@ -105,14 +98,14 @@ public class MathHandler extends HTTPHandler {
    * @param one
    * @param two
    */
-  public void divide(Integer one, Integer two) {
-    message(200, one + " / " + two + " = " + (one / two));
+  public void divide(HTTPResponse resp, Integer one, Integer two) {
+    resp.message(200, one + " / " + two + " = " + (one / two));
   }
 
   /**
    * If the user requests something that is not a route, this is used.
    */
-  public void noMath() {
-    message(418, "Not an operation");
+  public void noMath(HTTPResponse resp, HTTPRequest req) {
+    resp.message(418, "Not an operation");
   }
 }

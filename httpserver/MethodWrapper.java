@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A MethodWrapper is a wrapper for the {@link java.lang.reflect.Method} class.
@@ -20,7 +21,7 @@ import java.util.List;
 class MethodWrapper {
   private static final String LANG_PATH = "java.lang.";
 
-  private String path;
+  private String methodPath;
   private Method method;
 
 
@@ -44,11 +45,26 @@ class MethodWrapper {
    *
    * @see HTTPHandler#addGET
    */
-  public MethodWrapper(String path, String methodName, Class callingClass)
-          throws HTTPException {
+  public MethodWrapper(String path, String methodName, 
+            Class<? extends HTTPHandler> callingClass) throws HTTPException {
+    List<Method> potentialMethods = 
+        MethodWrapper.getMethodsByName(callingClass, methodName);
+ 
+    if (potentialMethods.size() == 0) {
+      throw new HTTPException("No methods with the name `" + methodName + "` in "
+        + callingClass.getName());
+    }
+     
+    path = cleanPath(path);
+    
     try {
       // Get a list of the parameter types
-      List<Class> parameterTypes = new ArrayList<Class>();
+      List<Class<? extends Object>> parameterTypes = new ArrayList<>();
+      boolean isVargs = false;
+      
+      // all requests must have an HTTPResponse
+      //parameterTypes.add(HTTPResponse.class);
+      
       String[] paths = path.split("/");
       StringBuilder pathBuilder = new StringBuilder();
 
@@ -57,7 +73,7 @@ class MethodWrapper {
           of it. It also makes sure that non-dynamic parts of the path are
           lower case'd.
        */
-      for (int i=0; i<paths.length; i++) {
+      for (int i = 0; i < paths.length; i++) {
         /*  if, for some reason, there's something like a `//` in the path,
             or if it's the first one (because of the proceeding /), part is
             empty, which means we have nothing to do here.
@@ -79,14 +95,15 @@ class MethodWrapper {
             if(i != paths.length - 1)
               throw new HTTPException("An array must be the last parameter.");
 
+            isVargs = true;
+            
             String arrayType = LANG_PATH + getParamType(paths[i].substring(0, paths[i].indexOf('.')) + "}");
 
             // This is how an array is represented in reflection.
             paramClass = "[L" + arrayType + ";";
           }
 
-          parameterTypes.add(Class.forName(paramClass));
-          //paths[i] = "{" + paths[i] + "}"; // TODO: this is a dirty hack. Fix it.
+          parameterTypes.add(Class.forName(paramClass));        
         }
         else {
           paths[i].toLowerCase();
@@ -97,27 +114,84 @@ class MethodWrapper {
       }
 
 
-      this.path = pathBuilder.toString();
-
-      // If the path was just a '/' it will be empty
-      if (this.path.isEmpty()) {
-        this.path = "/";
+      methodPath = pathBuilder.toString();
+      methodPath = cleanPath(methodPath);
+      //System.out.println("path: " + path + "\nmethodPath: " + methodPath);
+      
+      // find our method
+      outer:
+      for (Method m : new ArrayList<Method>(potentialMethods)) {
+        // if our method needs vargs, make sure this one does
+        if (isVargs && !m.isVarArgs()) {
+          potentialMethods.remove(m);
+          continue;
+        }
+        
+        // determine if this method takes all parameters of this path
+        Class<? extends Object>[] reqParams = m.getParameterTypes();
+        
+        // does it have enough parameters?
+        if (reqParams.length < parameterTypes.size() + 1 || 
+            reqParams.length > parameterTypes.size() + 3) {
+          potentialMethods.remove(m);
+          continue;
+        }
+        
+        // going backwards, make sure all parameters match
+        for (int i = 1; i <= parameterTypes.size(); i++) {
+          // i goes up because inParams and parameterTypes will have different
+          // lengths.
+          
+          Class<? extends Object> inClass = parameterTypes.get(parameterTypes.size() - i);
+          Class<? extends Object> reqClass = reqParams[reqParams.length - i];
+          
+          if (!inClass.equals(reqClass)) {
+            potentialMethods.remove(m);
+            continue outer;
+          }
+        }
+        
+        if (reqParams.length > parameterTypes.size() + 1) {
+          // is second param HTTPRequest?
+          if (reqParams[1].equals(HTTPRequest.class)) {
+            if (reqParams.length == parameterTypes.size() + 3 &&
+                !reqParams[2].equals(Map.class)) {
+              potentialMethods.remove(m);
+              continue;
+            }
+          }
+          else if (!reqParams[1].equals(Map.class)) {
+            potentialMethods.remove(m);
+            continue;
+          }
+        }
       }
-
-      /*  Because Class.getMethod() takes in an array of Classes, and because
-          List.toArray() returns an array of Objects, we need to manually
-          convert parameterTypes from a list to an array.
-       */
-      Class[] paramTypes = new Class[parameterTypes.size()];
-      for (int i=0; i < parameterTypes.size(); i++) {
-        paramTypes[i] = parameterTypes.get(i);
+      
+      if (potentialMethods.size() == 0) {
+        StringBuilder b = new StringBuilder();
+        b.append("No methods named `");
+        b.append(methodName);
+        b.append("` in class `");
+        b.append(callingClass.getName());
+        b.append("` with path `");
+        b.append(path);
+        b.append("`");
+        
+        throw new HTTPException(b.toString());
+      } else if (potentialMethods.size() != 1) {
+        StringBuilder b = new StringBuilder();
+        b.append("Too many available methods...\nOptional Methods:");
+        for (Method m : potentialMethods) {
+          b.append("\n\t");
+          b.append(m.toGenericString());
+        }
+        throw new HTTPException(b.toString());
       }
-
-      method = callingClass.getMethod(methodName, paramTypes);
+      
+      method = potentialMethods.get(0);
     }
-    catch(ClassNotFoundException | NoSuchMethodException
-            | SecurityException e) {
-      throw new HTTPException("Could not add path.", e);
+    catch(ClassNotFoundException | SecurityException e) {
+      throw new HTTPException("Could not add path.\n\tPath: " + path + "\n\tMethod: " + methodName, e);
     }
   }
 
@@ -137,30 +211,41 @@ class MethodWrapper {
    *
    * @see java.lang.reflect.Method#invoke
    */
-  public void invoke(Object callingClass, String path) throws HTTPException {
+  public void invoke(Object callingClass, HTTPResponse resp, HTTPRequest req, String path) throws HTTPException {
+    List<Object> params = new ArrayList<>();
+    
     try {
+      if (methodPath.equals("*")) {
+    	method.invoke(callingClass, resp, req);
+    	return;
+      }
+      
+      String[] methodPaths = methodPath.split("/");
+      
+      path = cleanPath(path);
+      
       // Get the parameters
-      String[] paths = path.split("/");
-      String[] methodPaths = this.path.split("/");
-      List<Object> params = new ArrayList<Object>();
-
+      String[] paths;
+      if (path.length() == 0)
+    	paths = new String[0];
+      else
+    	paths = path.split("/");
+      
       for (int i = 0; i < paths.length; i++) {
         if (isDynamic(methodPaths[i])) {
           if (!isArray(methodPaths[i])) {
-            Class paramClass = Class.forName(LANG_PATH
+            Class<?> paramClass = Class.forName(LANG_PATH
                     + getParamType(methodPaths[i]));
 
-            Constructor paramConstructor
-            = paramClass.getConstructor(String.class);
+            Constructor<?> paramConstructor
+                    = paramClass.getConstructor(String.class);
 
             params.add(paramConstructor.newInstance(paths[i]));
-          }
-          // If we have an array.
-          else {
+          } else { // we have an array
             // Figure out the class type / constructor.
-            Class paramClass =
+            Class<?> paramClass =
                     Class.forName(LANG_PATH + getParamType(methodPaths[i]));
-            Constructor paramConstructor =
+            Constructor<?> paramConstructor =
                     paramClass.getConstructor(String.class);
 
             // Create an arraylist so we can have variable sizes.
@@ -173,32 +258,58 @@ class MethodWrapper {
 
             // Use reflection to create a list of our objects at a set size.
             Object[] listObj = (Object[]) Array.newInstance(paramClass, list.size());
-            for(int j=0; j<list.size(); j++){
+            for(int j = 0; j < list.size(); j++){
               listObj[j] = list.get(j);
             }
 
             // Add our full list to our parameters array.
             params.add(listObj);
+            
+            System.out.println("Params: " + params);
 
             // Break out because we've been through all of the `methodPaths`.
             break;
           }
         }
       }
-
-      // Method.invoke throws an exception if an empty array is passed in
-      if (params.isEmpty()) {
-        method.invoke(callingClass);
+      
+      // add in required HTTPResponse
+      params.add(0, resp);
+      
+      // add other params
+      if (method.getParameterTypes().length > params.size()) {
+        // is second param HTTPRequest?
+        if (method.getParameterTypes()[1].equals(HTTPRequest.class)) {
+          params.add(1, req);
+          
+          if (method.getParameterTypes().length == params.size() + 2 &&
+              method.getParameterTypes()[2].equals(Map.class)) {
+            params.add(2, req.getPostData());
+          }
+        }
+        else if (method.getParameterTypes()[1].equals(Map.class)) {
+          params.add(1, req.getPostData());
+        }
       }
-      else {
-        method.invoke(callingClass, params.toArray());
-      }
+      
+      method.invoke(callingClass, params.toArray());
     }
     catch (IllegalAccessException | IllegalArgumentException
             | InvocationTargetException | SecurityException
             | ClassNotFoundException | NoSuchMethodException
             | InstantiationException e) {
-      throw new HTTPException("Could not invoke method `" + method + "`.", e);
+      StringBuilder b = new StringBuilder();
+      b.append("Could not invoke method `");
+      b.append(method.toGenericString());
+      b.append("`.\n\tPath:\t");
+      b.append(path);
+      b.append("\n\tParams:");
+      for (Object c: params) {
+        b.append("\n\t\t");
+        b.append(c);
+      }
+      
+      throw new HTTPException(b.toString(), e);
     }
   }
 
@@ -224,13 +335,15 @@ class MethodWrapper {
    *          path matches this method's path.
    */
   public int howCorrect(String path) {
+    path = cleanPath(path);
+    
     String[] paths = path.split("/");
-    String[] methodPaths = this.path.split("/");
+    String[] methodPaths = methodPath.split("/");
 
     // If the paths aren't the same length and it is not an array,
     // this is the wrong method.
     if (paths.length != methodPaths.length) {
-      if(!isArray(this.path))
+      if(!isArray(methodPath))
         return 0;
     }
 
@@ -286,8 +399,8 @@ class MethodWrapper {
    */
   private boolean canInstantiate(String classType, String value) {
     try {
-      Class paramClass = Class.forName(LANG_PATH + classType);
-      Constructor constructor = paramClass.getConstructor(String.class);
+      Class<?> paramClass = Class.forName(LANG_PATH + classType);
+      Constructor<?> constructor = paramClass.getConstructor(String.class);
 
       constructor.newInstance(value);
     } catch (NoSuchMethodException | SecurityException | ClassNotFoundException
@@ -309,7 +422,7 @@ class MethodWrapper {
    */
   private boolean hasDecimal(String path) {
     try {
-      Class paramClass = Class.forName(LANG_PATH
+      Class<?> paramClass = Class.forName(LANG_PATH
               + getParamType(path));
 
       return paramClass.equals(BigDecimal.class)
@@ -383,4 +496,26 @@ class MethodWrapper {
     return path.contains("...");
   }
 
+  
+  public static List<Method> getMethodsByName(Class<?> c, String name) {
+    List<Method> out = new ArrayList<>();
+    
+    for (Method m: c.getMethods()) {
+      if (m.getName().equals(name)) {
+        out.add(m);
+      }
+    }
+    
+    return out;
+  }
+  
+  public static String cleanPath(String path) {
+    path = path.trim();
+    if (path.startsWith("/"))
+      path = path.substring(1);
+    if (path.endsWith("/"))
+      path = path.substring(0, path.length() - 1);
+    
+    return path;
+  }
 }
