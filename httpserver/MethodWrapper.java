@@ -265,7 +265,14 @@ class MethodWrapper {
             // Add our full list to our parameters array.
             params.add(listObj);
             
-            System.out.println("Params: " + params);
+            
+            StringBuilder paramStr = new StringBuilder();
+            String concat = "";
+            for(Object o : params) {
+              paramStr.append(concat).append(paramStr);
+              concat = ",";
+            }
+            System.out.println("Params: " + paramStr.toString());
 
             // Break out because we've been through all of the `methodPaths`.
             break;

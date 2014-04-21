@@ -23,7 +23,7 @@ public class DemoDriver {
       r.addHandler("math", new MathHandler());
       r.addHandler("matharray", new MathArrayHandler());
       r.addHandler("test", new HandlerTest());
-      r.addHandler("*", new FileHandler());
+      r.setDefaultHandler(new FileHandler());
   
       s.setRouter(r);
   

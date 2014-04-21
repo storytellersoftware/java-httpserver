@@ -32,7 +32,7 @@ public class HTTPResponse {
   private HTTPRequest request;
   
   private int code;
-  private String body;
+  private byte[] body;
   private String mimeType;
   private long size;
   
@@ -152,7 +152,7 @@ public class HTTPResponse {
       }
       else {
         // We don't know how large the body is. Determine that using the body...
-        writeLine("Content-Size: " + getBody().length());
+        writeLine("Content-Size: " + getBody().length);
       }
 
       // Send all other miscellaneous headers down the shoots.
@@ -177,7 +177,7 @@ public class HTTPResponse {
       }
 
       // Give the client the body.
-      getWriter().writeBytes(getBody());
+      getWriter().write(getBody());
     }
     catch (HTTPException | IOException e) {
       System.err.println("Something bad happened while trying to send data "
@@ -216,11 +216,14 @@ public class HTTPResponse {
   }
 
 
-  public String getBody() {
+  public byte[] getBody() {
     return body;
   }
   public void setBody(String body) {
-    this.body = body;
+    this.body = body.getBytes();
+  }
+  public void setBody(byte[] bytes) {
+    body = bytes;
   }
 
 

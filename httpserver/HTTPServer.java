@@ -150,7 +150,7 @@ public class HTTPServer {
    * Set the {@link HTTPRouter} to determine the what
    * {@link HTTPHandler} will be used.
    *
-   * @param routher  The HTTPRouter to be used to figure out
+   * @param router  The HTTPRouter to be used to figure out
    *                        what kind of HTTPHandler we're going to use...
    */
   public void setRouter(HTTPRouter router) {

@@ -4,15 +4,13 @@ import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPResponse;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class FileHandler extends HTTPHandler {
 
@@ -52,30 +50,17 @@ public class FileHandler extends HTTPHandler {
 		
     // Now our path is complete.
     path = pathBuilder.toString();
-    File file = new File(getResource(path));
     System.out.println(path);
 
     // Setup header data for the file.
-    if(file.exists()) {
+    if(new File(getResource(path)).exists()) {
       try {
-        resp.setMimeType(getContentType(path));
-        resp.setSize(file.length());
-        
-        StringBuilder b = new StringBuilder();
-        BufferedReader br = new BufferedReader(new FileReader(file));
-        
-        for (String line = br.readLine(); line != null; line = br.readLine()) {
-          b.append(line);
-          b.append(System.lineSeparator());
-        }
-        
-        br.close();
-        
-        resp.setBody(b.toString());
-      } catch (FileNotFoundException fnfe) {
-        resp.error(404, "404 - File Not Found!", fnfe);
-      } catch (IOException ioe) {
-        resp.error(500, HTTPResponse.EXCEPTION_ERROR, ioe);
+    		byte[] bytes = Files.readAllBytes(Paths.get(getResource(path)));
+    		resp.setMimeType(getContentType(path));
+    		resp.setBody(bytes);
+      } catch (IOException e) {
+    	  // TODO Auto-generated catch block
+    	  e.printStackTrace();
       }
     }
     // If it doesn't exist, let the user know.
