@@ -18,14 +18,14 @@ public class DemoDriver {
   public static void main(String[] args) {
     try {
       HTTPServer s = new HTTPServer();
-      HTTPRouter f = new HTTPRouter();
-      f.addHandler("hello", new HelloHandler());
-      f.addHandler("math", new MathHandler());
-      f.addHandler("matharray", new MathArrayHandler());
-      f.addHandler("test", new HandlerTest());
-      f.addHandler("*", new FileHandler());
+      HTTPRouter r = new HTTPRouter();
+      r.addHandler("hello", new HelloHandler());
+      r.addHandler("math", new MathHandler());
+      r.addHandler("matharray", new MathArrayHandler());
+      r.addHandler("test", new HandlerTest());
+      r.addHandler("*", new FileHandler());
   
-      s.setHandlerFactory(f);
+      s.setRouter(r);
   
       s.run();
     } catch (HTTPException e) {
