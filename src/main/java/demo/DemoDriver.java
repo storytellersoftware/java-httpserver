@@ -3,7 +3,6 @@ package demo;
 import httpserver.HTTPException;
 import httpserver.HTTPRouter;
 import httpserver.HTTPServer;
-import tests.HandlerTest;
 
 /**
  * This is where everything is started.<p>
@@ -22,7 +21,6 @@ public class DemoDriver {
       r.addHandler("hello", new HelloHandler());
       r.addHandler("math", new MathHandler());
       r.addHandler("matharray", new MathArrayHandler());
-      r.addHandler("test", new HandlerTest());
       r.setDefaultHandler(new FileHandler());
   
       s.setRouter(r);

@@ -4,8 +4,4 @@
 # vim stuff
 *.swp
 
-# javadoc directory
-#javadoc/
-
-# website
-site/
+.gradle

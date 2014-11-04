@@ -25,7 +25,7 @@ public class HTTPRequestTest {
   public static void init() throws IOException, HTTPException {
     HTTPRouter f = new HTTPRouter();
     f.addHandler("math", new MathArrayHandler());
-	HTTPRequest.setRouter(f);
+    HTTPRequest.setRouter(f);
     
     server = new ServerSocket(MockClient.DESIRED_PORT);
   }
@@ -122,5 +122,4 @@ public class HTTPRequestTest {
   }
   
 }
-
 
