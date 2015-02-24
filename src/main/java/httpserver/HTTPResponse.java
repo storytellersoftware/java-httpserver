@@ -25,22 +25,22 @@ public class HTTPResponse {
 
   /** Generic status message for when everything is good */
   public static final String STATUS_GOOD = "All systems are go";
-  
+
   private static String serverInfo;
   private static Map<Integer, String> responses;
-  
+
   private HTTPRequest request;
-  
+
   private int code;
   private byte[] body;
   private String mimeType;
   private long size;
-  
+
   private Map<String, String> headers;
-  
+
   private Socket socket;
   private DataOutputStream writer;
-  
+
 
   /**
    * Create a new HTTPResponse to fill out. <p>
@@ -52,17 +52,17 @@ public class HTTPResponse {
     if (getServerInfo() == null || getServerInfo().isEmpty()) {
       setupServerInfo();
     }
-    
+
     socket = req.getConnection();
     writer = new DataOutputStream(socket.getOutputStream());
-    
-    request = req; 
+
+    request = req;
     headers = new HashMap<>();
     setCode(200); // 200 OK
     setSize(-1);
     setMimeType("text/plain");
   }
-  
+
 
   /**
    * Send a simple string message with an HTTP response code back to
@@ -81,8 +81,8 @@ public class HTTPResponse {
     setBody(message);
     setMimeType("text/plain");
   }
-  
-  
+
+
   /**
    * Tell the browser there is no response data. <p>
    *
@@ -96,26 +96,26 @@ public class HTTPResponse {
     setBody("");
     setMimeType("");
   }
-  
-  
+
+
   /**
    * Send a message to the browser and print an exception<p>
    *
    * Prints the stackTrace of `t`, and sends a message `message` back to the
    * browser, with that HTTP status of `code`
-   * 
+   *
    * @param code      HTTP status code
    * @param message   the content being sent back to the browser
    * @param t         A throwable object, to be printed to the screen
-   * 
+   *
    * @see HTTPResponse#message
    */
   public void error(int code, String message, Throwable t) {
     t.printStackTrace();
     message(code, message);
   }
-  
-  
+
+
   /**
    * Send data back to the client.
    */
@@ -131,8 +131,8 @@ public class HTTPResponse {
         throw new HTTPException("Socket is null...");
       else if (getSocket().isClosed())
         throw new HTTPException("Socket is closed...");
-      
-    
+
+
       // If the user never filled out the response's body, there isn't any
       // content. Make sure the response code matches that.
       if(getBody() == null) {
@@ -207,7 +207,7 @@ public class HTTPResponse {
   /*********************
     GETTERS AND SETTERS
    *********************/
-  
+
   public int getCode() {
     return code;
   }
@@ -291,7 +291,7 @@ public class HTTPResponse {
   /**************
     STATIC STUFF
    **************/
-  
+
   /**
    * Sets up a list of response codes and text.
    */
@@ -345,7 +345,7 @@ public class HTTPResponse {
     responses.put(504, "Gateway Timeout");
     responses.put(505, "HTTP Version Not Supported");
   }
-  
+
 
   /**
    * Set the info of the server

@@ -12,65 +12,65 @@ import java.util.Map;
 /**
  * A MockClient is used for creating an HTTP request to test
  * parts of the httpserver.
- * 
+ *
  * It has an interface similar to {@link httpserver.HTTPRequest}
- * 
+ *
  * @see httpserver.HTTPRequest
  */
 public class MockClient {
-  
+
   public static int DESIRED_PORT = 4444;
-  
-  
+
+
   public String requestType;
   public String path;
   public String protocol;
-    
+
   public Map<String, String> getData;
   public Map<String, String> postData;
   public Map<String, String> headers;
-  
-  
+
+
   public MockClient() {
     setDefault();
   }
-  
-  
+
+
   public void setDefault() {
     setRequestType("GET");
     setPath("/");
     setProtocol("HTTP/1.1");
-    
+
     setGetData(new HashMap<String, String>());
     setPostData(new HashMap<String, String>());
     setHeaders(new HashMap<String, String>());
   }
-  
+
   public void fillInSocket() throws IOException {
     //ServerSocket s = new ServerSocket(4444);
     Socket socket = new Socket("127.0.0.1", DESIRED_PORT);
     BufferedWriter writer = new BufferedWriter(
             new OutputStreamWriter(socket.getOutputStream()));
-    
+
     writer.write(getRequestLine());
     writer.write("\n");
-    
+
     if (!getPostData().isEmpty()) {
-      getHeaders().put("Content-Length", 
+      getHeaders().put("Content-Length",
               Integer.toString(getDataInHTTP(getPostData()).length()));
     }
-    
+
     writer.write(getHeadersInHTTP());
     writer.write("\n");
-    
+
     writer.write(getDataInHTTP(getPostData()));
     writer.flush();
     writer.close();
-    
+
     socket.close();
   }
-  
-  
+
+
   public String getRequestLine() {
     StringBuilder b = new StringBuilder();
     b.append(getRequestType());
@@ -78,68 +78,68 @@ public class MockClient {
     b.append(getPathWithGetData());
     b.append(" ");
     b.append(getProtocol());
-    
+
     return b.toString();
   }
-  
+
   public String getHeadersInHTTP() {
     StringBuilder b = new StringBuilder();
-    
+
     for (String key : getHeaders().keySet()) {
       String value = getHeaders().get(key);
-      
+
       b.append(key.replace(" ", "-"));
       b.append(": ");
       b.append(value.replace(" ", "-"));
       b.append("\n");
     }
-    
+
     return b.toString();
   }
-  
+
   public String getDataInHTTP(Map<String, String> data) {
     StringBuilder b = new StringBuilder();
-    
+
     for (String key : data.keySet()) {
       String value = data.get(key);
-      
+
       try {
         key = URLEncoder.encode(key, "UTF-8");
         value = URLEncoder.encode(value, "UTF-8");
-      } 
+      }
       catch (UnsupportedEncodingException e) {
         e.printStackTrace(); // TODO remove when done testing
       }
-      
+
       b.append(key);
       b.append("=");
       b.append(value);
       b.append("&");
     }
-    
+
     if (b.length() != 0) {
       b.deleteCharAt(b.length() - 1);
     }
-    
+
     return b.toString();
   }
-  
+
   public String getPathWithGetData() {
     StringBuilder b = new StringBuilder();
     b.append(getPath());
-    
+
     if (!getGetData().isEmpty()) {
       b.append("?");
       b.append(getDataInHTTP(getGetData()));
     }
-    
+
     return b.toString();
   }
-  
+
   // -------------------
   // Getters and Setters
   // -------------------
-  
+
   public String getRequestType() {
     return requestType;
   }
@@ -164,14 +164,14 @@ public class MockClient {
 	  StringBuilder b = new StringBuilder(getPath());
 	  if (!b.toString().endsWith("/"))
 		  b.append("/");
-	  
+
 	  for (Object p : parts) {
 		  b.append(p.toString());
 		  b.append("/");
 	  }
 	  setPath(b.toString());
   }
-  
+
   public String getProtocol() {
     return protocol;
   }
@@ -196,5 +196,12 @@ public class MockClient {
   public void setHeaders(Map<String, String> headers) {
     this.headers = headers;
   }
-  
+
+  public Map<String, String> getParams() {
+    HashMap params = new HashMap<String, String>(getPostData());
+    params.putAll(getGetData());
+
+    return params;
+  }
+
 }
