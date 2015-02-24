@@ -3,5 +3,8 @@
 
 # vim stuff
 *.swp
+*.swo
 
+# gradle things
 .gradle
+build/
