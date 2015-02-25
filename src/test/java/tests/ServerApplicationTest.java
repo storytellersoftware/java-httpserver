@@ -24,34 +24,34 @@ public class ServerApplicationTest {
 
     @BeforeClass
     public static void setupServer() {
-        HandlerTest.server = MockHttpServer.mockServer();
+        server = MockHttpServer.mockServer();
 
-        server.get("/showHeaders", new Route() {
+        server.get(new Route("/showHeaders") {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Headers:" + headerString(request.getHeaders()));
             }
         });
 
-        server.get("/hello", new Route() {
+        server.get(new Route("/hello") {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello World!");
             }
         });
 
 
-        server.get("/hello/{firstName}", new Route() {
+        server.get(new Route("/hello/{firstName}") {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + "!");
             }
         });
 
-        server.get("/hello/{firstName}/{lastName}", new Route() {
+        server.get(new Route("/hello/{firstName}/{lastName}") {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + " " + request.getParam("lastName") + "!");
             }
         });
 
-        server.get("/hello/{*}", new Route() {
+        server.get(new Route("/hello/{*}") {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 StringBuilder b = new StringBuilder();
                 for (String name: request.getVarargs()) {
