@@ -13,9 +13,9 @@ import java.util.Map;
  * A MockClient is used for creating an HTTP request to test
  * parts of the httpserver.
  *
- * It has an interface similar to {@link httpserver.HTTPRequest}
+ * It has an interface similar to {@link httpserver.HttpRequest}
  *
- * @see httpserver.HTTPRequest
+ * @see httpserver.HttpRequest
  */
 public class MockClient {
 

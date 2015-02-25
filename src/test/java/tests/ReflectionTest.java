@@ -1,7 +1,7 @@
 package tests;
 
-import httpserver.HTTPHandler;
-import httpserver.HTTPRequest;
+import httpserver.HttpHandler;
+import httpserver.HttpRequest;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ public class ReflectionTest {
   
   @Test
   public void getAllMethods() {
-    Class<? extends HTTPHandler> c = HandlerTest.class;
+    Class<? extends HttpHandler> c = HandlerTest.class;
     
     List<Method> hellos = getMethodsByName(c, "sayHello");
     List<Class<? extends Object>> parameterTypes = new ArrayList<>();
@@ -48,8 +48,8 @@ public class ReflectionTest {
       }
       
       if (reqParams.length > parameterTypes.size() + 1) {
-        // is second param HTTPRequest?
-        if (reqParams[1].equals(HTTPRequest.class)) {
+        // is second param HttpRequest?
+        if (reqParams[1].equals(HttpRequest.class)) {
           if (reqParams.length == parameterTypes.size() + 3 &&
               !reqParams[2].equals(Map.class)) {
             hellos.remove(m);

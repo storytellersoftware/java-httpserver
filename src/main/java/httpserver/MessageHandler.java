@@ -6,9 +6,9 @@ package httpserver;
  *
  * A MessageHandler solves the problem of sending a simple message back to the
  * client regardless of the request, without requiring developers to create a
- * new HTTPHandler.
+ * new HttpHandler.
  */
-public class MessageHandler extends HTTPHandler {
+public class MessageHandler extends HttpHandler {
 
   private String body;
   private int code;
@@ -18,14 +18,14 @@ public class MessageHandler extends HTTPHandler {
    *
    * All it does is call <code>message(code, message)</code>.
    *
-   * @param request   The associated HTTPRequest. Required by all Handlers.
+   * @param request   The associated HttpRequest. Required by all Handlers.
    * @param code      An HTTP status code to be used with the attached message.
    * @param message   A simple text message to be sent to the client.
    *
-   * @see HTTPHandler#message
-   * @see HTTPRequest
+   * @see HttpHandler#message
+   * @see HttpRequest
    */
-  public MessageHandler(int code, String message) throws HTTPException {
+  public MessageHandler(int code, String message) throws HttpException {
     body = message;
     this.code = code;
   }
@@ -38,14 +38,14 @@ public class MessageHandler extends HTTPHandler {
    * @param message   A simple text message to be sent to the client with the
    *                  HTTP status code of 200.
    *
-   * @see HTTPHandler#message
-   * @see HTTPRequest
+   * @see HttpHandler#message
+   * @see HttpRequest
    */
-  public MessageHandler(String message) throws HTTPException {
+  public MessageHandler(String message) throws HttpException {
     this(200, message);
   }
   
-  public void handle(HTTPRequest req, HTTPResponse resp) {
+  public void handle(HttpRequest req, HttpResponse resp) {
     resp.message(code, body);
   }
 

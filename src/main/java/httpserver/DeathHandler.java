@@ -13,7 +13,7 @@ import java.util.Random;
  * It's also set as the initial wildcard handler, meaning if there aren't any
  * other handlers available, it'll be used.
  */
-class DeathHandler extends HTTPHandler {
+class DeathHandler extends HttpHandler {
   private int code;
   
   
@@ -22,12 +22,12 @@ class DeathHandler extends HTTPHandler {
   /**
    * Creates a new DeathHandler...
    */
-  public DeathHandler() throws HTTPException {
+  public DeathHandler() throws HttpException {
     this(500);
   }
   
   
-  public DeathHandler(int statusCode) throws HTTPException {
+  public DeathHandler(int statusCode) throws HttpException {
     super();
     setupErrorMessages();
     code = statusCode;
@@ -39,10 +39,10 @@ class DeathHandler extends HTTPHandler {
    * Regardless of what you *think* we should do, we're just going to send a
    * 500 error to the browser, with a random, generic error message. Including
    * some from our good friend, Han Solo.
- * @throws HTTPException 
+ * @throws HttpException 
    */
   @Override
-  public void handle(HTTPRequest request, HTTPResponse resp) {
+  public void handle(HttpRequest request, HttpResponse resp) {
     //super.handle(request);
 
     String message = errorMessages.get(

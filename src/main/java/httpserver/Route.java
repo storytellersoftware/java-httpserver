@@ -1,5 +1,5 @@
 package httpserver;
 
 public interface Route {
-    public void handle(HTTPRequest request, HTTPResponse response);
+    public void handle(HttpRequest request, HttpResponse response);
 }

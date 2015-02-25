@@ -34,17 +34,17 @@ class MethodWrapper {
      * variable in a path, it should come in
      * <code>/path/with/{VariableType}</code> form, where VariableType is a
      * class inside of the `java.lang` package, and has a constructor that takes
-     * in a String. A better explaination is in {@link HTTPHandler#addGET}
+     * in a String. A better explaination is in {@link HttpHandler#addGET}
      *
      * @param path          Path the be matched for this method to be used.
      * @param route         Route, with the `handle` method to be called.
      *
-     * @throws HTTPException   If the passed in path is invalid.
-     * @see HTTPHandler#addGET
+     * @throws HttpException   If the passed in path is invalid.
+     * @see HttpHandler#addGET
      */
-    public MethodWrapper(String path, Route route) throws HTTPException {
+    public MethodWrapper(String path, Route route) throws HttpException {
         if (route == null) {
-            throw new HTTPException(new NullPointerException("Route may not be null!"));
+            throw new HttpException(new NullPointerException("Route may not be null!"));
         }
 
         this.route = route;
@@ -62,7 +62,7 @@ class MethodWrapper {
                 if (i != paths.length - 1) {
                     while (++i < paths.length && paths[i].isEmpty());
                     if (i != paths.length - 1) {
-                        throw new HTTPException("{*} must be the final section of your path!");
+                        throw new HttpException("{*} must be the final section of your path!");
                     }
                     usesVarargs = true;
                 }
@@ -76,7 +76,7 @@ class MethodWrapper {
      * @param path          The path that caused the method to be called. This is
      *                      where variables come from.
      */
-    public void invoke(HTTPRequest request, HTTPResponse response, List<String> calledPath) {
+    public void invoke(HttpRequest request, HttpResponse response, List<String> calledPath) {
         Map<String, String> params = new HashMap<>();
         List<String> varargs = new ArrayList<>();
 

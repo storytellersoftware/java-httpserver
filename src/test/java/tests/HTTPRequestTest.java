@@ -2,9 +2,9 @@ package tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import httpserver.HTTPException;
-import httpserver.HTTPRequest;
-import httpserver.HTTPRouter;
+import httpserver.HttpException;
+import httpserver.HttpRequest;
+import httpserver.HttpRouter;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,10 +19,10 @@ public class HTTPRequestTest {
   private static ServerSocket server;
 
   @BeforeClass
-  public static void init() throws IOException, HTTPException {
-    HTTPRouter f = new HTTPRouter();
+  public static void init() throws IOException, HttpException {
+    HttpRouter f = new HttpRouter();
     f.addHandler("test", new HandlerTest());
-    HTTPRequest.setRouter(f);
+    HttpRequest.setRouter(f);
 
     server = new ServerSocket(MockClient.DESIRED_PORT);
   }
@@ -37,7 +37,7 @@ public class HTTPRequestTest {
     try {
       MockClient c = new MockClient();
       c.fillInSocket();
-      HTTPRequest r = new HTTPRequest(server.accept());
+      HttpRequest r = new HttpRequest(server.accept());
       r.parseRequest();
 
 
@@ -46,7 +46,7 @@ public class HTTPRequestTest {
       assertEquals(c.getHeaders(), r.getHeaders());
       assertEquals(c.getParams(), r.getParams());
     }
-    catch (HTTPException | IOException e) {
+    catch (HttpException | IOException e) {
       e.printStackTrace();
       fail("Exception occured...");
     }
@@ -66,14 +66,14 @@ public class HTTPRequestTest {
       c.setRequestType("POST");
 
       c.fillInSocket();
-      HTTPRequest r = new HTTPRequest(server.accept());
+      HttpRequest r = new HttpRequest(server.accept());
       r.parseRequest();
 
       assertEquals(c.getRequestType(), r.getRequestType());
       assertEquals(c.getParams(), r.getParams());
       assertEquals(c.getHeaders(), r.getHeaders());
     }
-    catch (HTTPException | IOException e) {
+    catch (HttpException | IOException e) {
       e.printStackTrace();
       fail("Exception occured...");
     }
@@ -103,14 +103,14 @@ public class HTTPRequestTest {
       c.setRequestType("POST");
 
       c.fillInSocket();
-      HTTPRequest r = new HTTPRequest(server.accept());
+      HttpRequest r = new HttpRequest(server.accept());
       r.parseRequest();
 
       assertEquals(c.getParams(), r.getParams());
       assertEquals(c.getPathWithGetData(), r.getPath());
 
     }
-    catch (HTTPException | IOException e) {
+    catch (HttpException | IOException e) {
       e.printStackTrace();
       fail("Exception occured...");
     }

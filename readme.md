@@ -16,24 +16,24 @@ Java. `httpserver` takes inspiration from simple microframeworks like
 
 java-httpserver has five main components:
 
--   **HTTPServer**, a really simple class that usually runs in the background,
-    waiting for requests, and sending them off to the *HTTPRequest* class to get things done.
+-   **HttpServer**, a really simple class that usually runs in the background,
+    waiting for requests, and sending them off to the *HttpRequest* class to get things done.
 
--   **HTTPRouter**, a class that maps the path segments (the string
-    between the first two `/`s in the request) to *HTTPHandlers*.
+-   **HttpRouter**, a class that maps the path segments (the string
+    between the first two `/`s in the request) to *HttpHandlers*.
 
--   **HTTPRequest**, a class that takes in a Socket, reads from it, and splits
+-   **HttpRequest**, a class that takes in a Socket, reads from it, and splits
     apart the incoming data into its component parts (provided that the incoming
     Socket is following the HTTP protocol).
 
--   **HTTPResponse**, a class that's passed to all handling methods and filled
-    in to send data back the the client. After an *HTTPHandler* fills in a
+-   **HttpResponse**, a class that's passed to all handling methods and filled
+    in to send data back the the client. After an *HttpHandler* fills in a
     Response, it sends that data back to the client.
 
--   **HTTPHandler**, an abstract class whos subclasses are used to actually do
-    things with the data, specifically filling out *HTTPResponse*s.
+-   **HttpHandler**, an abstract class whos subclasses are used to actually do
+    things with the data, specifically filling out *HttpResponse*s.
 
-There's also an `HTTPException`, and `DeathHandler`, which are used when bad
+There's also an `HttpException`, and `DeathHandler`, which are used when bad
 things occur. Don't let bad things occur.
 
 
@@ -42,7 +42,7 @@ things occur. Don't let bad things occur.
 A very basic demo showing off most of the features of `httpserver` can be found
 in the `demo` package. 
 
-If you're looking for an HTTPHandler that does interesting things, check out the
+If you're looking for an HttpHandler that does interesting things, check out the
 `tests.HandlerTest`.
 
 

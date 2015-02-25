@@ -2,11 +2,11 @@ package tests;
 
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertEquals;
-import httpserver.HTTPException;
-import httpserver.HTTPHandler;
-import httpserver.HTTPRequest;
-import httpserver.HTTPResponse;
-import httpserver.HTTPRouter;
+import httpserver.HttpException;
+import httpserver.HttpHandler;
+import httpserver.HttpRequest;
+import httpserver.HttpResponse;
+import httpserver.HttpRouter;
 import httpserver.Route;
 
 import java.util.Map;
@@ -14,35 +14,35 @@ import java.net.ServerSocket;
 
 import org.junit.Test;
 
-public class HandlerTest extends HTTPHandler {
-    public HandlerTest() throws HTTPException {
+public class HandlerTest extends HttpHandler {
+    public HandlerTest() throws HttpException {
         get("/showHeaders", new Route() {
-            @Override public void handle(HTTPRequest request, HTTPResponse response) {
+            @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Headers:" + headerString(request.getHeaders()));
             }
         });
 
         get("/hello", new Route() {
-            @Override public void handle(HTTPRequest request, HTTPResponse response) {
+            @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello World!");
             }
         });
 
 
         get("/hello/{firstName}", new Route() {
-            @Override public void handle(HTTPRequest request, HTTPResponse response) {
+            @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + "!");
             }
         });
 
         get("/hello/{firstName}/{lastName}", new Route() {
-            @Override public void handle(HTTPRequest request, HTTPResponse response) {
+            @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + " " + request.getParam("lastName") + "!");
             }
         });
 
         get("/hello/{*}", new Route() {
-            @Override public void handle(HTTPRequest request, HTTPResponse response) {
+            @Override public void handle(HttpRequest request, HttpResponse response) {
                 StringBuilder b = new StringBuilder();
                 for (String name: request.getVarargs()) {
                     b.append("Hello ");
@@ -69,9 +69,9 @@ public class HandlerTest extends HTTPHandler {
     }
 
     public static ServerSocket makeServer() throws Exception {
-        HTTPRouter router = new HTTPRouter();
+        HttpRouter router = new HttpRouter();
         router.setDefaultHandler(new HandlerTest());
-        HTTPRequest.setRouter(router);
+        HttpRequest.setRouter(router);
 
         return new ServerSocket(MockClient.DESIRED_PORT);
     }
@@ -79,9 +79,9 @@ public class HandlerTest extends HTTPHandler {
     @Test
     public void testHandlerCreation() {
         try {
-            HTTPRouter f = new HTTPRouter();
+            HttpRouter f = new HttpRouter();
             f.addHandler("/", new HandlerTest());
-        } catch (HTTPException e) {
+        } catch (HttpException e) {
             e.printStackTrace();
             fail("Couldn't create new handler...");
         }
@@ -96,9 +96,9 @@ public class HandlerTest extends HTTPHandler {
             client.setPath("/showHeaders");
             client.fillInSocket();
 
-            HTTPRequest request = new HTTPRequest(server.accept());
+            HttpRequest request = new HttpRequest(server.accept());
             request.parseRequest();
-            HTTPResponse response = new HTTPResponse(request);
+            HttpResponse response = new HttpResponse(request);
             (new HandlerTest()).handle(request, response);
 
             server.close();
