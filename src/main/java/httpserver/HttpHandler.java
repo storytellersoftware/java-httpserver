@@ -64,33 +64,33 @@ public abstract class HttpHandler {
      * @see HttpResponse#NOT_A_METHOD_ERROR
      */
     public void handle(HttpRequest request, HttpResponse response) {
-		String httpRequestType = request.getRequestType().toUpperCase();
-		if (!routes.containsKey(httpRequestType)) {
-			response.message(404, "No " + httpRequestType + " routes exist.");
-			return;
-		}
+	String httpRequestType = request.getRequestType().toUpperCase();
+	if (!routes.containsKey(httpRequestType)) {
+	    response.message(404, "No " + httpRequestType + " routes exist.");
+	    return;
+	}
 
-		MethodWrapper finalMethod = null;
-		int bestFit = 0;
-		for (MethodWrapper method : routes.get(httpRequestType)) {
-			if (method.matchesPerfectly(request.getSplitPath())) {
-				finalMethod = method;
-				break;
-			}
+	MethodWrapper finalMethod = null;
+	int bestFit = 0;
+	for (MethodWrapper method : routes.get(httpRequestType)) {
+	    if (method.matchesPerfectly(request.getSplitPath())) {
+		finalMethod = method;
+		break;
+	    }
 
-			int testScore = method.howCorrect(request.getSplitPath());
-			if (testScore > bestFit) {
-				finalMethod = method;
-				bestFit = testScore;
-			}
-		}
+	    int testScore = method.howCorrect(request.getSplitPath());
+	    if (testScore > bestFit) {
+		finalMethod = method;
+		bestFit = testScore;
+	    }
+	}
 
-		if (finalMethod == null) {
-			response.message(501, HttpResponse.NOT_A_METHOD_ERROR);
-			return;
-		}
+	if (finalMethod == null) {
+	    response.message(501, HttpResponse.NOT_A_METHOD_ERROR);
+	    return;
+	}
 
-		finalMethod.invoke(request, response, request.getSplitPath());
+	finalMethod.invoke(request, response, request.getSplitPath());
     }
 
     /**
@@ -128,7 +128,7 @@ public abstract class HttpHandler {
      * @see HttpRequest
      */
     public void get(String path, Route route) throws HttpException {
-		addRoute(HttpRequest.GET_REQUEST_TYPE, path, route);
+	addRoute(HttpRequest.GET_REQUEST_TYPE, path, route);
     }
 
     /**
@@ -144,7 +144,7 @@ public abstract class HttpHandler {
      * @see HttpHandler#addDELETE
      */
     public void post(String path, Route route) throws HttpException {
-		addRoute(HttpRequest.POST_REQUEST_TYPE, path, route);
+	addRoute(HttpRequest.POST_REQUEST_TYPE, path, route);
     }
 
     /**
@@ -160,7 +160,7 @@ public abstract class HttpHandler {
      * @see HttpHandler#addPOST
      */
     public void delete(String path, Route route) throws HttpException {
-		addRoute(HttpRequest.DELETE_REQUEST_TYPE, path, route);
+	addRoute(HttpRequest.DELETE_REQUEST_TYPE, path, route);
     }
 
     /**
@@ -176,14 +176,14 @@ public abstract class HttpHandler {
      * @throws HttpException  When you do bad things.
      */
     public void addRoute(String httpMethod, String path, Route route) throws HttpException {
-		httpMethod = httpMethod.toUpperCase();
+	httpMethod = httpMethod.toUpperCase();
 
-		MethodWrapper method = new MethodWrapper(path, route);
-    	if (!routes.containsKey(httpMethod)) {
-		   routes.put(httpMethod, new ArrayList<>());
-    	}
+	MethodWrapper method = new MethodWrapper(path, route);
+	if (!routes.containsKey(httpMethod)) {
+	    routes.put(httpMethod, new ArrayList<>());
+	}
 
-    	routes.get(httpMethod).add(method);
+	routes.get(httpMethod).add(method);
     }
 
 
@@ -193,16 +193,16 @@ public abstract class HttpHandler {
      ******************************/
 
     public void setSocket(Socket socket) {
-		this.socket = socket;
+	this.socket = socket;
     }
     public Socket getSocket() {
-		return socket;
+	return socket;
     }
 
     public void setWriter(DataOutputStream writer) {
-		this.writer = writer;
+	this.writer = writer;
     }
     public DataOutputStream getWriter() {
-		return writer;
+	return writer;
     }
 }
