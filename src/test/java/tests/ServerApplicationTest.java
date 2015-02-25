@@ -19,7 +19,7 @@ import org.junit.BeforeClass;
 import tests.mocks.MockHttpServer;
 import tests.mocks.MockClient;
 
-public class HandlerTest {
+public class ServerApplicationTest {
     private static HttpServer server;
 
     @BeforeClass
@@ -63,8 +63,6 @@ public class HandlerTest {
                 response.setBody(b.toString());
             }
         });
-
-
     }
 
     public static String headerString(Map<String, String> headers) {

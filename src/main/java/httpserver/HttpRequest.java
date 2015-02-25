@@ -315,21 +315,7 @@ public class HttpRequest implements Runnable {
 
 
         // Set the request type
-        if (splitty[0].equalsIgnoreCase(GET_REQUEST_TYPE)) {
-            setRequestType(GET_REQUEST_TYPE);
-        }
-        else if (splitty[0].equalsIgnoreCase(POST_REQUEST_TYPE)) {
-            setRequestType(POST_REQUEST_TYPE);
-        }
-        else if (splitty[0].equalsIgnoreCase(HEAD_REQUEST_TYPE)) {
-            setRequestType(HEAD_REQUEST_TYPE);
-        }
-        else if (splitty[0].equalsIgnoreCase(DELETE_REQUEST_TYPE)) {
-            setRequestType(DELETE_REQUEST_TYPE);
-        }
-        else {
-            throw new HttpException("Unexpected request type: " + splitty[0]);
-        }
+        setRequestType(splitty[0].toUpperCase());
 
         // set the path
         setFullPath(splitty[1]);

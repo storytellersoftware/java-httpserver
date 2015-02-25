@@ -14,7 +14,7 @@ import java.util.Map;
 public class HttpResponse {
     /** Generic error message for when an exception occurs on the server */
     public static final String EXCEPTION_ERROR
-        = "an exception occured while processing your request";
+        = "an exception occurred while processing your request";
 
     /** Generic error message for when there isn't a method assigned to the requested path */
     public static final String NOT_A_METHOD_ERROR = "No known method";
@@ -30,12 +30,12 @@ public class HttpResponse {
 
     private HttpRequest request;
 
-    private int code;
+    private int code = 200; // default to "200 - OK"
     private byte[] body;
-    private String mimeType;
-    private long size;
+    private String mimeType = "text/plain";
+    private long size = -1;
 
-    private Map<String, String> headers;
+    private Map<String, String> headers = new HashMap<>();
 
     private Socket socket;
     private DataOutputStream writer;
@@ -56,10 +56,6 @@ public class HttpResponse {
         writer = new DataOutputStream(socket.getOutputStream());
 
         request = req;
-        headers = new HashMap<>();
-        setCode(200); // 200 OK
-        setSize(-1);
-        setMimeType("text/plain");
     }
 
 
@@ -235,6 +231,10 @@ public class HttpResponse {
         return size;
     }
     public void setSize(long size) {
+        if (size < 0) {
+            throw new RuntimeException("Response Content-Length must be non-negative.");
+        }
+
         this.size = size;
     }
 
