@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.ArrayList;
 
 /**
- * An HTTPHandler is what all handlers used by your server descend from. <p>
+ * An HttpHandler is what all handlers used by your server descend from. <p>
  *
  * Extended classes have two options for determining their actions: they may
  * override the handle method (slightly harder), or use the addGet and addPost
@@ -16,12 +16,12 @@ import java.util.ArrayList;
  * If you just want to send a static message to the client, regardless of
  * request, you can use a MessageHandler, instead of creating a new Handler.
  *
- * @see HTTPHandler#handle
- * @see HTTPHandler#addGET
- * @see HTTPHandler#addPOST
+ * @see HttpHandler#handle
+ * @see HttpHandler#addGET
+ * @see HttpHandler#addPOST
  * @see MessageHandler
  */
-public abstract class HTTPHandler {
+public abstract class HttpHandler {
     private final HashMap<String, ArrayList<MethodWrapper>> routes = new HashMap<>();
 
     private Socket socket;
@@ -29,18 +29,18 @@ public abstract class HTTPHandler {
 
 
     /**
-     * Create an HTTPHandler. <p>
+     * Create an HttpHandler. <p>
      *
-     * When writing your own HTTPHandler, this is where you should add the
+     * When writing your own HttpHandler, this is where you should add the
      * handler's internal routing, as well performing any setup tasks. Handlers
      * are multi-use, which means that only one of any kind of handler should be
      * created in an application (unless you have custom needs).
      *
-     * @throws HTTPException  The exception typically comes from trying to add
+     * @throws HttpException  The exception typically comes from trying to add
      *                        a new method. In a standard configuration this will
      *                        keep the server from starting.
      */
-    public HTTPHandler() throws HTTPException { }
+    public HttpHandler() throws HttpException { }
 
 
     /**
@@ -54,16 +54,16 @@ public abstract class HTTPHandler {
      * If there is not exact match, the `*` path is used. If you don't have a `*`
      * catchall route, a 501 (Not implemented) is sent to the client.
      *
-     * @param request     The incoming HTTPRequest.
-     * @param response    The outgoing HTTPResponse, waiting to be filled by an
-     *                    HTTPHandler.
+     * @param request     The incoming HttpRequest.
+     * @param response    The outgoing HttpResponse, waiting to be filled by an
+     *                    HttpHandler.
      *
-     * @see HTTPHandler#addGET
-     * @see HTTPHandler#addPOST
-     * @see HTTPHandler#addDELETE
-     * @see HTTPResponse#NOT_A_METHOD_ERROR
+     * @see HttpHandler#addGET
+     * @see HttpHandler#addPOST
+     * @see HttpHandler#addDELETE
+     * @see HttpResponse#NOT_A_METHOD_ERROR
      */
-    public void handle(HTTPRequest request, HTTPResponse response) {
+    public void handle(HttpRequest request, HttpResponse response) {
 		String httpRequestType = request.getRequestType().toUpperCase();
 		if (!routes.containsKey(httpRequestType)) {
 			response.message(404, "No " + httpRequestType + " routes exist.");
@@ -86,7 +86,7 @@ public abstract class HTTPHandler {
 		}
 
 		if (finalMethod == null) {
-			response.message(501, HTTPResponse.NOT_A_METHOD_ERROR);
+			response.message(501, HttpResponse.NOT_A_METHOD_ERROR);
 			return;
 		}
 
@@ -100,15 +100,15 @@ public abstract class HTTPHandler {
      * handler.<p>
      *
      * Path's should come in "/path/to/action" form. If the method requires
-     * any parameters that aren't an HTTPResponse, HTTPRequest, or Map,
+     * any parameters that aren't an HttpResponse, HttpRequest, or Map,
      * they should be included in the path, in the order they're
      * listed in the method header, in "{ClassName}" form. Example:
      * <code>/hello/{String}/{String}</code> is a good path. <p>
      *
-     * Methods being passed in must accept an HTTPResponse as their first
-     * parameter. Methods may optionally accept an HTTPRequest and a
+     * Methods being passed in must accept an HttpResponse as their first
+     * parameter. Methods may optionally accept an HttpRequest and a
      * Map&lt;String, String&gt; in that order (they may accept a Map but not an
-     * HTTPRequest, but if they accept both the HTTPRequest must come first).
+     * HttpRequest, but if they accept both the HttpRequest must come first).
      *
      * Parameters following the above must be included in the java.lang library
      * and have a constructor that takes in a String.
@@ -120,47 +120,47 @@ public abstract class HTTPHandler {
      *
      * @param path        Path to match
      * @param methodName  Method belonging to the current class, in String form.
-     * @throws HTTPException When you do bad things.
+     * @throws HttpException When you do bad things.
      *
-     * @see HTTPHandler#addPOST
-     * @see HTTPHandler#addDELETE
-     * @see HTTPResponse
-     * @see HTTPRequest
+     * @see HttpHandler#addPOST
+     * @see HttpHandler#addDELETE
+     * @see HttpResponse
+     * @see HttpRequest
      */
-    public void get(String path, Route route) throws HTTPException {
-		addRoute(HTTPRequest.GET_REQUEST_TYPE, path, route);
+    public void get(String path, Route route) throws HttpException {
+		addRoute(HttpRequest.GET_REQUEST_TYPE, path, route);
     }
 
     /**
      * Attach a method to a POST request at a path. <p>
      *
-     * For a more detailed explanation, see {@link HTTPHandler#addGET}.
+     * For a more detailed explanation, see {@link HttpHandler#addGET}.
      *
      * @param path         Path to match
      * @param methodName   Class and Method in class#method form.
-     * @throws HTTPException When you do bad things.
+     * @throws HttpException When you do bad things.
      *
-     * @see HTTPHandler#addGET
-     * @see HTTPHandler#addDELETE
+     * @see HttpHandler#addGET
+     * @see HttpHandler#addDELETE
      */
-    public void post(String path, Route route) throws HTTPException {
-		addRoute(HTTPRequest.POST_REQUEST_TYPE, path, route);
+    public void post(String path, Route route) throws HttpException {
+		addRoute(HttpRequest.POST_REQUEST_TYPE, path, route);
     }
 
     /**
      * Attach a method to a DELETE request at a path. <p>
      *
-     * For a more detailed explanation, see {@link HTTPHandler#addGET}.
+     * For a more detailed explanation, see {@link HttpHandler#addGET}.
      *
      * @param path        Path to match
      * @param methodName  Class and Method in class#method form.
-     * @throws HTTPException when you do bad things.
+     * @throws HttpException when you do bad things.
      *
-     * @see HTTPHandler#addGET
-     * @see HTTPHandler#addPOST
+     * @see HttpHandler#addGET
+     * @see HttpHandler#addPOST
      */
-    public void delete(String path, Route route) throws HTTPException {
-		addRoute(HTTPRequest.DELETE_REQUEST_TYPE, path, route);
+    public void delete(String path, Route route) throws HttpException {
+		addRoute(HttpRequest.DELETE_REQUEST_TYPE, path, route);
     }
 
     /**
@@ -173,9 +173,9 @@ public abstract class HTTPHandler {
      * @param path	    Path to match.
      * @param route	    The Route to be called at said path.
      *
-     * @throws HTTPException  When you do bad things.
+     * @throws HttpException  When you do bad things.
      */
-    public void addRoute(String httpMethod, String path, Route route) throws HTTPException {
+    public void addRoute(String httpMethod, String path, Route route) throws HttpException {
 		httpMethod = httpMethod.toUpperCase();
 
 		MethodWrapper method = new MethodWrapper(path, route);

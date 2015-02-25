@@ -7,15 +7,15 @@ import java.net.Socket;
 import java.net.SocketException;
 
 /**
- * HTTPServer is a relatively simple class with one job, and one job only:
+ * HttpServer is a relatively simple class with one job, and one job only:
  * wait for incoming connections, and send the connections over to an
- * HTTPRequest and an HTTPResponse.
+ * HttpRequest and an HttpResponse.
  *
- * An HTTPServer is not required to use the rest of the httpserver classes,
+ * An HttpServer is not required to use the rest of the httpserver classes,
  * and might not be the best base server for one to use. It exists solely to
  * provide an existing mechanism for using the rest of the httpserver package.
  */
-public class HTTPServer {
+public class HttpServer {
 
   public static final int defaultPort = 8000;
 
@@ -33,53 +33,53 @@ public class HTTPServer {
 
 
   /**
-   * Create an HTTPServer with default values.
+   * Create an HttpServer with default values.
    */
-  public HTTPServer() {
+  public HttpServer() {
     this(defaultPort);
   }
 
   /**
-   * Create an HTTPServer specifying the server information.
+   * Create an HttpServer specifying the server information.
    * @param name The name of the server.
    * @param version The version of the server.
    * @param etc More information about the server.
    */
-  public HTTPServer(String name, String version, String etc) {
+  public HttpServer(String name, String version, String etc) {
     this(defaultPort, name, version, etc);
   }
 
   /**
-   * Create an HTTPServer specifying the server port and information
+   * Create an HttpServer specifying the server port and information
    * @param port The port the server will listen on.
    * @param name The name of the server.
    * @param version The version of the server.
    * @param etc More information about the server.
    */
-  public HTTPServer(int port, String name, String version, String etc) {
+  public HttpServer(int port, String name, String version, String etc) {
     this(port);
     setServerInfo(name, version, etc);
   }
 
   /**
-   * Create an HTTPServer specifying the port.
+   * Create an HttpServer specifying the port.
    * @param port The port the server will listen on.
    */
-  public HTTPServer(int port) {
+  public HttpServer(int port) {
     setPort(port);
   }
 
   /**
    * Tell the server to run.<p>
    * 
-   * Unless you specify the port with {@link HTTPServer#setSocket()},
+   * Unless you specify the port with {@link HttpServer#setSocket()},
    * the server will run on http://127.0.0.1:{@value #defaultPort}.
    */
   public void run() {
     try {
       socket = new ServerSocket();
 
-      System.out.println("Starting HTTPServer at http://127.0.0.1:" + getPort());
+      System.out.println("Starting HttpServer at http://127.0.0.1:" + getPort());
 
       socket.setReuseAddress(true);
       socket.bind(new InetSocketAddress(getPort()));
@@ -88,7 +88,7 @@ public class HTTPServer {
         Socket connection = null;
         try {
           connection = socket.accept();
-          HTTPRequest request = new HTTPRequest(connection);
+          HttpRequest request = new HttpRequest(connection);
           Thread t = new Thread(request);
           t.start();
         }
@@ -101,13 +101,13 @@ public class HTTPServer {
           e.printStackTrace();
         }
         catch (IOException e) {
-          /*  This typically means there's a problem in the HTTPRequest
+          /*  This typically means there's a problem in the HttpRequest
            */
-          System.err.println("IOException. Probably an HTTPRequest issue.");
+          System.err.println("IOException. Probably an HttpRequest issue.");
           e.printStackTrace();
         }
-        catch (HTTPException e) {
-          System.err.println("HTTPException.");
+        catch (HttpException e) {
+          System.err.println("HttpException.");
           e.printStackTrace();
         }
         catch (Exception e) {
@@ -147,14 +147,14 @@ public class HTTPServer {
   }
 
   /**
-   * Set the {@link HTTPRouter} to determine the what
-   * {@link HTTPHandler} will be used.
+   * Set the {@link HttpRouter} to determine the what
+   * {@link HttpHandler} will be used.
    *
-   * @param router  The HTTPRouter to be used to figure out
-   *                        what kind of HTTPHandler we're going to use...
+   * @param router  The HttpRouter to be used to figure out
+   *                        what kind of HttpHandler we're going to use...
    */
-  public void setRouter(HTTPRouter router) {
-    HTTPRequest.setRouter(router);
+  public void setRouter(HttpRouter router) {
+    HttpRequest.setRouter(router);
   }
 
   /**

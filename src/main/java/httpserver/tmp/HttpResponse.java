@@ -8,10 +8,10 @@ import java.util.Map;
 
 
 /**
- * An HTTPResponse is used to set output values, and to write those values
+ * An HttpResponse is used to set output values, and to write those values
  * to the client.
  */
-public class HTTPResponse {
+public class HttpResponse {
   /** Generic error message for when an exception occurs on the server */
   public static final String EXCEPTION_ERROR
           = "an exception occured while processing your request";
@@ -29,7 +29,7 @@ public class HTTPResponse {
   private static String serverInfo;
   private static Map<Integer, String> responses;
 
-  private HTTPRequest request;
+  private HttpRequest request;
 
   private int code;
   private byte[] body;
@@ -43,12 +43,12 @@ public class HTTPResponse {
 
 
   /**
-   * Create a new HTTPResponse to fill out. <p>
+   * Create a new HttpResponse to fill out. <p>
    *
    * It defaults to sending a {@code text/plain} type document, with
    * a status of {@code 200 Ok}, with a body of nothing.
    */
-  public HTTPResponse(HTTPRequest req) throws IOException {
+  public HttpResponse(HttpRequest req) throws IOException {
     if (getServerInfo() == null || getServerInfo().isEmpty()) {
       setupServerInfo();
     }
@@ -73,8 +73,8 @@ public class HTTPResponse {
    * @param code      An HTTP response code.
    * @param message   The content of the server's response to the browser
    *
-   * @see HTTPResponse#error
-   * @see HTTPResponse#noContent
+   * @see HttpResponse#error
+   * @see HttpResponse#noContent
    */
   public void message(int code, String message) {
     setCode(code);
@@ -89,7 +89,7 @@ public class HTTPResponse {
    * This is done by sending over a 204 code, which means there isn't
    * any data in the stream, but the server correctly processed the request
    *
-   * @see HTTPResponse#message
+   * @see HttpResponse#message
    */
   public void noContent() {
     setCode(204);
@@ -108,7 +108,7 @@ public class HTTPResponse {
    * @param message   the content being sent back to the browser
    * @param t         A throwable object, to be printed to the screen
    *
-   * @see HTTPResponse#message
+   * @see HttpResponse#message
    */
   public void error(int code, String message, Throwable t) {
     t.printStackTrace();
@@ -128,9 +128,9 @@ public class HTTPResponse {
       //
       // Thankfully that can all be done by throwing an exception.
       if (getSocket() == null)
-        throw new HTTPException("Socket is null...");
+        throw new HttpException("Socket is null...");
       else if (getSocket().isClosed())
-        throw new HTTPException("Socket is closed...");
+        throw new HttpException("Socket is closed...");
 
 
       // If the user never filled out the response's body, there isn't any
@@ -172,14 +172,14 @@ public class HTTPResponse {
 
       // If there isn't a body, or the client made a HEAD request, stop doing
       // things.
-      if (getRequest().isType(HTTPRequest.HEAD_REQUEST_TYPE) || getCode() == 204) {
+      if (getRequest().isType(HttpRequest.HEAD_REQUEST_TYPE) || getCode() == 204) {
         return;
       }
 
       // Give the client the body.
       getWriter().write(getBody());
     }
-    catch (HTTPException | IOException e) {
+    catch (HttpException | IOException e) {
       System.err.println("Something bad happened while trying to send data "
               + "to the client");
       e.printStackTrace();
@@ -257,7 +257,7 @@ public class HTTPResponse {
   }
 
 
-  private HTTPRequest getRequest() {
+  private HttpRequest getRequest() {
     return request;
   }
 
@@ -273,8 +273,8 @@ public class HTTPResponse {
   /**
    * Return the response code + the response message.
    *
-   * @see HTTPHandler#getResponseCode
-   * @see HTTPHandler#setResponseCode
+   * @see HttpHandler#getResponseCode
+   * @see HttpHandler#setResponseCode
    */
   public static String getResponseCodeMessage(int code) {
     if (responses == null || responses.isEmpty()) {
@@ -352,16 +352,16 @@ public class HTTPResponse {
    */
   public void setupServerInfo() {
     StringBuilder info = new StringBuilder();
-    info.append(HTTPServer.getServerName());
+    info.append(HttpServer.getServerName());
     info.append(" v");
-    info.append(HTTPServer.getServerVersion());
+    info.append(HttpServer.getServerVersion());
     info.append(" (");
-    info.append(HTTPServer.getServerETC());
+    info.append(HttpServer.getServerETC());
     info.append(")");
     setServerInfo(info.toString());
   }
   public static void setServerInfo(String serverInfo) {
-    HTTPResponse.serverInfo = serverInfo;
+    HttpResponse.serverInfo = serverInfo;
   }
   public static String getServerInfo() {
     return serverInfo;

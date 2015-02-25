@@ -13,18 +13,18 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * An HTTPRequest takes an incoming connection and parses out all of the
+ * An HttpRequest takes an incoming connection and parses out all of the
  * relevant data, supposing the connection follows HTTP protocol.
  *
- * At present, HTTPRequest only knows how to handle HTTP 1.1 requests, and
+ * At present, HttpRequest only knows how to handle HTTP 1.1 requests, and
  * doesn't handle persistent connections. Technically, it could handle an
  * HTTP 1.0 request, because 1.0 doesn't have persistent connections.
  *
  * @see   <a href="http://www.w3.org/Protocols/rfc2616/rfc2616.html">
  *        HTTP 1.1 Spec</a>
- * @see HTTPHandler
+ * @see HttpHandler
  */
-public class HTTPRequest implements Runnable {
+public class HttpRequest implements Runnable {
     /** HTTP GET request type */
     public static final String GET_REQUEST_TYPE = "GET";
 
@@ -42,14 +42,14 @@ public class HTTPRequest implements Runnable {
 
 
     // used to determine what one does with the request
-    private static HTTPRouter router;
+    private static HttpRouter router;
 
     // connection with client
     private Socket connection;
 
     // the handler used to determine what the server actually does
     // with this request
-    private HTTPHandler handler;
+    private HttpHandler handler;
 
     // the full text of the incoming request, including headers
     // and sent over data
@@ -88,15 +88,15 @@ public class HTTPRequest implements Runnable {
      *
      * @param connection The socket between the server and client
      * @throws IOException      When it gets thrown by
-     *                          {@link HTTPRequest#parseRequest}.
+     *                          {@link HttpRequest#parseRequest}.
      * @throws SocketException  When it gets thrown by
-     *                          {@link HTTPRequest#parseRequest}.
-     * @throws HTTPException    When something that doesn't follow HTTP spec
+     *                          {@link HttpRequest#parseRequest}.
+     * @throws HttpException    When something that doesn't follow HTTP spec
      *                          occurs.
      *
-     * @see HTTPRequest#parseRequest
+     * @see HttpRequest#parseRequest
      */
-    public HTTPRequest(Socket connection) throws IOException, SocketException, HTTPException {
+    public HttpRequest(Socket connection) throws IOException, SocketException, HttpException {
         connection.setKeepAlive(true);
         setConnection(connection);
     }
@@ -109,10 +109,10 @@ public class HTTPRequest implements Runnable {
 
         try {
             parseRequest();
-            HTTPResponse response = new HTTPResponse(this);
+            HttpResponse response = new HttpResponse(this);
             determineHandler().handle(this, response);
             response.respond();
-        } catch (IOException | HTTPException e) {
+        } catch (IOException | HttpException e) {
             e.printStackTrace();
         }
     }
@@ -126,13 +126,13 @@ public class HTTPRequest implements Runnable {
      * @throws SocketException  When the client breaks early. This is a browser
      *                          issue, and not a server issue, but it gets thrown
      *                          upstream because it can't be dealt with until it
-     *                          gets to the HTTPServer.
-     * @throws HTTPException    When headers aren't in key/value pairs separated
+     *                          gets to the HttpServer.
+     * @throws HttpException    When headers aren't in key/value pairs separated
      *                          by ": ".
      *
-     * @see HTTPServer
+     * @see HttpServer
      */
-    public void parseRequest() throws IOException, SocketException, HTTPException {
+    public void parseRequest() throws IOException, SocketException, HttpException {
         // Used to read in from the socket
         BufferedReader input = new BufferedReader(
                 new InputStreamReader(getConnection().getInputStream()));
@@ -145,7 +145,7 @@ public class HTTPRequest implements Runnable {
             */
         String firstLine = input.readLine();
         if (firstLine == null) {
-            throw new HTTPException("Input is returning nulls...");
+            throw new HttpException("Input is returning nulls...");
         }
 
         while (firstLine.isEmpty()) {
@@ -178,7 +178,7 @@ public class HTTPRequest implements Runnable {
             String[] items = line.split(": ");
 
             if (items.length == 1) {
-                throw new HTTPException("No key value pair in \n\t" + line);
+                throw new HttpException("No key value pair in \n\t" + line);
             }
 
             String value = items[1];
@@ -208,7 +208,7 @@ public class HTTPRequest implements Runnable {
             getParams().putAll(parseInputData(data));
         }
 
-        setHTTPRequest(requestBuilder.toString());
+        setHttpRequest(requestBuilder.toString());
     }
 
 
@@ -247,20 +247,20 @@ public class HTTPRequest implements Runnable {
     }
 
     /**
-     * Figure out what kind of HTTPHandler you want, based on the path. <p>
+     * Figure out what kind of HttpHandler you want, based on the path. <p>
      *
-     * This uses the statically set {@link HTTPRouter} to determine the
-     * correct HTTPHandler to be used for the current request. If there isn't
-     * a statically set HTTPRouter, a 500 error is sent back to the
+     * This uses the statically set {@link HttpRouter} to determine the
+     * correct HttpHandler to be used for the current request. If there isn't
+     * a statically set HttpRouter, a 500 error is sent back to the
      * client.
      *
-     * @return a new instance of some form of HTTPHandler.
+     * @return a new instance of some form of HttpHandler.
      *
-     * @see HTTPRouter
-     * @see HTTPRouter#determineHandler
-     * @see HTTPHandler
+     * @see HttpRouter
+     * @see HttpRouter#determineHandler
+     * @see HttpHandler
      */
-    public HTTPHandler determineHandler() throws HTTPException {
+    public HttpHandler determineHandler() throws HttpException {
         if (router == null) {
             return new DeathHandler();
         }
@@ -286,16 +286,16 @@ public class HTTPRequest implements Runnable {
      *
      * @param line  The first line in an HTTP request. Should be in
      *              {@code [type] [full path] [protocol]} form.
-     * @throws HTTPException  When the first line does not contain two spaces,
+     * @throws HttpException  When the first line does not contain two spaces,
      *                        signifying that the passed in line is not in
      *                        HTTP 1.1. When the type is not an expected type
      *                        (currently GET, POST, and HEAD).
      *
-     * @see HTTPRequest#setRequestType
-     * @see HTTPRequest#setFullPath
-     * @see HTTPRequest#setRequestProtocol
+     * @see HttpRequest#setRequestType
+     * @see HttpRequest#setFullPath
+     * @see HttpRequest#setRequestProtocol
      */
-    public void setRequestLine(String line) throws HTTPException {
+    public void setRequestLine(String line) throws HttpException {
         this.requestLine = line;
 
         /*  Split apart the request line by spaces, as per the protocol.
@@ -304,7 +304,7 @@ public class HTTPRequest implements Runnable {
             */
         String[] splitty = requestLine.trim().split(" ");
         if (splitty.length != 3) {
-            throw new HTTPException("Request line has a number of spaces other than 3.");
+            throw new HttpException("Request line has a number of spaces other than 3.");
         }
 
 
@@ -322,7 +322,7 @@ public class HTTPRequest implements Runnable {
             setRequestType(DELETE_REQUEST_TYPE);
         }
         else {
-            throw new HTTPException("Unexpected request type: " + splitty[0]);
+            throw new HttpException("Unexpected request type: " + splitty[0]);
         }
 
         // set the path
@@ -348,8 +348,8 @@ public class HTTPRequest implements Runnable {
      *
      * @param inPath  The full requested path (in `/path/to/request` form)
      *
-     * @see HTTPRequest#setPath
-     * @see HTTPRequest#setSplitPath
+     * @see HttpRequest#setPath
+     * @see HttpRequest#setSplitPath
      */
     public void setFullPath(String inPath) {
         this.fullPath = inPath;
@@ -383,7 +383,7 @@ public class HTTPRequest implements Runnable {
      * splitPath, and the request's associated GET data is parsed from the query
      * string.
      *
-     * @see HTTPRequest#getGetData
+     * @see HttpRequest#getGetData
      */
     public void setSplitPath(String fullPath) {
         /*  Split apart the path for future reference by the handlers
@@ -471,10 +471,10 @@ public class HTTPRequest implements Runnable {
         return this.varargs;
     }
 
-    public void setHTTPRequest(String httpRequest) {
+    public void setHttpRequest(String httpRequest) {
         this.httpRequest = httpRequest;
     }
-    public String getHTTPRequest() {
+    public String getHttpRequest() {
         return httpRequest;
     }
 
@@ -492,24 +492,24 @@ public class HTTPRequest implements Runnable {
         return requestProtocol;
     }
 
-    public void setHandler(HTTPHandler handler) {
+    public void setHandler(HttpHandler handler) {
         this.handler = handler;
     }
-    public HTTPHandler getHandler() {
+    public HttpHandler getHandler() {
         return handler;
     }
 
-    public static void setRouter(HTTPRouter router) {
-        HTTPRequest.router = router;
+    public static void setRouter(HttpRouter router) {
+        HttpRequest.router = router;
     }
-    public static HTTPRouter getRouter() {
+    public static HttpRouter getRouter() {
         return router;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("HTTPRequest from ");
+        builder.append("HttpRequest from ");
         builder.append(getConnection().getLocalAddress().getHostAddress());
         builder.append("\n\t");
         builder.append("Request Line: ");

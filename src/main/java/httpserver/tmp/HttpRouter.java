@@ -4,23 +4,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An HTTPRouter is used to route incoming requests to specific handlers.
+ * An HttpRouter is used to route incoming requests to specific handlers.
  *
- * @see HTTPHandler
- * @see HTTPRequest
+ * @see HttpHandler
+ * @see HttpRequest
  */
-public class HTTPRouter {
-  private Map<String, HTTPHandler> handlers;
-  private HTTPHandler errorHandler;
-  private HTTPHandler defaultHandler;
+public class HttpRouter {
+  private Map<String, HttpHandler> handlers;
+  private HttpHandler errorHandler;
+  private HttpHandler defaultHandler;
 
-  public HTTPRouter() {
+  public HttpRouter() {
     handlers = new HashMap<>();
     try {
       errorHandler = new DeathHandler(501);
-    } catch (HTTPException e) {
+    } catch (HttpException e) {
       throw new RuntimeException(
-        "DeathHandler threw an HTTPException. Something really, really bad has happened.");
+        "DeathHandler threw an HttpException. Something really, really bad has happened.");
     }
 
     defaultHandler = null;
@@ -28,18 +28,18 @@ public class HTTPRouter {
 
 
   /**
-   * Route determines which {@link HTTPHandler} to use based on the first path
+   * Route determines which {@link HttpHandler} to use based on the first path
    * segment (between the first and second `/`). <p>
    *
-   * If no {@link HTTPHandler} can be found for the specified path segment, an
+   * If no {@link HttpHandler} can be found for the specified path segment, an
    * error handler is used. You can specify a specific error handler using the
-   * {@link #setErrorHandler(HTTPHandler)} method. The default error handler
+   * {@link #setErrorHandler(HttpHandler)} method. The default error handler
    * will send a `501` status code (Not Implemented) to the client.
    *
-   * @see HTTPHandler
+   * @see HttpHandler
    */
-  public HTTPHandler route(String pathSegment, HTTPRequest request)
-      throws HTTPException {
+  public HttpHandler route(String pathSegment, HttpRequest request)
+      throws HttpException {
 
     if (getHandlers().containsKey(pathSegment)) {
       request.setPath(request.getPath().substring(pathSegment.length() + 1));
@@ -57,7 +57,7 @@ public class HTTPRouter {
    * Get the map used to route paths to specific handlers
    * @return The router's map of path segments and handlers.
    */
-  public Map<String, HTTPHandler> getHandlers() {
+  public Map<String, HttpHandler> getHandlers() {
     return handlers;
   }
 
@@ -67,24 +67,24 @@ public class HTTPRouter {
    *
    * @param pathSegment     The first path segment (
    *                        between the first and second {@code /}) to match
-   * @param handler         An HTTPHandler to be routed to.
+   * @param handler         An HttpHandler to be routed to.
    */
-  public void addHandler(String pathSegment, HTTPHandler handler) {
+  public void addHandler(String pathSegment, HttpHandler handler) {
     getHandlers().put(pathSegment, handler);
   }
 
 
-  public void setErrorHandler(HTTPHandler handler) {
+  public void setErrorHandler(HttpHandler handler) {
     errorHandler = handler;
   }
-  public HTTPHandler getErrorHandler() {
+  public HttpHandler getErrorHandler() {
     return errorHandler;
   }
 
-  public void setDefaultHandler(HTTPHandler handler) {
+  public void setDefaultHandler(HttpHandler handler) {
     defaultHandler = handler;
   }
-  public HTTPHandler getDefaultHandler() {
+  public HttpHandler getDefaultHandler() {
     return defaultHandler;
   }
 }
