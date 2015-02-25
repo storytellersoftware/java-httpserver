@@ -15,7 +15,7 @@ import java.net.SocketException;
  * and might not be the best base server for one to use. It exists solely to
  * provide an existing mechanism for using the rest of the httpserver package.
  */
-public class HttpServer {
+public class HttpServer extends HttpHandler {
     public static final int defaultPort = 8000;
 
     /** The server's name */
@@ -29,6 +29,7 @@ public class HttpServer {
 
     public int port;
     private ServerSocket socket = null;
+    private HttpRouter router;
 
 
     /**
@@ -66,6 +67,9 @@ public class HttpServer {
      */
     public HttpServer(int port) {
         setPort(port);
+
+        setRouter(new HttpRouter());
+        getRouter().setDefaultHandler(this);
     }
 
     /**
@@ -87,7 +91,7 @@ public class HttpServer {
                 Socket connection = null;
                 try {
                     connection = socket.accept();
-                    HttpRequest request = new HttpRequest(connection);
+                    HttpRequest request = new HttpRequest(getRouter(), connection);
                     Thread t = new Thread(request);
                     t.start();
                 } catch (SocketException e) {
@@ -123,18 +127,15 @@ public class HttpServer {
                     break;
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             /*  Not sure when this occurs, but it might...
             */
             System.err.println("Something bad happened...");
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 socket.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 System.err.println("Well that's not good...");
                 e.printStackTrace();
             }
@@ -149,7 +150,10 @@ public class HttpServer {
      *                  what kind of HttpHandler we're going to use...
      */
     public void setRouter(HttpRouter router) {
-        HttpRequest.setRouter(router);
+        this.router = router;
+    }
+    public HttpRouter getRouter() {
+        return this.router;
     }
 
     /**

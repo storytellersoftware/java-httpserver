@@ -15,19 +15,19 @@ import java.util.Random;
  */
 class DeathHandler extends HttpHandler {
   private int code;
-  
-  
+
+
   public static ArrayList<String> errorMessages;
 
   /**
    * Creates a new DeathHandler...
    */
-  public DeathHandler() throws HttpException {
+  public DeathHandler() {
     this(500);
   }
-  
-  
-  public DeathHandler(int statusCode) throws HttpException {
+
+
+  public DeathHandler(int statusCode) {
     super();
     setupErrorMessages();
     code = statusCode;
@@ -39,7 +39,7 @@ class DeathHandler extends HttpHandler {
    * Regardless of what you *think* we should do, we're just going to send a
    * 500 error to the browser, with a random, generic error message. Including
    * some from our good friend, Han Solo.
- * @throws HttpException 
+ * @throws HttpException
    */
   @Override
   public void handle(HttpRequest request, HttpResponse resp) {

@@ -16,13 +16,7 @@ public class HttpRouter {
 
     public HttpRouter() {
         handlers = new HashMap<>();
-        try {
-            errorHandler = new DeathHandler(501);
-        } catch (HttpException e) {
-            throw new RuntimeException(
-                    "DeathHandler threw an HttpException. Something really, really bad has happened.");
-        }
-
+        errorHandler = new DeathHandler(501);
         defaultHandler = null;
     };
 
@@ -38,7 +32,7 @@ public class HttpRouter {
      *
      * @see HttpHandler
      */
-    public HttpHandler route(String pathSegment, HttpRequest request) throws HttpException {
+    public HttpHandler route(String pathSegment, HttpRequest request) {
 
         if (getHandlers().containsKey(pathSegment)) {
             request.setPath(request.getPath().substring(pathSegment.length() + 1));

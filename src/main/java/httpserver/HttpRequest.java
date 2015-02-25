@@ -42,7 +42,7 @@ public class HttpRequest implements Runnable {
 
 
     // used to determine what one does with the request
-    private static HttpRouter router;
+    private HttpRouter router;
 
     // connection with client
     private Socket connection;
@@ -96,7 +96,8 @@ public class HttpRequest implements Runnable {
      *
      * @see HttpRequest#parseRequest
      */
-    public HttpRequest(Socket connection) throws IOException, SocketException, HttpException {
+    public HttpRequest(HttpRouter router, Socket connection) throws IOException, SocketException, HttpException {
+        this.router = router;
         connection.setKeepAlive(true);
         setConnection(connection);
     }
@@ -108,13 +109,18 @@ public class HttpRequest implements Runnable {
         }
 
         try {
-            parseRequest();
-            HttpResponse response = new HttpResponse(this);
-            determineHandler().handle(this, response);
-            response.respond();
+            createResponse().respond();
         } catch (IOException | HttpException e) {
             e.printStackTrace();
         }
+    }
+
+    public HttpResponse createResponse() throws IOException, HttpException {
+        parseRequest();
+        HttpResponse response = new HttpResponse(this);
+        determineHandler().handle(this, response);
+
+        return response;
     }
 
 
@@ -260,7 +266,7 @@ public class HttpRequest implements Runnable {
      * @see HttpRouter#determineHandler
      * @see HttpHandler
      */
-    public HttpHandler determineHandler() throws HttpException {
+    public HttpHandler determineHandler() {
         if (router == null) {
             return new DeathHandler();
         }
@@ -499,10 +505,10 @@ public class HttpRequest implements Runnable {
         return handler;
     }
 
-    public static void setRouter(HttpRouter router) {
-        HttpRequest.router = router;
+    public void setRouter(HttpRouter router) {
+        this.router = router;
     }
-    public static HttpRouter getRouter() {
+    public HttpRouter getRouter() {
         return router;
     }
 

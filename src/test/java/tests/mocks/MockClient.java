@@ -1,4 +1,4 @@
-package tests;
+package tests.mocks;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

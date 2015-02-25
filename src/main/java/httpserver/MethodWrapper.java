@@ -42,9 +42,9 @@ class MethodWrapper {
      * @throws HttpException   If the passed in path is invalid.
      * @see HttpHandler#addGET
      */
-    public MethodWrapper(String path, Route route) throws HttpException {
+    public MethodWrapper(String path, Route route) {
         if (route == null) {
-            throw new HttpException(new NullPointerException("Route may not be null!"));
+            throw new NullPointerException("Route may not be null!");
         }
 
         this.route = route;
@@ -62,7 +62,7 @@ class MethodWrapper {
                 if (i != paths.length - 1) {
                     while (++i < paths.length && paths[i].isEmpty());
                     if (i != paths.length - 1) {
-                        throw new HttpException("{*} must be the final section of your path!");
+                        throw new RuntimeException("{*} must be the final section of your path!");
                     }
                     usesVarargs = true;
                 }

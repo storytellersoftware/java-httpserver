@@ -7,41 +7,51 @@ import httpserver.HttpHandler;
 import httpserver.HttpRequest;
 import httpserver.HttpResponse;
 import httpserver.HttpRouter;
+import httpserver.HttpServer;
 import httpserver.Route;
 
 import java.util.Map;
 import java.net.ServerSocket;
 
 import org.junit.Test;
+import org.junit.BeforeClass;
 
-public class HandlerTest extends HttpHandler {
-    public HandlerTest() throws HttpException {
-        get("/showHeaders", new Route() {
+import tests.mocks.MockHttpServer;
+import tests.mocks.MockClient;
+
+public class HandlerTest {
+    private static HttpServer server;
+
+    @BeforeClass
+    public static void setupServer() {
+        HandlerTest.server = MockHttpServer.mockServer();
+
+        server.get("/showHeaders", new Route() {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Headers:" + headerString(request.getHeaders()));
             }
         });
 
-        get("/hello", new Route() {
+        server.get("/hello", new Route() {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello World!");
             }
         });
 
 
-        get("/hello/{firstName}", new Route() {
+        server.get("/hello/{firstName}", new Route() {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + "!");
             }
         });
 
-        get("/hello/{firstName}/{lastName}", new Route() {
+        server.get("/hello/{firstName}/{lastName}", new Route() {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 response.setBody("Hello " + request.getParam("firstName") + " " + request.getParam("lastName") + "!");
             }
         });
 
-        get("/hello/{*}", new Route() {
+        server.get("/hello/{*}", new Route() {
             @Override public void handle(HttpRequest request, HttpResponse response) {
                 StringBuilder b = new StringBuilder();
                 for (String name: request.getVarargs()) {
@@ -53,6 +63,8 @@ public class HandlerTest extends HttpHandler {
                 response.setBody(b.toString());
             }
         });
+
+
     }
 
     public static String headerString(Map<String, String> headers) {
@@ -68,40 +80,29 @@ public class HandlerTest extends HttpHandler {
         return b.toString();
     }
 
-    public static ServerSocket makeServer() throws Exception {
-        HttpRouter router = new HttpRouter();
-        router.setDefaultHandler(new HandlerTest());
-        HttpRequest.setRouter(router);
+    public static HttpResponse getResponse(MockClient client) throws Exception {
+        ServerSocket socket = new ServerSocket(MockClient.DESIRED_PORT);
+        client.fillInSocket();
 
-        return new ServerSocket(MockClient.DESIRED_PORT);
-    }
+        HttpRequest request = new HttpRequest(server.getRouter(), socket.accept());
+        HttpResponse response = request.createResponse();
+        socket.close();
 
-    @Test
-    public void testHandlerCreation() {
-        try {
-            HttpRouter f = new HttpRouter();
-            f.addHandler("/", new HandlerTest());
-        } catch (HttpException e) {
-            e.printStackTrace();
-            fail("Couldn't create new handler...");
-        }
+        return response;
     }
 
     @Test
     public void testShowHeaders() {
         try {
-            ServerSocket server = makeServer();
-
             MockClient client = new MockClient();
-            client.setPath("/showHeaders");
+            client.setPath("showHeaders");
+
+            ServerSocket socket = new ServerSocket(MockClient.DESIRED_PORT);
             client.fillInSocket();
 
-            HttpRequest request = new HttpRequest(server.accept());
-            request.parseRequest();
-            HttpResponse response = new HttpResponse(request);
-            (new HandlerTest()).handle(request, response);
-
-            server.close();
+            HttpRequest request = new HttpRequest(server.getRouter(), socket.accept());
+            HttpResponse response = request.createResponse();
+            socket.close();
 
             String responseBody = new String(response.getBody(), "UTF-8");
             String expectedBody = "Headers:" + headerString(request.getHeaders());
@@ -110,6 +111,35 @@ public class HandlerTest extends HttpHandler {
         } catch (Exception e) {
             e.printStackTrace();
             fail("Exception occurred in testShowHeaders");
+        }
+    }
+
+    @Test
+    public void testHello() {
+        try {
+            MockClient client = new MockClient();
+            client.setPath("/hello");
+
+            HttpResponse response = getResponse(client);
+
+            assertEquals("Hello World!", new String(response.getBody(), "UTF-8"));
+        } catch (Throwable t) {
+            t.printStackTrace();
+            fail("Exception occurred in testHello()");
+        }
+    }
+
+    @Test
+    public void testHelloName() {
+        try {
+            MockClient client = new MockClient();
+            client.setPath("/hello/Don");
+            HttpResponse response = getResponse(client);
+
+            assertEquals("Hello Don!", new String(response.getBody(), "UTF-8"));
+        } catch (Throwable t) {
+            t.printStackTrace();
+            fail("Exception occurred in testHelloName()");
         }
     }
 }
