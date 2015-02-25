@@ -64,24 +64,24 @@ public abstract class HTTPHandler {
      * @see HTTPResponse#NOT_A_METHOD_ERROR
      */
     public void handle(HTTPRequest request, HTTPResponse response) {
-	String httpRequestType = request.getRequestType().toUpperCase();
-	if (!routes.containsKey(httpRequestType)) {
-	    response.message(404, "No " + httpRequestType + " routes exist.");
-	    return;
-	}
+		String httpRequestType = request.getRequestType().toUpperCase();
+		if (!routes.containsKey(httpRequestType)) {
+			response.message(404, "No " + httpRequestType + " routes exist.");
+			return;
+		}
 
-	MethodWrapper finalMethod = null;
-	int bestFit = 0;
-	for (MethodWrapper method : routes.get(httpRequestType)) {
-	    if (method.matchesPerfectly(request.getSplitPath())) {
-			finalMethod = method;
-			break;
-	    }
+		MethodWrapper finalMethod = null;
+		int bestFit = 0;
+		for (MethodWrapper method : routes.get(httpRequestType)) {
+			if (method.matchesPerfectly(request.getSplitPath())) {
+				finalMethod = method;
+				break;
+			}
 
-	    int testScore = method.howCorrect(request.getSplitPath());
-	    if (testScore > bestFit) {
-			finalMethod = method;
-			bestFit = testScore;
+			int testScore = method.howCorrect(request.getSplitPath());
+			if (testScore > bestFit) {
+				finalMethod = method;
+				bestFit = testScore;
 			}
 		}
 

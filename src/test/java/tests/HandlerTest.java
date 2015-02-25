@@ -1,6 +1,7 @@
 package tests;
 
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
 import httpserver.HTTPException;
 import httpserver.HTTPHandler;
 import httpserver.HTTPRequest;
@@ -8,22 +9,16 @@ import httpserver.HTTPResponse;
 import httpserver.HTTPRouter;
 import httpserver.Route;
 
+import java.util.Map;
+import java.net.ServerSocket;
+
 import org.junit.Test;
 
 public class HandlerTest extends HTTPHandler {
     public HandlerTest() throws HTTPException {
         get("/showHeaders", new Route() {
             @Override public void handle(HTTPRequest request, HTTPResponse response) {
-                StringBuilder b = new StringBuilder();
-                for (String key: request.getHeaders().keySet()) {
-                    b.append("\n\t");
-                    b.append(key);
-                    b.append(":\t");
-                    b.append(request.getHeaders().get(key));
-                    b.append("\n");
-                }
-
-                response.setBody("Headers:" + b.toString());
+                response.setBody("Headers:" + headerString(request.getHeaders()));
             }
         });
 
@@ -60,6 +55,27 @@ public class HandlerTest extends HTTPHandler {
         });
     }
 
+    public static String headerString(Map<String, String> headers) {
+        StringBuilder b = new StringBuilder();
+        for (String key: headers.keySet()) {
+            b.append("\n\t");
+            b.append(key);
+            b.append(":\t");
+            b.append(headers.get(key));
+            b.append("\n");
+        }
+
+        return b.toString();
+    }
+
+    public static ServerSocket makeServer() throws Exception {
+        HTTPRouter router = new HTTPRouter();
+        router.setDefaultHandler(new HandlerTest());
+        HTTPRequest.setRouter(router);
+
+        return new ServerSocket(MockClient.DESIRED_PORT);
+    }
+
     @Test
     public void testHandlerCreation() {
         try {
@@ -71,4 +87,29 @@ public class HandlerTest extends HTTPHandler {
         }
     }
 
+    @Test
+    public void testShowHeaders() {
+        try {
+            ServerSocket server = makeServer();
+
+            MockClient client = new MockClient();
+            client.setPath("/showHeaders");
+            client.fillInSocket();
+
+            HTTPRequest request = new HTTPRequest(server.accept());
+            request.parseRequest();
+            HTTPResponse response = new HTTPResponse(request);
+            (new HandlerTest()).handle(request, response);
+
+            server.close();
+
+            String responseBody = new String(response.getBody(), "UTF-8");
+            String expectedBody = "Headers:" + headerString(request.getHeaders());
+
+            assertEquals(expectedBody, responseBody);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Exception occurred in testShowHeaders");
+        }
+    }
 }

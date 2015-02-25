@@ -43,6 +43,12 @@ class MethodWrapper {
      * @see HTTPHandler#addGET
      */
     public MethodWrapper(String path, Route route) throws HTTPException {
+        if (route == null) {
+            throw new HTTPException(new NullPointerException("Route may not be null!"));
+        }
+
+        this.route = route;
+
         String[] paths = cleanPath(path).split("/");
 
         for (int i = 0; i < paths.length; i++) {

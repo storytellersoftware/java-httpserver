@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * An HTTPRouter is used to route incoming requests to specific handlers. 
+ * An HTTPRouter is used to route incoming requests to specific handlers.
  *
  * @see HTTPHandler
  * @see HTTPRequest
@@ -22,7 +22,7 @@ public class HTTPRouter {
       throw new RuntimeException(
         "DeathHandler threw an HTTPException. Something really, really bad has happened.");
     }
-    
+
     defaultHandler = null;
   };
 
@@ -30,17 +30,17 @@ public class HTTPRouter {
   /**
    * Route determines which {@link HTTPHandler} to use based on the first path
    * segment (between the first and second `/`). <p>
-   * 
+   *
    * If no {@link HTTPHandler} can be found for the specified path segment, an
    * error handler is used. You can specify a specific error handler using the
    * {@link #setErrorHandler(HTTPHandler)} method. The default error handler
    * will send a `501` status code (Not Implemented) to the client.
-   * 
+   *
    * @see HTTPHandler
    */
-  public HTTPHandler route(String pathSegment, HTTPRequest request) 
+  public HTTPHandler route(String pathSegment, HTTPRequest request)
       throws HTTPException {
-    
+
     if (getHandlers().containsKey(pathSegment)) {
       request.setPath(request.getPath().substring(pathSegment.length() + 1));
       return getHandlers().get(pathSegment);
@@ -61,10 +61,10 @@ public class HTTPRouter {
     return handlers;
   }
 
-  
+
   /**
    * Add a new route.
-   * 
+   *
    * @param pathSegment     The first path segment (
    *                        between the first and second {@code /}) to match
    * @param handler         An HTTPHandler to be routed to.
@@ -72,15 +72,15 @@ public class HTTPRouter {
   public void addHandler(String pathSegment, HTTPHandler handler) {
     getHandlers().put(pathSegment, handler);
   }
-  
-  
+
+
   public void setErrorHandler(HTTPHandler handler) {
     errorHandler = handler;
   }
   public HTTPHandler getErrorHandler() {
     return errorHandler;
   }
-  
+
   public void setDefaultHandler(HTTPHandler handler) {
     defaultHandler = handler;
   }
