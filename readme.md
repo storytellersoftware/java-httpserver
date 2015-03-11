@@ -4,47 +4,28 @@ It's an HTTP server, written in JAVA!
 
 Originally a more generic version of the HTTP server used by
 [Storyteller](http://storytellersoftware.com), `httpserver` is a poorly named,
-easy to use, and simple HTTP server, that's written in Java. 
+easy to use, and simple HTTP server, that's written in Java.
 
 We originally wrote our own HTTP server for Storyteller because we couldn't find
 an easy to integrate and relatively simple (to the end user) HTTP server for
-Java. `httpserver` takes inspiration from simple microframeworks like 
+Java. `httpserver` takes inspiration from simple microframeworks like
 [Sinatra](http://www.sinatrarb.com/) and [Flask](http://flask.pocoo.org/).
 
 
 ## How does it work?
 
-java-httpserver has five main components:
+At present we have a home spun HTTP server, which manages all incoming requests.
+One of our current goals is to switch to being a simple abstraction layer on top
+of a better foundation, probably Jetty.
 
--   **HttpServer**, a really simple class that usually runs in the background,
-    waiting for requests, and sending them off to the *HttpRequest* class to get things done.
+### Specifics?
 
--   **HttpRouter**, a class that maps the path segments (the string
-    between the first two `/`s in the request) to *HttpHandlers*.
+You can see an example server inside the `test.ServerApplicationTest` class.
+While it's not complete, and doesn't actually run a server, it shows the basis
+of how you'd build a new application.
 
--   **HttpRequest**, a class that takes in a Socket, reads from it, and splits
-    apart the incoming data into its component parts (provided that the incoming
-    Socket is following the HTTP protocol).
-
--   **HttpResponse**, a class that's passed to all handling methods and filled
-    in to send data back the the client. After an *HttpHandler* fills in a
-    Response, it sends that data back to the client.
-
--   **HttpHandler**, an abstract class whos subclasses are used to actually do
-    things with the data, specifically filling out *HttpResponse*s.
-
-There's also an `HttpException`, and `DeathHandler`, which are used when bad
-things occur. Don't let bad things occur.
-
-
-## Demo?
-
-A very basic demo showing off most of the features of `httpserver` can be found
-in the `demo` package. 
-
-If you're looking for an HttpHandler that does interesting things, check out the
-`tests.HandlerTest`.
-
+At some point in the near future, we hope to have an example application
+included in the source.
 
 ## Helping out
 
@@ -58,7 +39,7 @@ agree, we'll make the fix.
 ## Credits
 
 java-httpserver is based on some of the work done by
-[Don Kuntz](http://don.kuntz.co) and 
+[Don Kuntz](http://don.kuntz.co) and
 [Michael Peterson](http://mpeterson2.github.io) over the summer of 2013 while
 working on [Storyteller](http://storytellersoftware.com).
 
