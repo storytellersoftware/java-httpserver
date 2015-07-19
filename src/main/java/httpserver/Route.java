@@ -35,28 +35,32 @@ public abstract class Route {
 
 
     public void invoke(HttpRequest request, HttpResponse response) {
-        Map<String, String> urlParams = new HashMap<>();
-        List<String> varargs = new ArrayList<>();
+        try {
+            Map<String, String> urlParams = new HashMap<>();
+            List<String> varargs = new ArrayList<>();
 
-        List<String> calledPath = request.getSplitPath();
+            List<String> calledPath = request.getSplitPath();
 
-        for (int i = 0; i < routePath.size(); i++) {
-            if (isDynamic(routePath.get(i))) {
-                urlParams.put(stripDynamic(routePath.get(i)), calledPath.get(i));
-            }
+            for (int i = 0; i < routePath.size(); i++) {
+                if (isDynamic(routePath.get(i))) {
+                    urlParams.put(stripDynamic(routePath.get(i)), calledPath.get(i));
+                }
 
-            if (routePath.get(i).equals("{*}")) {
-                while (i < calledPath.size()) {
-                    varargs.add(calledPath.get(i));
-                    i++;
+                if (routePath.get(i).equals("{*}")) {
+                    while (i < calledPath.size()) {
+                        varargs.add(calledPath.get(i));
+                        i++;
+                    }
                 }
             }
+
+            request.mergeParams(urlParams);
+            request.mergeVarargs(varargs);
+
+            handle(request, response);
+        } catch (Throwable t) {
+            response.error(500, t.getMessage(), t);
         }
-
-        request.mergeParams(urlParams);
-        request.mergeVarargs(varargs);
-
-        handle(request, response);
     }
 
 

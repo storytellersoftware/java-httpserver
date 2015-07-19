@@ -81,6 +81,8 @@ public class HttpRequest implements Runnable {
 
     private List<String> varargs = new ArrayList<>();
 
+    private String requestBody;
+
 
     /**
      * Used to parse out an HTTP request provided a Socket and figure out the
@@ -196,11 +198,11 @@ public class HttpRequest implements Runnable {
         }
 
 
-        /*  If the client sent over a POST request, there's *probably* still data
+        /*  If the client sent over a POST, PUT, or DELETE request, there's *probably* still data
             in the stream. This reads in only the number of chars specified in the
             "Content-Length" header.
             */
-        if (getRequestType().equals(POST_REQUEST_TYPE) && getHeaders().containsKey("Content-Length")) {
+        if ((getRequestType().equals(POST_REQUEST_TYPE) || getRequestType().equals(DELETE_REQUEST_TYPE) || getRequestType().equals(PUT_REQUEST_TYPE)) && getHeaders().containsKey("Content-Length")) {
             int contentLength = Integer.parseInt(getHeaders().get("Content-Length"));
             StringBuilder b = new StringBuilder();
 
@@ -210,7 +212,9 @@ public class HttpRequest implements Runnable {
 
             requestBuilder.append(b.toString());
 
-            String[] data = b.toString().split("&");
+            requestBody = b.toString();
+
+            String[] data = requestBody.split("&");
             getParams().putAll(parseInputData(data));
         }
 
@@ -496,6 +500,10 @@ public class HttpRequest implements Runnable {
     }
     public HttpRouter getRouter() {
         return router;
+    }
+
+    public String getRequestBody() {
+        return requestBody;
     }
 
     @Override

@@ -5,6 +5,8 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
 /**
  * An HttpHandler is what all handlers used by your server descend from. <p>
@@ -22,7 +24,10 @@ import java.util.ArrayList;
  * @see MessageHandler
  */
 public abstract class HttpHandler {
+    public static final List<String> DEFAULT_PATH = Arrays.asList("*");
+
     private final HashMap<String, ArrayList<Route>> routes = new HashMap<>();
+    private final HashMap<String, Route> defaultRoutes = new HashMap<>();
 
     private Socket socket;
     private DataOutputStream writer;
@@ -70,7 +75,7 @@ public abstract class HttpHandler {
             return;
         }
 
-        Route route = null;
+        Route route = defaultRoutes.get(httpRequestType);
         int bestFit = 0;
         for (Route testRoute : routes.get(httpRequestType)) {
             if (testRoute.matchesPerfectly(request.getSplitPath())) {
@@ -179,10 +184,14 @@ public abstract class HttpHandler {
         httpMethod = httpMethod.toUpperCase();
 
         if (!routes.containsKey(httpMethod)) {
-            routes.put(httpMethod, new ArrayList<>());
+            routes.put(httpMethod, new ArrayList<Route>());
         }
 
         routes.get(httpMethod).add(route);
+
+        if (route.matchesPerfectly(DEFAULT_PATH)) {
+            defaultRoutes.put(httpMethod, route);
+        }
     }
 
 
