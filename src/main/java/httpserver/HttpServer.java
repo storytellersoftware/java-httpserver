@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * HttpServer is a relatively simple class with one job, and one job only:
@@ -16,6 +18,7 @@ import java.net.SocketException;
  * provide an existing mechanism for using the rest of the httpserver package.
  */
 public class HttpServer extends HttpHandler implements Runnable {
+
     public static final int defaultPort = 8000;
 
     /** The server's name */
@@ -32,7 +35,8 @@ public class HttpServer extends HttpHandler implements Runnable {
     private HttpRouter router;
 
     private boolean running = true;
-
+    
+    private Logger logger = Logger.getLogger("java-httpserver");
 
     /**
      * Create an HttpServer with default values.
@@ -86,8 +90,8 @@ public class HttpServer extends HttpHandler implements Runnable {
 
             socket = new ServerSocket();
 
-            System.out.println("Starting HttpServer at http://127.0.0.1:" + getPort());
-
+            logger.info("Starting HttpServer at http://127.0.0.1:" + getPort());
+            
             socket.setReuseAddress(true);
             socket.bind(new InetSocketAddress(getPort()));
 
@@ -98,28 +102,32 @@ public class HttpServer extends HttpHandler implements Runnable {
                     HttpRequest request = new HttpRequest(getRouter(), connection);
                     Thread t = new Thread(request);
                     t.start();
+                    
+					logger.info(String.format(
+							"Http request from %s:%d",
+							connection.getInetAddress(), connection.getPort()));
+                    
                 } catch (SocketException e) {
                     /*  This typically occurs when the client breaks the connection,
                         and isn't an issue on the server side, which means we shouldn't
                         break
                         */
-                    System.err.println("Client broke connection early!");
+                    	logger.warning("Client broke connection early!");
                     e.printStackTrace();
                 } catch (IOException e) {
                     /*  This typically means there's a problem in the HttpRequest
                     */
-                    System.err.println("IOException. Probably an HttpRequest issue.");
-                    e.printStackTrace();
+                    logger.log(Level.WARNING, "IOException. Probably an HttpRequest issue.", e);
+                    
                 } catch (HttpException e) {
-                    System.err.println("HttpException.");
-                    e.printStackTrace();
+                   
+                	logger.log(Level.WARNING, "HttpException.", e);
+                	
                 } catch (Exception e) {
                     /*  Some kind of unexpected exception occurred, something bad might
                         have happened.
                         */
-                    System.err.println("Generic Exception!");
-                    e.printStackTrace();
-
+                    logger.log(Level.SEVERE, "Generic Exception!", e);
                     /*  If you're currently developing using this, you might want to
                         leave this break here, because this means something unexpected
                         occured. If the break is left in, the server stops running, and
@@ -134,18 +142,16 @@ public class HttpServer extends HttpHandler implements Runnable {
         } catch (Exception e) {
             /*  Not sure when this occurs, but it might...
             */
-            System.err.println("Something bad happened...");
-            e.printStackTrace();
+            logger.log(Level.WARNING, "Something bad happened...", e);
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-                System.err.println("Well that's not good...");
-                e.printStackTrace();
+                logger.log(Level.WARNING, "Well that's not good...", e);
             }
         }
 
-        System.out.println("Server shutting down.");
+        logger.info("Server shutting down.");
     }
 
     /**
@@ -220,8 +226,8 @@ public class HttpServer extends HttpHandler implements Runnable {
         try {
             socket.close();
         } catch (IOException e) {
-            System.err.println("Error closing socket.");
-            e.printStackTrace();
+            
+        	logger.log(Level.WARNING, "Error closing socket.", e);
         }
     }
 }
