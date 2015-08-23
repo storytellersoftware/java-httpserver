@@ -35,7 +35,7 @@ public class HttpServer extends HttpHandler implements Runnable {
     private HttpRouter router;
 
     private boolean running = true;
-    
+
     private Logger logger = Logger.getLogger("java-httpserver");
 
     /**
@@ -91,7 +91,7 @@ public class HttpServer extends HttpHandler implements Runnable {
             socket = new ServerSocket();
 
             logger.info("Starting HttpServer at http://127.0.0.1:" + getPort());
-            
+
             socket.setReuseAddress(true);
             socket.bind(new InetSocketAddress(getPort()));
 
@@ -112,22 +112,23 @@ public class HttpServer extends HttpHandler implements Runnable {
                         and isn't an issue on the server side, which means we shouldn't
                         break
                         */
-                    	logger.warning("Client broke connection early!");
-                    e.printStackTrace();
+                    logger.log(Level.WARNING, "Client broke connection early!", e);
+
                 } catch (IOException e) {
                     /*  This typically means there's a problem in the HttpRequest
                     */
                     logger.log(Level.WARNING, "IOException. Probably an HttpRequest issue.", e);
                     
                 } catch (HttpException e) {
-                   
-                	logger.log(Level.WARNING, "HttpException.", e);
-                	
+
+                   logger.log(Level.WARNING, "HttpException.", e);
+
                 } catch (Exception e) {
                     /*  Some kind of unexpected exception occurred, something bad might
                         have happened.
                         */
                     logger.log(Level.SEVERE, "Generic Exception!", e);
+
                     /*  If you're currently developing using this, you might want to
                         leave this break here, because this means something unexpected
                         occured. If the break is left in, the server stops running, and
@@ -226,8 +227,7 @@ public class HttpServer extends HttpHandler implements Runnable {
         try {
             socket.close();
         } catch (IOException e) {
-            
-        	logger.log(Level.WARNING, "Error closing socket.", e);
+            logger.log(Level.WARNING, "Error closing socket.", e);
         }
     }
 }
