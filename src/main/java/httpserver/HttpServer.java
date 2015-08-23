@@ -103,10 +103,9 @@ public class HttpServer extends HttpHandler implements Runnable {
                     Thread t = new Thread(request);
                     t.start();
                     
-					logger.info(String.format(
-							"Http request from %s:%d",
-							connection.getInetAddress(), connection.getPort()));
-                    
+                    logger.info(String.format(
+                        "Http request from %s:%d", connection.getInetAddress(), connection.getPort()));
+
                 } catch (SocketException e) {
                     /*  This typically occurs when the client breaks the connection,
                         and isn't an issue on the server side, which means we shouldn't
@@ -121,7 +120,7 @@ public class HttpServer extends HttpHandler implements Runnable {
                     
                 } catch (HttpException e) {
 
-                   logger.log(Level.WARNING, "HttpException.", e);
+                    logger.log(Level.WARNING, "HttpException.", e);
 
                 } catch (Exception e) {
                     /*  Some kind of unexpected exception occurred, something bad might
